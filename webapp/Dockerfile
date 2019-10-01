@@ -5,8 +5,3 @@ WORKDIR /app/tw-webapp
 RUN git pull
 RUN npm install
 RUN npm run build
-
-FROM nginx as production-stage
-RUN mkdir /app
-COPY --from=build-stage /app/tw-webapp/dist /app
-COPY nginx.conf /etc/nginx/nginx.conf
