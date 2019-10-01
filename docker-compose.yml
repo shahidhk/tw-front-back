@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   web-app:
-    build: ./SAIS_API
+    build: ./webapp
     volumes:
       - webapp_build:/app/tw-webapp/dist
       
@@ -17,4 +17,4 @@ services:
       - web      
       
 volumes:
-  webapp_build:      
+  webapp_build:
