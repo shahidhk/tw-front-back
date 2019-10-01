@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  web-app:
+    build: ./SAIS_API
+    volumes:
+      - webapp_build:/app/tw-webapp/dist
+      
+  nginx:
+    restart: always
+    build: ./nginx
+    volumes:
+      - webapp_build:/app
+    ports:
+      - 80:80
+    depends_on:
+      - web      
+      
+volumes:
+  webapp_build:      
