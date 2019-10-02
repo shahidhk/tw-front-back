@@ -4,7 +4,7 @@ services:
   django:
     build: ./django
     restart: always
-    command: gunicorn SAIS_API.wsgi:application --bind 0.0.0.0:8000 --workers 4 --log-level=debug
+    command: gunicorn SAIS_API.wsgi:application --bind 0.0.0.0:8000 -t 300 --workers 4 --log-level=debug
     volumes:
       - ./django/:/usr/src/django/
     expose:
