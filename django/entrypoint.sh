@@ -10,7 +10,9 @@ then
 
     echo "PostgreSQL started"
 fi
-
+ls
+cd /django
+ls
 # python manage.py flush --no-input
 python SAIS_API/manage.py migrate
 # python manage.py collectstatic --no-input
