@@ -10,7 +10,7 @@ django = "~=2.2"
 gunicorn = "~=19.9"
 openpyxl = "~=2.6"
 django-silk = "~=3.0"
-django-background-tasks = "~=1.1"
+djangorestframework = "~=3.10"
 
 [requires]
 python_version = "3.7"
