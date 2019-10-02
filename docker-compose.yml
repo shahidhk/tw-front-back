@@ -15,7 +15,6 @@ services:
   nginx:
     image: nginx:stable-alpine
     restart: always
-    build: ./nginx
     volumes:
       - ./nginx/nginx.conf /etc/nginx/nginx.conf
       - webapp_build:/app
