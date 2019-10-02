@@ -30,4 +30,4 @@ COPY . /django/
 COPY ./entrypoint.sh /django/entrypoint.sh
 
 # run entrypoint.sh
-ENTRYPOINT ["/django/entrypoint.sh"]
+ENTRYPOINT ["sh", "/django/entrypoint.sh"]
