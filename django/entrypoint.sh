@@ -12,7 +12,6 @@ then
 fi
 
 # python manage.py flush --no-input
-cd /django/SAIS_API
 python manage.py migrate
 # python manage.py collectstatic --no-input
 exec "$@"
