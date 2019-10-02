@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # set work directory
-WORKDIR /app
+WORKDIR /django
 
 # install psycopg2
 RUN apk update \
@@ -20,14 +20,14 @@ RUN apk update \
 # install dependencies
 RUN pip install --upgrade pip
 RUN pip install pipenv
-COPY ./Pipfile /app/Pipfile
+COPY ./Pipfile /django/Pipfile
 RUN pipenv install --skip-lock --system --dev
 
-# copy entrypoint.sh
-COPY ./entrypoint.sh /app/entrypoint.sh
-
 # copy project
-COPY . /app/
+COPY . /django/
+
+# copy entrypoint.sh
+COPY ./entrypoint.sh /django/entrypoint.sh
 
 # run entrypoint.sh
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/django/entrypoint.sh"]
