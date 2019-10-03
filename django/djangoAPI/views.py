@@ -202,7 +202,7 @@ def db_fill(request):
             spatial_site.save()
     for asset_row in asset_line.items():
         avantis_asset = ClonedAssetAndRoleInRegistryTbl()
-        avantis_asset.mtnoi = asset_row[1][0]
+        avantis_asset.mtoi = asset_row[1][0]
         avantis_asset.role_number = asset_row[0]
         avantis_asset.role_name = asset_row[1][1][1]
         avantis_asset.parent_role_number = asset_row[1][1][3]
@@ -222,14 +222,14 @@ def db_fill(request):
 
 def update_asset_role(request):
     cloned_assets = ClonedAssetAndRoleInRegistryTbl.objects.all()
-    parent_mtnoi = {}  # dictionary for quickly finding entry by role number
+    parent_mtoi = {}  # dictionary for quickly finding entry by role number
     result_str = ''  # string for errors
     for entry in cloned_assets:  # populate dict, keys = role number
-        if entry.role_number in parent_mtnoi.keys():
+        if entry.role_number in parent_mtoi.keys():
             result_str = result_str + entry.role_number + \
                 ' has duplicates in the cloned table\n'
         else:
-            parent_mtnoi[entry.role_number] = entry
+            parent_mtoi[entry.role_number] = entry
     base_role_dict = {}  # dictionary for tracking roles and its pk
 
     # base_roles = projectAssetRoleRecordTbl.objects.all()
@@ -246,7 +246,7 @@ def update_asset_role(request):
             existing_role.role_criticality_id = entry.role_criticality
             existing_role.role_priority_id = entry.role_priority
             existing_role.role_spatial_site_id = entry.role_spatial_site_id
-            existing_role.cloned_role_registry_tbl_id = parent_mtnoi[entry.role_number].mtnoi
+            existing_role.cloned_role_registry_tbl_id = parent_mtoi[entry.role_number].mtoi
             existing_role.entity_exists = True
             existing_role.missing_from_registry = False
             existing_role.designer_planned_action_type_tbl_id = 3  # do nothing
@@ -256,17 +256,17 @@ def update_asset_role(request):
     with transaction.atomic():
         for role in base_roles:
             try:
-                role.parent_id_id = base_role_dict[parent_mtnoi[role.updatable_role_number].parent_role_number]
+                role.parent_id_id = base_role_dict[parent_mtoi[role.updatable_role_number].parent_role_number]
                 role.save()
             except Exception:
                 print(
-                    parent_mtnoi[role.updatable_role_number].parent_role_number)
+                    parent_mtoi[role.updatable_role_number].parent_role_number)
     # populate predesign asset records
     with transaction.atomic():
         for entry in cloned_assets:
             existing_asset = PreDesignReconciledAssetRecordTbl()
             existing_asset.asset_serial_number = 'disguised asset serial number'
-            existing_asset.cloned_role_registry_tbl_id = parent_mtnoi[entry.role_number].mtnoi
+            existing_asset.cloned_role_registry_tbl_id = parent_mtoi[entry.role_number].mtoi
             existing_asset.initial_project_asset_role_id_id = base_role_dict[entry.role_number]
             existing_asset.entity_exists = True
             existing_asset.missing_from_registry = False
