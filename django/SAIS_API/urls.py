@@ -17,6 +17,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.generic import RedirectView
 
+
 urlpatterns = [
     re_path(r'^', include('djangoAPI.apiurls')),
     path('admin/', admin.site.urls),

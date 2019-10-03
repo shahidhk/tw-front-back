@@ -18,7 +18,7 @@ def MissingRoleUtil(role_data):
     Checks to make sure role_number does not already exist
     '''
     try:
-        parent = projectAssetRoleRecordTbl.objects.get(pk=role_data['parent_id'])
+        parent = ProjectAssetRoleRecordTbl.objects.get(pk=role_data['parent_id'])
     except Exception as e:
         print(str(type(e)))
         print(str(e))
@@ -26,11 +26,11 @@ def MissingRoleUtil(role_data):
                 'errors' : 'Parent Does Not Exist ' + str(role_data['parent_id'])
                 }
     try:
-        role = projectAssetRoleRecordTbl.objects.get(updatable_role_number=role_data['role_number'])
-    except projectAssetRoleRecordTbl.DoesNotExist:
+        role = ProjectAssetRoleRecordTbl.objects.get(updatable_role_number=role_data['role_number'])
+    except ProjectAssetRoleRecordTbl.DoesNotExist:
         try:
             with transaction.atomic():
-                role = preDesignReconciledRoleRecordTbl()
+                role = PreDesignReconciledRoleRecordTbl()
                 role.updatable_role_number = role_data['role_number']
                 role.role_name = role_data['role_name']
                 role.parent_id = parent
@@ -61,7 +61,7 @@ def MissingAssetUtil(asset_data):
     '''
     try:
         with transaction.atomic():
-            asset = preDesignReconciledAssetRecordTbl()
+            asset = PreDesignReconciledAssetRecordTbl()
             asset.designer_planned_action_type_tbl_id = 3
             asset.entity_exists = False
             asset.initial_project_asset_role_id = None
@@ -84,14 +84,14 @@ def AssignAssetToRoleUtil(data):
     if data['role_id'] is None:
         pass
     else:
-        asset = list(preDesignReconciledAssetRecordTbl.objects.filter(initial_project_asset_role_id_id=data['role_id']))
+        asset = list(PreDesignReconciledAssetRecordTbl.objects.filter(initial_project_asset_role_id_id=data['role_id']))
         if len(asset) != 0:
             return {'result' : 1, 
                     'errors' : 'An Asset is currently assigned to the role: ' + str(asset[0].pk)
                     }
     with transaction.atomic():
         try:
-            asset = preDesignReconciledAssetRecordTbl.objects.get(pk=data['asset_id'])
+            asset = PreDesignReconciledAssetRecordTbl.objects.get(pk=data['asset_id'])
             asset.initial_project_asset_role_id_id = data['role_id']
             asset.save()
             return {'result' : 0, 
@@ -112,7 +112,7 @@ def DoesNotExistUtil(data):
     role_id = data['role_id']
     dne = data['entity_exists']
     try:
-        asset = preDesignReconciledAssetRecordTbl.objects.get(initial_project_asset_role_id_id=role_id)
+        asset = PreDesignReconciledAssetRecordTbl.objects.get(initial_project_asset_role_id_id=role_id)
     except Exception as e:
         print(str(type(e)))
         print(str(e))
@@ -120,20 +120,20 @@ def DoesNotExistUtil(data):
                 'errors' : 'Preexisting asset attached to this role cannot be found: ' + str(role_id)
                 }
     try:
-        role = preDesignReconciledRoleRecordTbl.objects.get(pk=role_id)
+        role = PreDesignReconciledRoleRecordTbl.objects.get(pk=role_id)
     except Exception as e:
         print(str(type(e)))
         print(str(e))
         return {'result' : 1, 
                 'errors' : 'This role cannot be found please refresh your View: ' + str(role_id)
                 }
-    child_roles = list(projectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
+    child_roles = list(ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
     # check for existance one by one * parent roles can be empty
     # it is pythonic to check to booleanness of the list to see if it is empty
     exist_childs = []
     if child_roles:
         for child in child_roles:
-            if child.predesignreconciledrolerecordtbl.entity_exists:
+            if child.Predesignreconciledrolerecordtbl.entity_exists:
                 exist_childs.append(child)
         if exist_childs:
             child_roles = [child.pk for child in child_roles]
@@ -168,7 +168,7 @@ def RetireAssetUtil(asset):
     Currently defaults to landfill, and stage(0)
     '''
     try:
-        existing_asset = preDesignReconciledAssetRecordTbl.objects.get(pk=asset)
+        existing_asset = PreDesignReconciledAssetRecordTbl.objects.get(pk=asset)
     except Exception as e:
         print(str(type(e)))
         print(str(e))
@@ -179,7 +179,7 @@ def RetireAssetUtil(asset):
         existing_asset.designer_planned_action_type_tbl_id=2
         existing_asset.save()
     try:
-        retired_asset = existingAssetDisposedByProjectTbl(
+        retired_asset = ExistingAssetDisposedByProjectTbl(
             predesignreconciledassetrecordtbl_ptr=existing_asset,
             uninstallation_stage_id=0,
         )
@@ -203,7 +203,7 @@ def RoleParentUtil(data):
                 }
     try:
         role = data['role_id']
-        role = projectAssetRoleRecordTbl.objects.get(id=role)
+        role = ProjectAssetRoleRecordTbl.objects.get(id=role)
     except Exception as e:
         print(str(type(e)))
         print(str(e))
@@ -212,7 +212,7 @@ def RoleParentUtil(data):
                 }
     try:
         parent = data['parent_id']
-        parent = projectAssetRoleRecordTbl.objects.get(id=parent)
+        parent = ProjectAssetRoleRecordTbl.objects.get(id=parent)
     except Exception as e:
         print(str(type(e)))
         print(str(e))

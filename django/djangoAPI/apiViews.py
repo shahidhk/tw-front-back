@@ -1,12 +1,12 @@
 # API calls are defined here
 # See http://tw-confluence.duckdns.org/display/SAIS/Database for Docs
 from .serializers import *
-from .apiTasks import *
 from .apiUtils import *
 
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
 
 def ResultReturn(data):
     if data['result'] == 0:
@@ -14,6 +14,7 @@ def ResultReturn(data):
         return Response(data, status=status.HTTP_201_CREATED)
     elif data['result'] == 1:
         return Response(data['errors'], status=status.HTTP_409_CONFLICT)
+
 
 class DevExplorationView(APIView):
     serializer_class = BoolSerializer
@@ -25,6 +26,7 @@ class DevExplorationView(APIView):
             return ResultReturn(data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class MissingRole(APIView):
     serializer_class = MissingRoleSerial
 
@@ -34,6 +36,7 @@ class MissingRole(APIView):
             data = MissingRoleUtil(serializer.data)
             return ResultReturn(data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class MissingAsset(APIView):
     serializer_class = MissingAssetSerial
@@ -45,6 +48,7 @@ class MissingAsset(APIView):
             return ResultReturn(data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class AssignAssetToRole(APIView):
     serializer_class = AssetRoleID
 
@@ -54,6 +58,7 @@ class AssignAssetToRole(APIView):
             data = AssignAssetToRoleUtil(serializer.data)
             return ResultReturn(data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class EntityExist(APIView):
     serializer_class = DoesNotExistSerial
@@ -65,6 +70,7 @@ class EntityExist(APIView):
             return ResultReturn(data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class RetireAsset(APIView):
     serializer_class = AssetID
 
@@ -74,6 +80,7 @@ class RetireAsset(APIView):
             data = RetireAssetUtil(serializer.data['asset_id'])
             return ResultReturn(data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RoleParent(APIView):
     serializer_class = RoleParentID
