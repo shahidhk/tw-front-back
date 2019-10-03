@@ -17,12 +17,9 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.generic import RedirectView
 
-from graphene_django.views import GraphQLView
-
 
 urlpatterns = [
     re_path(r'^', include('djangoAPI.apiurls')),
     path('admin/', admin.site.urls),
     path('djangoAPI/', include('djangoAPI.urls')),
-    path('graphql/', GraphQLView.as_view(graphiql=True))
 ]

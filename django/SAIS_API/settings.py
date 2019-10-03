@@ -52,12 +52,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-GRAPHENE = {
-    "SCHEMA": "djangoAPI.schema.schema",
-    "SCHEMA_INDENT": 2,
-    "MIDDLEWARE": ("graphene_django.debug.DjangoDebugMiddleware",),
-}
-
 ROOT_URLCONF = 'SAIS_API.urls'
 
 TEMPLATES = [
