@@ -56,3 +56,31 @@ from public."djangoAPI_predesignreconciledassetrecordtbl" as pa
 left join public."djangoAPI_projectassetrecordtbl" as ba
 on pa.projectassetrecordtbl_ptr_id=ba.id
 where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>2
+
+-- To impliment ltree
+-- https://coderwall.com/p/whf3-a/hierarchical-data-in-postgres
+add a ltree column to the role asset table
+CREATE EXTENSION ltree;
+CREATE INDEX parent_id_idx ON public."djangoAPI_projectassetrolerecordtbl" USING GIST (ltree_path);
+CREATE INDEX parent_path_idx ON public."djangoAPI_projectassetrolerecordtbl" (parent_id_id);
+
+CREATE OR REPLACE FUNCTION update_parent_path() RETURNS TRIGGER AS $$
+    DECLARE
+        path ltree;
+    BEGIN
+        IF NEW.parent_id_id IS NULL THEN
+            NEW.ltree_path = 'root'::ltree;
+        ELSEIF TG_OP = 'INSERT' OR OLD.parent_id_id IS NULL OR OLD.parent_id_id != NEW.parent_id_id THEN
+            SELECT ltree_path || id::text FROM public."djangoAPI_projectassetrolerecordtbl" WHERE id = NEW.parent_id_id INTO path;
+            IF path IS NULL THEN
+                RAISE EXCEPTION 'Invalid parent_id %', NEW.parent_id_id;
+            END IF;
+            NEW.ltree_path = path;
+        END IF;
+        RETURN NEW;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER parent_path_tgr
+    BEFORE INSERT OR UPDATE ON public."djangoAPI_projectassetrolerecordtbl"
+    FOR EACH ROW EXECUTE PROCEDURE update_parent_path();

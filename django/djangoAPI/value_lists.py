@@ -1,26 +1,47 @@
 from django.db import models
 
-class operationalBusinessUnit(models.Model):
+class OperationalBusinessUnit(models.Model):
     name = models.CharField(max_length=400)
 
-class sites(models.Model):
+    class Meta:
+        db_table = 'djangoAPI_OperationalBusinessUnit'
+
+class Sites(models.Model):
     site_id = models.CharField(max_length=3)
     site_name = models.CharField(max_length=400)
-    op_bus_unit = models.ForeignKey(operationalBusinessUnit, models.PROTECT)
+    op_bus_unit = models.ForeignKey(OperationalBusinessUnit, models.PROTECT)
 
-class designStageTypeTbl(models.Model):
+    class Meta:
+        db_table = 'djangoAPI_Sites'
+
+class DesignStageTypeTbl(models.Model):
     name = models.CharField(max_length=400)
 
-class designerPlannedActionTypeTbl(models.Model):
+    class Meta:
+        db_table = 'djangoAPI_DesignStageTypeTbl'
+
+class DesignerPlannedActionTypeTbl(models.Model):
     name = models.CharField(max_length=400)
 
-class importedSpatialSiteTbl(models.Model):
-    spatialSiteID = models.BigAutoField(primary_key=True)
-    name = models.CharField(max_length=400)
-    parentSiteId = models.ForeignKey(to='self', to_field='spatialSiteID', on_delete=models.PROTECT, null=True)
+    class Meta:
+        db_table = 'djangoAPI_DesignerPlannedActionTypeTbl'
 
-class roleCriticality(models.Model):
+class ImportedSpatialSiteTbl(models.Model):
+    spatial_site_id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=400)
+    parent_site_id = models.ForeignKey(to='self', to_field='spatial_site_id', on_delete=models.PROTECT, null=True)
+
+    class Meta:
+        db_table = 'djangoAPI_ImportedSpatialSiteTbl'
+
+class RoleCriticality(models.Model):
     id = models.AutoField(primary_key=True)
 
-class rolePriority(models.Model):
+    class Meta:
+        db_table = 'djangoAPI_RoleCriticality'
+
+class RolePriority(models.Model):
     id = models.AutoField(primary_key=True)
+
+    class Meta:
+        db_table = 'djangoAPI_RolePriority'
