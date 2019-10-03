@@ -230,11 +230,6 @@ def update_asset_role(request):
             parent_mtoi[entry.role_number] = entry
     base_role_dict = {}  # dictionary for tracking roles and its pk
 
-    # base_roles = projectAssetRoleRecordTbl.objects.all()
-    # for role in base_roles:
-    #     base_role_dict[role.updatable_role_number] = role.pk
-
-    # create project asset role record table
     with transaction.atomic():
         for entry in cloned_assets:
             existing_role = PreDesignReconciledRoleRecordTbl()
@@ -254,7 +249,7 @@ def update_asset_role(request):
     with transaction.atomic():
         for role in base_roles:
             try:
-                role.parent_id_id = base_role_dict[role.updatable_role_number]
+                role.parent_id_id = base_role_dict[parent_mtoi[role.updatable_role_number].parent_role_number]
                 role.save()
             except Exception:
                 print('cant save parent for ' + role.updatable_role_number)
