@@ -19,13 +19,11 @@ def init_db(request):
     '''
     with connection.cursor() as cursor:
         cursor.execute('CREATE EXTENSION ltree;')
-        print(str(cursor.fetchall()))
         cursor.execute('''ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" DROP COLUMN ltree_path;
         ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl"
             ADD COLUMN ltree_path ltree;
         CREATE INDEX parent_id_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" USING GIST (ltree_path);
         CREATE INDEX parent_path_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" (parent_id_id);''')
-        print(str(cursor.fetchall()))
         cursor.execute(
             '''
         CREATE OR REPLACE FUNCTION update_parent_path() RETURNS TRIGGER AS $$
@@ -47,14 +45,12 @@ def init_db(request):
             END;
         $$ LANGUAGE plpgsql;
         ''')
-        print(str(cursor.fetchall()))
         cursor.execute(
             '''
         CREATE TRIGGER parent_path_tgr
             BEFORE INSERT OR UPDATE ON public."djangoAPI_ProjectAssetRoleRecordTbl"
             FOR EACH ROW EXECUTE PROCEDURE update_parent_path();
         ''')
-        print(str(cursor.fetchall()))
         cursor.execute(
             '''
         create or replace view reconciliation_view as
@@ -79,7 +75,6 @@ def init_db(request):
         on (pa.projectassetrecordtbl_ptr_id=ba.id)) as a 
         on (r.id=a.initial_project_asset_role_id_id);
         ''')
-        print(str(cursor.fetchall()))
         cursor.execute(
             '''
         create or replace view unassigned_assets as
@@ -89,6 +84,7 @@ def init_db(request):
         on pa.projectassetrecordtbl_ptr_id=ba.id
         where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>2;
         ''')
+        return HttpResponse("Finished DB Fill")
 
 
 def db_fill(request):
@@ -205,7 +201,7 @@ def db_fill(request):
         avantis_asset.intent_to_reserve_id = 1
         avantis_asset.role_spatial_site_id_id = asset_row[1][0]
         avantis_asset.save()
-    return HttpResponse("Finished DB Init")
+    return HttpResponse("Finished DB Fill")
 
 
 def update_asset_role(request):
