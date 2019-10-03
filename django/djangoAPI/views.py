@@ -34,7 +34,7 @@ def init_db(request):
             print(str(e))
         try:
             cursor.execute(
-            '''
+                '''
         CREATE OR REPLACE FUNCTION update_parent_path() RETURNS TRIGGER AS $$
             DECLARE
                 path ltree;
@@ -59,7 +59,7 @@ def init_db(request):
             print(str(e))
         try:
             cursor.execute(
-            '''
+                '''
         CREATE TRIGGER parent_path_tgr
             BEFORE INSERT OR UPDATE ON public."djangoAPI_ProjectAssetRoleRecordTbl"
             FOR EACH ROW EXECUTE PROCEDURE update_parent_path();
@@ -183,7 +183,7 @@ def db_fill(request):
                 project_construction_stage_type_id=random.randint(1, 5),
             )
     asset_line = {}
-    with open('hashed_entities.csv', mode='r') as csv_file:
+    with open('avantis.csv', mode='r') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
