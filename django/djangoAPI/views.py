@@ -18,13 +18,22 @@ def init_db(request):
     Initilize the DB with extensions, views and ltree specific triggers
     '''
     with connection.cursor() as cursor:
-        cursor.execute('CREATE EXTENSION ltree;')
-        cursor.execute('''ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" DROP COLUMN ltree_path;
+        try:
+            cursor.execute('CREATE EXTENSION ltree;')
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+        try:
+            cursor.execute('''ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" DROP COLUMN ltree_path;
         ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl"
             ADD COLUMN ltree_path ltree;
         CREATE INDEX parent_id_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" USING GIST (ltree_path);
         CREATE INDEX parent_path_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" (parent_id_id);''')
-        cursor.execute(
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+        try:
+            cursor.execute(
             '''
         CREATE OR REPLACE FUNCTION update_parent_path() RETURNS TRIGGER AS $$
             DECLARE
@@ -45,12 +54,19 @@ def init_db(request):
             END;
         $$ LANGUAGE plpgsql;
         ''')
-        cursor.execute(
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+        try:
+            cursor.execute(
             '''
         CREATE TRIGGER parent_path_tgr
             BEFORE INSERT OR UPDATE ON public."djangoAPI_ProjectAssetRoleRecordTbl"
             FOR EACH ROW EXECUTE PROCEDURE update_parent_path();
         ''')
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
         cursor.execute(
             '''
         create or replace view reconciliation_view as
