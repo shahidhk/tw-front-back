@@ -62,7 +62,7 @@ class ProjectConstructionStageTbl(models.Model):
 
 class ClonedAssetAndRoleInRegistryTbl(models.Model):
     '''From Avantis'''
-    mtnoi = models.AutoField(verbose_name="Avantis ID", primary_key=True)
+    mtoi = models.AutoField(verbose_name="Avantis ID", primary_key=True)
     role_number = models.CharField(
         verbose_name="Entity Number", max_length=25, db_index=True, unique=True)
     role_name = models.CharField(verbose_name="Entity Name", max_length=200)
@@ -184,7 +184,7 @@ class ProjectAssetRoleRecordTbl(models.Model):
     ltree_path = models.TextField(blank=True, null=True)
 
     class Meta:
-        # managed = False
+        managed = False
         db_table = 'djangoAPI_ProjectAssetRoleRecordTbl'
 
 
@@ -218,6 +218,16 @@ class ProjectAssetRecordTbl(models.Model):
 
     class Meta:
         db_table = 'djangoAPI_ProjectAssetRecordTbl'
+
+
+class AssetClassificationTbl(models.Model):
+    '''List of all Classifications given to an asset'''
+    asset = models.ForeignKey(ProjectAssetRecordTbl, models.CASCADE)
+    # TODO should there be an acceptable list of classifications?
+    classification = models.TextField()
+
+    class Meta:
+        db_table = 'djangoAPI_AssetClassificationTbl'
 
 
 class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
