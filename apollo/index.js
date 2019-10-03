@@ -80,8 +80,8 @@ const typeDefs = gql`
   }
 
 `;
-
-const djangoAPIENDpoint = 'http://tw-backend.duckdns.org/api';
+const djangoAPIENDpoint = 'http://django.tw-webapp.duckdns.org/api';
+//const djangoAPIENDpoint = 'http://tw-webapp.duckdns.org/api';
 //const djangoAPIENDpoint = 'http://localhost:8000/api';
 
 const resolvers = {
