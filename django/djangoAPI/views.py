@@ -223,11 +223,9 @@ def db_fill(request):
 def update_asset_role(request):
     cloned_assets = ClonedAssetAndRoleInRegistryTbl.objects.all()
     parent_mtoi = {}  # dictionary for quickly finding entry by role number
-    result_str = ''  # string for errors
     for entry in cloned_assets:  # populate dict, keys = role number
         if entry.role_number in parent_mtoi.keys():
-            result_str = result_str + entry.role_number + \
-                ' has duplicates in the cloned table\n'
+            pass
         else:
             parent_mtoi[entry.role_number] = entry
     base_role_dict = {}  # dictionary for tracking roles and its pk
@@ -256,11 +254,10 @@ def update_asset_role(request):
     with transaction.atomic():
         for role in base_roles:
             try:
-                role.parent_id_id = base_role_dict[parent_mtoi[role.updatable_role_number].parent_role_number]
+                role.parent_id_id = base_role_dict[role.updatable_role_number]
                 role.save()
             except Exception:
-                print(
-                    parent_mtoi[role.updatable_role_number].parent_role_number)
+                print('cant save parent for ' + role.updatable_role_number)
     # populate predesign asset records
     with transaction.atomic():
         for entry in cloned_assets:
@@ -272,7 +269,7 @@ def update_asset_role(request):
             existing_asset.missing_from_registry = False
             existing_asset.designer_planned_action_type_tbl_id = 3  # do nothing
             existing_asset.save()
-    return HttpResponse(result_str + 'Finished Updating Asset & Role')
+    return HttpResponse('Finished Updating Asset & Role')
 
 
 def test(request):
