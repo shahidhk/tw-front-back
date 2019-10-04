@@ -14,12 +14,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.urls import include, path, re_path
 from django.views.generic import RedirectView
+from graphene_django.views import GraphQLView
 
+from djangoAPI.schema import schema
 
 urlpatterns = [
     re_path(r'^', include('djangoAPI.apiurls')),
     path('admin/', admin.site.urls),
     path('djangoAPI/', include('djangoAPI.urls')),
+    path('graphql/', GraphQLView.as_view(graphiql=True, schema=schema))
 ]

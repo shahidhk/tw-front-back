@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'djangoAPI',
     'silk',
     'rest_framework',
+    'graphene_django',
 ]
 
 MIDDLEWARE = [

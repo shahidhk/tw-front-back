@@ -47,7 +47,7 @@ def MissingRoleUtil(role_data):
                     'errors' : str(type(e)) + ' Operation Failed ' + str(e)
                     }
         return {'result' : 0, 
-                'errors' : 'N/A'
+                'errors' : role.pk,
                 }
     else:
         return {'result' : 1, 
