@@ -80,9 +80,9 @@ const typeDefs = gql`
   }
 
 `;
-const djangoAPIENDpoint = 'http://django.tw-webapp.duckdns.org/api';
+//const djangoAPIENDpoint = 'http://django.tw-webapp.duckdns.org/api';
 //const djangoAPIENDpoint = 'http://tw-webapp.duckdns.org/api';
-//const djangoAPIENDpoint = 'http://localhost:8000/api';
+const djangoAPIENDpoint = 'http://localhost:8000/api';
 
 const resolvers = {
   // dummy query not actually used for anything

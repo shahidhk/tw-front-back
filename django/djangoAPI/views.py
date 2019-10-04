@@ -48,7 +48,7 @@ def init_db(request):
                     END IF;
                     NEW.ltree_path = path;
                     UPDATE public."djangoAPI_ProjectAssetRoleRecordTbl"
-                        SET ltree_path = path || subpath(ltree_path,nlevel(OLD.ltree_path)) WHERE ltree_path <@ OLD.ltree_path AND ltree_path != OLD.ltree_path;
+                        SET ltree_path = path || subpath(ltree_path,nlevel(OLD.ltree_path)) WHERE ltree_path <@ (OLD.ltree_path || (old.id::text));
                 END IF;
                 RETURN NEW;
             END;
@@ -228,8 +228,8 @@ def update_asset_role(request):
             pass
         else:
             parent_mtoi[entry.role_number] = entry
-    base_role_dict = {}  # dictionary for tracking roles and its pk
 
+    base_role_dict = {}  # dictionary for tracking roles and its pk
     with transaction.atomic():
         for entry in cloned_assets:
             existing_role = PreDesignReconciledRoleRecordTbl()
@@ -246,13 +246,17 @@ def update_asset_role(request):
             existing_role.save()
             base_role_dict[existing_role.updatable_role_number] = existing_role.pk
     base_roles = ProjectAssetRoleRecordTbl.objects.all()
-    with transaction.atomic():
-        for role in base_roles:
-            try:
-                role.parent_id_id = base_role_dict[parent_mtoi[role.updatable_role_number].parent_role_number]
-                role.save()
-            except Exception:
-                print('cant save parent for ' + role.updatable_role_number)
+    # with transaction.atomic():
+    return 0
+    for role in base_roles:
+        try:
+            role.parent_id_id = base_role_dict[parent_mtoi[role.updatable_role_number].parent_role_number]
+            role.save()
+        except Exception as e:
+            print('cant save parent for ' +
+                  role.updatable_role_number + str(type(e)) + str(e))
+        else:
+            print('saved parent for ' + role.updatable_role_number)
     # populate predesign asset records
     with transaction.atomic():
         for entry in cloned_assets:

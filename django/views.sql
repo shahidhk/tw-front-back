@@ -50,7 +50,7 @@ CREATE OR REPLACE FUNCTION update_parent_path() RETURNS TRIGGER AS $$
             END IF;
             NEW.ltree_path = path;
             UPDATE public."djangoAPI_ProjectAssetRoleRecordTbl"
-                SET ltree_path = path || subpath(ltree_path,nlevel(OLD.ltree_path)) WHERE ltree_path <@ OLD.ltree_path AND ltree_path != OLD.ltree_path;
+                SET ltree_path = path || subpath(ltree_path,nlevel(OLD.ltree_path)) WHERE ltree_path <@ (OLD.ltree_path || (old.id::text));
         END IF;
         RETURN NEW;
     END;
