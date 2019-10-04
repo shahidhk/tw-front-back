@@ -247,7 +247,6 @@ def update_asset_role(request):
             base_role_dict[existing_role.updatable_role_number] = existing_role.pk
     base_roles = ProjectAssetRoleRecordTbl.objects.all()
     # with transaction.atomic():
-    return 0
     for role in base_roles:
         try:
             role.parent_id_id = base_role_dict[parent_mtoi[role.updatable_role_number].parent_role_number]
