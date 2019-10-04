@@ -78,4 +78,3 @@ services:
 volumes:
   webapp_build:
   postgres_data:
-

@@ -40,19 +40,21 @@ def init_db(request):
                 path ltree;
             BEGIN
                 IF NEW.parent_id_id IS NULL THEN
-                    NEW.ltree_path = 'root'::ltree;
+                    NEW.ltree_path = ((new.id::text)::ltree);
                 ELSEIF TG_OP = 'INSERT' OR OLD.parent_id_id IS NULL OR OLD.parent_id_id != NEW.parent_id_id THEN
-                    SELECT ltree_path || id::text FROM public."djangoAPI_ProjectAssetRoleRecordTbl" WHERE id = NEW.parent_id_id INTO path;
+                    SELECT ltree_path FROM public."djangoAPI_ProjectAssetRoleRecordTbl" WHERE id = NEW.parent_id_id INTO path;
                     IF path IS NULL THEN
                         RAISE EXCEPTION 'Invalid parent_id %. Entities must be added parents first', NEW.parent_id_id;
                     END IF;
+                    path = path || new.id::text;
                     NEW.ltree_path = path;
                     UPDATE public."djangoAPI_ProjectAssetRoleRecordTbl"
-                        SET ltree_path = path || subpath(ltree_path,nlevel(OLD.ltree_path)) WHERE ltree_path <@ (OLD.ltree_path || (old.id::text));
+                        SET ltree_path = path || subpath(ltree_path,nlevel(OLD.ltree_path)) WHERE ltree_path <@ OLD.ltree_path and ltree_path != old.ltree_path;
                 END IF;
                 RETURN NEW;
             END;
         $$ LANGUAGE plpgsql;
+        
         ''')
         except Exception as e:
             print(type(str(e)))
