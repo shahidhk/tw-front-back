@@ -77,6 +77,7 @@ def init_db(request):
         r.project_tbl_id as project_id,
         r.entity_exists as role_exists,
         r.missing_from_registry as role_missing_from_registry,
+        r.ltree_path as full_path,
         a.id as asset_id,
         a.asset_serial_number as asset_serial_number,
         a.entity_exists as asset_exists,
@@ -100,7 +101,7 @@ def init_db(request):
         on pa.projectassetrecordtbl_ptr_id=ba.id
         where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>2;
         ''')
-        return HttpResponse("Finished DB Fill")
+        return HttpResponse("Finished DB init")
 
 
 def db_fill(request):

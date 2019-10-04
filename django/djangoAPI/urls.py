@@ -2,8 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('initdb/', views.init_db),
-    path('filldb/', views.db_fill),
-    path('updatedb/', views.update_asset_role),
+    path('db-init/', views.init_db),
+    path('db-fill/', views.db_fill),
+    path('db-update/', views.update_asset_role),
     path('test/', views.test),
 ]
