@@ -77,7 +77,7 @@ services:
       - VALIDATION=duckdns
       - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
     volumes:
-      - webapp_build:/app
+      - webapp_build:/webapp
       - /home/appdata/letsencrypt:/config
     ports:
       - 80:80
