@@ -126,3 +126,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# TODO hasura introspection failed due to CSRF
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
