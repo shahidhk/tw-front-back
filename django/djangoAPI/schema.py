@@ -13,6 +13,11 @@ class ReconViewType(DjangoObjectType):
         model = ReconciliationView
 
 
+class UnassAssViewType(DjangoObjectType):
+    class Meta:
+        model = UnassignedAssetsView
+
+
 class InsertReconViewInput(graphene.InputObjectType):
     role_number = graphene.String(required=True)
     role_name = graphene.String(required=True)
@@ -21,6 +26,28 @@ class InsertReconViewInput(graphene.InputObjectType):
     role_criticality = graphene.Int(required=False)
     role_priority = graphene.Int(required=False)
     role_spatial_site_id = graphene.Int(required=False)
+
+
+class EQ(graphene.InputObjectType):
+    _eq = graphene.Int(required=True)
+
+
+class IDEQ(graphene.InputObjectType):
+    id = EQ(required=True)
+
+
+class UpdateReconView(graphene.Mutation):
+    class Arguments:
+        where = IDEQ(required=True)
+
+    returning = graphene.Field(ReconViewType)
+
+    @staticmethod
+    def mutate(root, info, where=None):
+        if where is None:
+            raise GraphQLError('No object specified')
+        else:
+            print(where.id._eq)
 
 
 class InsertReconciliationView(graphene.Mutation):
@@ -32,26 +59,22 @@ class InsertReconciliationView(graphene.Mutation):
     @staticmethod
     def mutate(root, info, objects=None):
         if objects is None:
-            return 'No object specified'
-        role_data = {
-            'role_number': objects.role_number,
-            'role_spatial_site_id': 1,  # objects.role_spatial_site_id
-            'role_priority': 1,  # objects.role_priority
-            'role_name': objects.role_name,
-            'role_criticality': 1,  # objects.role_criticality
-            'parent_id': objects.parent,
-        }
-        new_entity = MissingRoleUtil(role_data)
-        if new_entity['result'] == 0:
-            new_entity = ReconciliationView.objects.get(
-                pk=new_entity['errors'])
-            return InsertReconciliationView(returning=new_entity)
-        raise GraphQLError(new_entity['errors'])
-
-
-class UnassAssViewType(DjangoObjectType):
-    class Meta:
-        model = UnassignedAssetsView
+            raise GraphQLError('No object specified')
+        else:
+            role_data = {
+                'role_number': objects.role_number,
+                'role_spatial_site_id': 1,  # objects.role_spatial_site_id
+                'role_priority': 1,  # objects.role_priority
+                'role_name': objects.role_name,
+                'role_criticality': 1,  # objects.role_criticality
+                'parent_id': objects.parent,
+            }
+            new_entity = MissingRoleUtil(role_data)
+            if new_entity['result'] == 0:
+                new_entity = ReconciliationView.objects.get(
+                    pk=new_entity['errors'])
+                return InsertReconciliationView(returning=new_entity)
+            raise GraphQLError(new_entity['errors'])
 
 
 class Query(ObjectType):
@@ -67,6 +90,7 @@ class Query(ObjectType):
 
 class Mutations(graphene.ObjectType):
     insert_reconciliation_view = InsertReconciliationView.Field()
+    update_reconciliation_view = UpdateReconView.Field()
 
 
-schema = graphene.Schema(query=Query, mutation=Mutations)
+schema = graphene.Schema(query=Query, mutation=Mutations, auto_camelcase=False)
