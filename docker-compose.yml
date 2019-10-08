@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 services:
   django:
@@ -29,9 +29,9 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     environment:
       POSTGRES_PASSWORD: NGNvarvpZIpa8R88
-  
+
   pgadmin:
-    restart: always  
+    restart: always
     image: dpage/pgadmin4:latest
     links:
       - db
@@ -51,30 +51,42 @@ services:
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       ## uncomment next line to set an admin secret
       HASURA_GRAPHQL_ADMIN_SECRET: eDfGfj041tHBYkX9
-  # web-app is a build slave
 
-  web-app:
-    build: ./webapp
-    volumes:
-      - webapp_build:/app/tw-webapp
-      
+  # web-app is a build slave
+  # web-app:
+  #   build: ./webapp
+  #   volumes:
+  #     - webapp_build:/app/tw-webapp
+
   apollo:
     build: ./apollo
     restart: always
-  
+
   nginx:
-    image: nginx:stable-alpine
+    build: ./nginx
+    # image: nginx:stable-alpine
     restart: always
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - URL=tw-webapp-next.duckdns.org
+      - SUBDOMAINS=wildcard
+      - VALIDATION=duckdns
+      - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - webapp_build:/app
+      # - webapp_build:/webapp
+      - /home/appdata/letsencrypt:/config
     ports:
       - 80:80
+      - 443:443
     depends_on:
-      - web-app
+      # - web-app
       - apollo
       - graphql-engine
 
 volumes:
-  webapp_build:
+  # webapp_build:
   postgres_data:

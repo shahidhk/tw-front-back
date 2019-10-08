@@ -1,5 +1,2 @@
-# Not Used
-FROM nginx:stable-alpine
-
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d
+FROM linuxserver/letsencrypt
+COPY nginx.conf /config/nginx/site-confs/default
