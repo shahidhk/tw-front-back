@@ -182,13 +182,13 @@ class DeleteUnassView(graphene.Mutation):
 
 
 class Query(ObjectType):
-    reconciliation_view = graphene.List(ReconViewType)
-    unassigned_assets = graphene.List(UnassAssViewType)
+    reconciliation_view_2 = graphene.List(ReconViewType)
+    unassigned_assets_2 = graphene.List(UnassAssViewType)
 
-    def resolve_reconciliation_view(self, info, **kwargs):
+    def resolve_reconciliation_view_2(self, info, **kwargs):
         return ReconciliationView.objects.all()
 
-    def resolve_all_avantis(self, info, **kwargs):
+    def resolve_all_avantis_2(self, info, **kwargs):
         return UnassignedAssetsView.objects.all()
 
 

@@ -7,6 +7,7 @@ services:
     command: gunicorn SAIS_API.wsgi:application --bind 0.0.0.0:8000 -t 300 --workers 4 --log-level=debug
     volumes:
       - ./django/:/usr/src/django/
+      - static_volume:/usr/src/django/static
     expose:
       - 8000
     environment:
@@ -53,10 +54,10 @@ services:
       HASURA_GRAPHQL_ADMIN_SECRET: eDfGfj041tHBYkX9
 
   # web-app is a build slave
-  # web-app:
-  #   build: ./webapp
-  #   volumes:
-  #     - webapp_build:/app/tw-webapp
+  web-app:
+    build: ./webapp
+    volumes:
+      - webapp_build:/app/tw-webapp
 
   apollo:
     build: ./apollo
@@ -78,6 +79,7 @@ services:
       - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
     volumes:
       # - webapp_build:/webapp
+      - static_volume:/usr/src/django/static
       - /home/appdata/letsencrypt:/config
     ports:
       - 80:80
@@ -89,4 +91,5 @@ services:
 
 volumes:
   # webapp_build:
+  static_volume:
   postgres_data:
