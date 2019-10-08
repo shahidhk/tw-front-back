@@ -276,3 +276,34 @@ class NewAssetDeliveredByProjectTbl(ProjectAssetRecordTbl):
 
     class Meta:
         db_table = 'djangoAPI_NewAssetDeliveredByProjectTbl'
+
+
+class ReconciliationView(models.Model):
+    '''Read only model using data from reconciliation_view'''
+    id = models.IntegerField(primary_key=True)
+    role_number = models.TextField(null=True)
+    role_name = models.TextField(null=True)
+    parent = models.IntegerField(null=True) # TODO try setting this to a FK to get a relation
+    project_id = models.IntegerField(null=True)
+    role_exists = models.BooleanField(null=True)
+    role_missing_from_registry = models.BooleanField(null=True)
+    full_path = models.TextField(null=True)
+    asset_id = models.IntegerField(null=True)
+    asset_serial_number = models.TextField(null=True)
+    asset_exists = models.BooleanField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)
+
+    class Meta:
+        managed = False
+        db_table = "reconciliation_view"
+
+
+class UnassignedAssetsView(models.Model):
+    '''Read Only model using data from unassigned_assets'''
+    # TODO this probably does not need to be a view, a filter probably works
+    id = models.IntegerField(primary_key=True)
+    asset_serial_number = models.TextField(null=True)
+
+    class Meta:
+        managed = False
+        db_table = "unassigned_assets"
