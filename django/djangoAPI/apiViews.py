@@ -77,7 +77,7 @@ class RetireAsset(APIView):
     def post(self, request):
         serializer = AssetID(data=request.data)
         if serializer.is_valid():
-            data = RetireAssetUtil(serializer.data['asset_id'])
+            data = RetireAssetUtil(serializer.data)
             return ResultReturn(data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
