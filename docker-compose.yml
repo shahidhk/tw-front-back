@@ -65,7 +65,6 @@ services:
 
   nginx:
     build: ./nginx
-    # image: nginx:stable-alpine
     restart: always
     cap_add:
       - NET_ADMIN
@@ -78,18 +77,18 @@ services:
       - VALIDATION=duckdns
       - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
     volumes:
-      # - webapp_build:/webapp
+      - webapp_build:/webapp
       - static_volume:/usr/src/django/static
       - /home/appdata/letsencrypt:/config
     ports:
       - 80:80
       - 443:443
     depends_on:
-      # - web-app
+      - web-app
       - apollo
       - graphql-engine
 
 volumes:
-  # webapp_build:
+  webapp_build:
   static_volume:
   postgres_data:
