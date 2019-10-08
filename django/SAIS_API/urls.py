@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView
+from django.views.decorators.csrf import csrf_exempt
 from graphene_django.views import GraphQLView
 
 from djangoAPI.schema import schema
@@ -24,5 +25,5 @@ urlpatterns = [
     re_path(r'^', include('djangoAPI.apiurls')),
     path('admin/', admin.site.urls),
     path('djangoAPI/', include('djangoAPI.urls')),
-    path('graphql/', GraphQLView.as_view(graphiql=True, schema=schema))
+    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True, schema=schema)))
 ]
