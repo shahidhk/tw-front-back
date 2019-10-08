@@ -133,7 +133,7 @@ def DoesNotExistUtil(data):
     exist_childs = []
     if child_roles:
         for child in child_roles:
-            if child.Predesignreconciledrolerecordtbl.entity_exists:
+            if child.predesignreconciledrolerecordtbl.entity_exists:
                 exist_childs.append(child)
         if exist_childs:
             child_roles = [child.pk for child in child_roles]
