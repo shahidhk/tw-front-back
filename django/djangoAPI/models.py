@@ -15,10 +15,11 @@ from djangoAPI.value_lists import *
 
 class ProjectTbl(models.Model):
     '''Master Table of Projects'''
-    project_site = models.ForeignKey(OperationalBusinessUnit, models.PROTECT)
-    # TODO this should be a foreign key?
-    project_manager = models.CharField(max_length=400)
+    project_op_bus_unit = models.ForeignKey(
+        OperationalBusinessUnit, models.PROTECT)
+    design_contract_number = models.CharField(max_length=50)
     date_range = fields.DateRangeField()
+    project_scope_description = models.TextField()
 
     class Meta:
         db_table = 'djangoAPI_ProjectTbl'
@@ -28,11 +29,33 @@ class ProjectDesignPhaseTbl(models.Model):
     '''list all design phases'''
     project_tbl = models.ForeignKey(ProjectTbl, models.CASCADE)
     project_design_stage_type = models.ForeignKey(
-        DesignStageTypeTbl, models.PROTECT)  # TODO shouldnt this be a phase?
+        DesignStageTypeTbl, models.PROTECT)
+    # TODO shouldnt this be a phase?
     planned_date_range = fields.DateRangeField()
 
     class Meta:
         db_table = 'djangoAPI_ProjectDesignPhaseTbl'
+
+
+class UserType(models.Model):
+    user_type_name = models.CharField(max_length=400)
+    tw_employee = models.BooleanField()
+    city_employee = models.BooleanField()
+
+    class Meta:
+        db_table = 'djangoAPI_UserType'
+
+
+class UserTbl(models.Model):
+    '''Master Table of Users'''
+    name = models.CharField(max_length=100)
+    username = models.CharField(max_length=100)
+    user_type = models.ForeignKey(UserType, models.PROTECT)
+    organization_name = models.CharField(max_length=400)
+    email = models.EmailField()
+
+    class Meta:
+        db_table = 'djangoAPI_UserTbl'
 
 
 class ProjectConstructionPhaseTbl(models.Model):
@@ -40,6 +63,8 @@ class ProjectConstructionPhaseTbl(models.Model):
     project_tbl = models.ForeignKey(ProjectTbl, models.CASCADE)
     phase_number = models.BigIntegerField()
     planned_date_range = fields.DateRangeField()
+    manager = models.ForeignKey(UserTbl, models.PROTECT)
+    description = models.TextField()
 
     class Meta:
         db_table = 'djangoAPI_ProjectConstructionPhaseTbl'
@@ -106,30 +131,9 @@ class DBTbls(models.Model):
         db_table = 'djangoAPI_DBTbls'
 
 
-class UserType(models.Model):
-    user_type_name = models.CharField(max_length=400)
-    tw_employee = models.BooleanField()
-    city_employee = models.BooleanField()
-
-    class Meta:
-        db_table = 'djangoAPI_UserType'
-
-
-class UserTbl(models.Model):
-    '''Master Table of Users'''
-    username = models.CharField(max_length=400)
-    # TODO how do the types relate to each other?
-    user_type = models.ForeignKey(UserType, models.PROTECT)
-    # should be a predefined list probably
-    organization_name = models.CharField(max_length=400)
-    # TODO do we want email? for sending mail
-
-    class Meta:
-        db_table = 'djangoAPI_UserTbl'
-
-
 class AccessProfileTbl(models.Model):
-    '''Master List of Avaliable User Access Profiles'''
+    '''Enum of Avaliable User Access Profiles'''
+    id = models.CharField(primary_key=True, max_length=5)
     profile_name = models.CharField(max_length=400)
 
     class Meta:
@@ -157,10 +161,23 @@ class AccessProfileDefinitionTbl(models.Model):
         db_table = 'djangoAPI_AccessProfileDefinitionTbl'
 
 
+class UserRole(models.Model):
+    '''Enum of User Roles Avaliable'''
+    # https://docs.hasura.io/1.0/graphql/manual/schema/enums.html#create-enum-table
+    # TODO https://docs.hasura.io/1.0/graphql/manual/api-reference/schema-metadata-api/table-view.html#set-table-is-enum
+    id = models.CharField(
+        primary_key=True, max_length=5)  # use a, b, c...z, aa, ab
+    role_title = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'djangoAPI_UserRole'
+
+
 class UserProjectLinkTbl(models.Model):
     '''Links Users with their Projects'''
     user = models.ForeignKey(UserTbl, models.CASCADE)
     project = models.ForeignKey(ProjectTbl, models.CASCADE)
+    title = models.ForeignKey(UserRole, models.PROTECT)
 
     class Meta:
         db_table = 'djangoAPI_UserProjectLinkTbl'
@@ -180,6 +197,7 @@ class ProjectAssetRoleRecordTbl(models.Model):
     role_priority = models.ForeignKey(RolePriority, models.PROTECT)
     project_tbl = models.ForeignKey(
         ProjectTbl, on_delete=models.PROTECT, null=True)
+    approved = models.BooleanField(default=False)
     # to impliment ltree, since the type isnt correctly this table will be unmanaged
     ltree_path = models.TextField(blank=True, null=True)
 
@@ -283,7 +301,8 @@ class ReconciliationView(models.Model):
     id = models.IntegerField(primary_key=True)
     role_number = models.TextField(null=True)
     role_name = models.TextField(null=True)
-    parent = models.IntegerField(null=True) # TODO try setting this to a FK to get a relation
+    # TODO try setting this to a FK to get a relation
+    parent = models.IntegerField(null=True)
     project_id = models.IntegerField(null=True)
     role_exists = models.BooleanField(null=True)
     role_missing_from_registry = models.BooleanField(null=True)

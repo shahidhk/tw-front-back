@@ -111,10 +111,10 @@ class InsertReconciliationView(graphene.Mutation):
     def mutate(root, info, objects=None):
         role_data = {
             'role_number': objects.role_number,
-            'role_spatial_site_id': 1,  # objects.role_spatial_site_id
-            'role_priority': 1,  # objects.role_priority
+            'role_spatial_site_id': 'a',  # objects.role_spatial_site_id
+            'role_priority': 'a',  # objects.role_priority
             'role_name': objects.role_name,
-            'role_criticality': 1,  # objects.role_criticality
+            'role_criticality': 'a',  # objects.role_criticality
             'parent_id': objects.parent,
         }
         new_entity = MissingRoleUtil(role_data)

@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from djangoAPI.models import *
+from djangoAPI.utils import num_to_alpha
 
 
 def init_db(request):
@@ -101,7 +102,7 @@ def init_db(request):
         from public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
         left join public."djangoAPI_ProjectAssetRecordTbl" as ba
         on pa.projectassetrecordtbl_ptr_id=ba.id
-        where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>2;
+        where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>"b";
         ''')
         return HttpResponse("Finished DB init")
 
@@ -111,8 +112,7 @@ def db_fill(request):
     Fill the DB with test data
     Will eventually switch to initialization with constants for list tables
     '''
-    for i in range(2):
-        i = i + 1
+    for i in ['a', 'b', 'c']:
         OperationalBusinessUnit.objects.create(
             pk=i,
             name='OpBusUnit Number ' + str(i),
@@ -122,39 +122,37 @@ def db_fill(request):
             pk=i+1,
             site_id='ST' + str(i),
             site_name='Site ' + str(i),
-            op_bus_unit_id=i/5+1,
+            op_bus_unit_id=['a', 'b', 'c'][int(i/5+1)],
         )
-    for i in range(5):
+    for i in ['a', 'b', 'c', 'd', 'e', 'f']:
         DesignStageTypeTbl.objects.create(
-            pk=i+1,
-            name='Design Stage Type ' + str(i+1),
+            pk=i,
+            name='Design Stage Type ' + str(i),
         )
     lst = ['move', 'dispose', 'nothing']
     j = 1
     for i in lst:
         DesignerPlannedActionTypeTbl.objects.create(
-            pk=j,
+            pk=['a', 'b', 'c', 'd', 'e', 'f'][j-1],
             name=i,
         )
         j = j + 1
-    for i in range(5):
+    for i in ['a', 'b', 'c', 'd', 'e', 'f']:
         RoleCriticality.objects.create(
-            id=i+1,
+            id=i,
+            name='criticality ' + i,
         )
-    for i in range(5):
+    for i in ['a', 'b', 'c', 'd', 'e', 'f']:
         RolePriority.objects.create(
-            id=i+1,
+            id=i,
+            name='priority ' + i
         )
-    lst = ['Tony Huang', 'Peter Lewis', 'Stephen Almeida']
-    j = 0
-    for i in lst:
+    for i in range(3):
         ProjectTbl.objects.create(
-            pk=j+1,
-            project_manager=i,
+            pk=i+1,
             date_range=(date.today(), date.today() + timedelta(days=40)),
-            project_site_id=random.randint(1, 2),
+            project_op_bus_unit_id=['a', 'b', 'c'][i],
         )
-        j = j + 1
     today = date.today()
     for i in range(2):
         today = today + timedelta(days=5)
@@ -162,9 +160,28 @@ def db_fill(request):
             ProjectDesignPhaseTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=5), today),
-                project_design_stage_type_id=random.randint(1, 5),
+                project_design_stage_type_id=[
+                    'a', 'b', 'c', 'd', 'e'][j],
                 project_tbl_id=j + 1,
             )
+    UserType.objects.create(
+        id=1,
+        user_type_name='a user',
+        tw_employee=True,
+        city_employee=True,
+    )
+    lst = ['Tony Huang', 'Peter Lewis', 'Stephen Almeida']
+    j = 0
+    for i in lst:
+        UserTbl.objects.create(
+            id=j+1,
+            name=i,
+            username=i,
+            organization_name='TW',
+            email='admin@admin.ca',
+            user_type_id=1,
+        )
+        j = j + 1
     today = date.today() + timedelta(days=10)
     for i in range(2):
         today = today + timedelta(days=15)
@@ -174,6 +191,8 @@ def db_fill(request):
                 planned_date_range=(today-timedelta(days=15), today),
                 phase_number=i,
                 project_tbl_id=j + 1,
+                description='a project construction phase',
+                manager_id=j + 1,
             )
     today = date.today() + timedelta(days=10)
     for i in range(2):
@@ -183,7 +202,8 @@ def db_fill(request):
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=5), today),
                 project_construction_phase_id=i+1,
-                project_construction_stage_type_id=random.randint(1, 5),
+                project_construction_stage_type_id=[
+                    'a', 'b', 'c', 'd', 'e'][j],
             )
     asset_line = {}
     with open('avantis.csv', mode='r') as csv_file:
@@ -239,13 +259,15 @@ def update_asset_role(request):
             existing_role.updatable_role_number = entry.role_number
             existing_role.role_name = entry.role_name
             existing_role.parent_id_id = None  # fill this in on the second go
-            existing_role.role_criticality_id = entry.role_criticality
-            existing_role.role_priority_id = entry.role_priority
+            existing_role.role_criticality_id = num_to_alpha(
+                entry.role_criticality)
+            existing_role.role_priority_id = num_to_alpha(entry.role_priority)
             existing_role.role_spatial_site_id = entry.role_spatial_site_id
             existing_role.cloned_role_registry_tbl_id = parent_mtoi[entry.role_number].mtoi
             existing_role.entity_exists = True
             existing_role.missing_from_registry = False
-            existing_role.designer_planned_action_type_tbl_id = 3  # do nothing
+            existing_role.designer_planned_action_type_tbl_id = num_to_alpha(
+                3)  # do nothing
             existing_role.save()
             base_role_dict[existing_role.updatable_role_number] = existing_role.pk
     base_roles = ProjectAssetRoleRecordTbl.objects.all()
@@ -268,7 +290,8 @@ def update_asset_role(request):
             existing_asset.initial_project_asset_role_id_id = base_role_dict[entry.role_number]
             existing_asset.entity_exists = True
             existing_asset.missing_from_registry = False
-            existing_asset.designer_planned_action_type_tbl_id = 3  # do nothing
+            existing_asset.designer_planned_action_type_tbl_id = num_to_alpha(
+                3)  # do nothing
             existing_asset.save()
     return HttpResponse('Finished Updating Asset & Role')
 
