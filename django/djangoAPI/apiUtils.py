@@ -227,15 +227,18 @@ def RoleParentUtil(data):
         return {'result': 1,
                 'errors': 'Role cannot be found please refresh your View: ' + str(data['role_id'])
                 }
-    try:
-        parent = data['parent_id']
-        parent = ProjectAssetRoleRecordTbl.objects.get(id=parent)
-    except Exception as e:
-        print(str(type(e)))
-        print(str(e))
-        return {'result': 1,
-                'errors': 'Role cannot be found please refresh your View: ' + str(data['parent_id'])
-                }
+    if not data['parent_id'] is None:
+        try:
+            parent = data['parent_id']
+            parent = ProjectAssetRoleRecordTbl.objects.get(id=parent)
+        except Exception as e:
+            print(str(type(e)))
+            print(str(e))
+            return {'result': 1,
+                    'errors': 'Parent role cannot be found please refresh your View: ' + str(data['parent_id'])
+                    }
+    else:
+        parent = None
     try:
         role.parent_id = parent
         role.save()
