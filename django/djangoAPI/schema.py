@@ -198,7 +198,7 @@ class Mutations(graphene.ObjectType):
     insert_unassigned_assets = InsertUnassView.Field()
     update_unassigned_assets = UpdateUnassView.Field()
     delete_unassigned_assets = DeleteUnassView.Field()
-    delete_activity = DeleteUnassView.Field()
+    update_auth_user = DeleteUnassView.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations, auto_camelcase=False)
