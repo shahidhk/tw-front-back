@@ -39,9 +39,9 @@ def init_db(request):
             DECLARE
                 path ltree;
             BEGIN
-                IF NEW.parent_id_id IS -1 THEN
+                IF NEW.parent_id_id == -1 THEN
                     NEW.ltree_path = ((new.id::text)::ltree);
-                ELSEIF TG_OP = 'INSERT' OR OLD.parent_id_id IS -1 OR OLD.parent_id_id != NEW.parent_id_id THEN
+                ELSEIF TG_OP = 'INSERT' OR OLD.parent_id_id == -1 OR OLD.parent_id_id != NEW.parent_id_id THEN
                     SELECT ltree_path FROM public."djangoAPI_ProjectAssetRoleRecordTbl" WHERE id = NEW.parent_id_id INTO path;
                     IF path IS NULL THEN
                         RAISE EXCEPTION 'Invalid parent_id %. Entities must be added parents first', NEW.parent_id_id;
