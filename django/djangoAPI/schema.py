@@ -91,11 +91,6 @@ class UpdateReconView(graphene.Mutation):
                     'asset_id': _set.asset_id,
                     }
             data = AssignAssetToRoleUtil(data)
-        elif not where.id._eq is None:  # make sure this is at the bottom of elif, used for when setting parent = None
-            data = {'role_id': where.id._eq,
-                    'parent_id': None,
-                    }
-            data = RoleParentUtil(data)
         else:
             raise GraphQLError('Unimplimented')
         # Check the result of called function and return row on success

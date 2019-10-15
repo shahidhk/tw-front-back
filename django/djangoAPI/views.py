@@ -252,7 +252,8 @@ def update_asset_role(request):
     # with transaction.atomic():
     for role in base_roles:
         try:
-            role.parent_id_id = base_role_dict[parent_mtoi[role.updatable_role_number].parent_role_number]
+            role.parent_id_id = base_role_dict.get(
+                parent_mtoi[role.updatable_role_number].parent_role_number, -1)
             role.save()
         except Exception as e:
             print('cant save parent for ' +

@@ -19,18 +19,17 @@ def MissingRoleUtil(role_data):
     Adds a Role record that was missing from Avantis
     Checks to make sure role_number does not already exist
     '''
-    if not role_data['parent_id'] is None:
-        try:
-            parent = ProjectAssetRoleRecordTbl.objects.get(
-                pk=role_data['parent_id'])
-        except Exception as e:
-            print(str(type(e)))
-            print(str(e))
-            return {'result': 1,
-                    'errors': 'Parent Does Not Exist ' + str(role_data['parent_id'])
-                    }
-    else:
-        parent = None
+
+    try:
+        parent = ProjectAssetRoleRecordTbl.objects.get(
+            pk=role_data['parent_id'])
+    except Exception as e:
+        print(str(type(e)))
+        print(str(e))
+        return {'result': 1,
+                'errors': 'Parent Does Not Exist ' + str(role_data['parent_id'])
+                }
+
     try:
         role = ProjectAssetRoleRecordTbl.objects.get(
             updatable_role_number=role_data['role_number'])
@@ -227,18 +226,17 @@ def RoleParentUtil(data):
         return {'result': 1,
                 'errors': 'Role cannot be found please refresh your View: ' + str(data['role_id'])
                 }
-    if not data['parent_id'] is None:
-        try:
-            parent = data['parent_id']
-            parent = ProjectAssetRoleRecordTbl.objects.get(id=parent)
-        except Exception as e:
-            print(str(type(e)))
-            print(str(e))
-            return {'result': 1,
-                    'errors': 'Parent role cannot be found please refresh your View: ' + str(data['parent_id'])
-                    }
-    else:
-        parent = None
+
+    try:
+        parent = data['parent_id']
+        parent = ProjectAssetRoleRecordTbl.objects.get(id=parent)
+    except Exception as e:
+        print(str(type(e)))
+        print(str(e))
+        return {'result': 1,
+                'errors': 'Parent role cannot be found please refresh your View: ' + str(data['parent_id'])
+                }
+
     try:
         role.parent_id = parent
         role.save()
