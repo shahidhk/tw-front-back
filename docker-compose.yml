@@ -42,7 +42,7 @@ services:
       PGADMIN_LISTEN_PORT: 5555
 
   graphql-engine:
-    image: hasura/graphql-engine:latest
+    image: hasura/graphql-engine:v1.0.0-beta.6
     depends_on:
       - db
     restart: always
