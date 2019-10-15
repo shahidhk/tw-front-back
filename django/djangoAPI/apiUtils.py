@@ -19,16 +19,16 @@ def MissingRoleUtil(role_data):
     Adds a Role record that was missing from Avantis
     Checks to make sure role_number does not already exist
     '''
-
-    try:
-        parent = ProjectAssetRoleRecordTbl.objects.get(
-            pk=role_data['parent_id'])
-    except Exception as e:
-        print(str(type(e)))
-        print(str(e))
-        return {'result': 1,
-                'errors': 'Parent Does Not Exist ' + str(role_data['parent_id'])
-                }
+    if role_data['parent_id'] != -1:
+        try:
+            parent = ProjectAssetRoleRecordTbl.objects.get(
+                pk=role_data['parent_id'])
+        except Exception as e:
+            print(str(type(e)))
+            print(str(e))
+            return {'result': 1,
+                    'errors': 'Parent Does Not Exist ' + str(role_data['parent_id'])
+                    }
 
     try:
         role = ProjectAssetRoleRecordTbl.objects.get(
@@ -39,7 +39,7 @@ def MissingRoleUtil(role_data):
                 role = PreDesignReconciledRoleRecordTbl()
                 role.updatable_role_number = role_data['role_number']
                 role.role_name = role_data['role_name']
-                role.parent_id = parent
+                role.parent_id_id = role_data['parent_id']
                 role.role_criticality_id = role_data['role_criticality']
                 role.role_priority_id = role_data['role_priority']
                 role.role_spatial_site_id_id = role_data['role_spatial_site_id']
@@ -226,19 +226,19 @@ def RoleParentUtil(data):
         return {'result': 1,
                 'errors': 'Role cannot be found please refresh your View: ' + str(data['role_id'])
                 }
+    if data['parent_id'] != -1:
+        try:
+            parent = data['parent_id']
+            parent = ProjectAssetRoleRecordTbl.objects.get(id=parent)
+        except Exception as e:
+            print(str(type(e)))
+            print(str(e))
+            return {'result': 1,
+                    'errors': 'Parent role cannot be found please refresh your View: ' + str(data['parent_id'])
+                    }
 
     try:
-        parent = data['parent_id']
-        parent = ProjectAssetRoleRecordTbl.objects.get(id=parent)
-    except Exception as e:
-        print(str(type(e)))
-        print(str(e))
-        return {'result': 1,
-                'errors': 'Parent role cannot be found please refresh your View: ' + str(data['parent_id'])
-                }
-
-    try:
-        role.parent_id = parent
+        role.parent_id_id = data['parent_id']
         role.save()
     except Exception as e:
         return {'result': 1,
