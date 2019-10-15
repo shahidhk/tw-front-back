@@ -39,9 +39,9 @@ def init_db(request):
             DECLARE
                 path ltree;
             BEGIN
-                IF NEW.parent_id_id == -1 THEN
+                IF NEW.parent_id_id IS NULL THEN
                     NEW.ltree_path = ((new.id::text)::ltree);
-                ELSEIF TG_OP = 'INSERT' OR OLD.parent_id_id == -1 OR OLD.parent_id_id != NEW.parent_id_id THEN
+                ELSEIF TG_OP = 'INSERT' OR OLD.parent_id_id IS NULL OR OLD.parent_id_id != NEW.parent_id_id THEN
                     SELECT ltree_path FROM public."djangoAPI_ProjectAssetRoleRecordTbl" WHERE id = NEW.parent_id_id INTO path;
                     IF path IS NULL THEN
                         RAISE EXCEPTION 'Invalid parent_id %. Entities must be added parents first', NEW.parent_id_id;
@@ -103,6 +103,7 @@ def init_db(request):
         on pa.projectassetrecordtbl_ptr_id=ba.id
         where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>2;
         ''')
+
         return HttpResponse("Finished DB init")
 
 
@@ -220,6 +221,21 @@ def db_fill(request):
         avantis_asset.intent_to_reserve_id = 1
         avantis_asset.role_spatial_site_id_id = asset_row[1][0]
         avantis_asset.save()
+
+    # create our top level asset
+    existing_role = PreDesignReconciledRoleRecordTbl()
+    existing_role.pk = 0
+    existing_role.updatable_role_number = 'top level'
+    existing_role.role_name = 'db top level'
+    existing_role.parent_id_id = None  # fill this in on the second go
+    existing_role.role_criticality_id = '1'
+    existing_role.role_priority_id = '5'
+    existing_role.role_spatial_site_id_id = '1'
+    existing_role.cloned_role_registry_tbl_id = None
+    existing_role.entity_exists = True
+    existing_role.missing_from_registry = False
+    existing_role.designer_planned_action_type_tbl_id = 3  # do nothing
+    existing_role.save()
     return HttpResponse("Finished DB Fill")
 
 
@@ -253,7 +269,7 @@ def update_asset_role(request):
     for role in base_roles:
         try:
             role.parent_id_id = base_role_dict.get(
-                parent_mtoi[role.updatable_role_number].parent_role_number, -1)
+                parent_mtoi[role.updatable_role_number].parent_role_number, 0)
             role.save()
         except Exception as e:
             print('cant save parent for ' +
