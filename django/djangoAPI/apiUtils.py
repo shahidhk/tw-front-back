@@ -179,7 +179,6 @@ def AuthenticationUtil(info):
     }
     if info.context.META['HTTP_X_USERNAME'] == 'amber.brasher':
         data['group'] = 1
-        data['approve'] = True
     elif info.context.META['HTTP_X_USERNAME'] == 'tony.huang':
         data['approve'] = True
         data['group'] = 2
@@ -340,7 +339,7 @@ def ApproveReservationUtil(data, info):
     else:
         if role.project_tbl is None:
             return {'result': 1,
-                    'errors': 'There are no pending reservation requests for this entity ' + str(e) + ' ' + str(type(e)),
+                    'errors': 'There are no pending reservation requests for this entity',
                     }
         else:
             role.approved = data['approved']

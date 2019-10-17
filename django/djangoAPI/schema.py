@@ -198,7 +198,7 @@ class UpdateReserView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
         _set = ReserViewSet(required=True)
-    returning = graphene.Field(ReservationViewType)
+    returning = graphene.List(ReservationViewType)
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
@@ -211,7 +211,7 @@ class UpdateReserView(graphene.Mutation):
         else:
             raise GraphQLError('Unimplimented')
         if data['result'] == 0:
-            data = ReservationView.objects.get(
+            data = ReservationView.objects.filter(
                 pk=data['errors'])
             return UpdateReserView(returning=data)
         raise GraphQLError(data['errors'])
