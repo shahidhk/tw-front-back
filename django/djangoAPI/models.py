@@ -2,6 +2,7 @@ from django.contrib.postgres import fields
 from django.db import models
 
 from djangoAPI.value_lists import *
+from djangoAPI.enum_models import *
 
 # Field.null default = False
 # Field.blank default = False
@@ -10,54 +11,117 @@ from djangoAPI.value_lists import *
 # Field.default
 # Field.primary_key django will auto create a primary key if non are set to primary key
 
+
+class UserTbl(models.Model):
+    '''Master Table of Users'''
+    # TODO WIP
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    username = models.CharField(max_length=100)
+    user_type = models.ForeignKey(UserType, models.PROTECT)
+    organization_name = models.CharField(max_length=400)
+    email = models.EmailField()
+
+    class Meta:
+        db_table = 'djangoAPI_UserTbl'
+
 # Project Tables
 
 
-class ProjectTbl(models.Model):
-    '''Master Table of Projects'''
-    project_site = models.ForeignKey(OperationalBusinessUnit, models.PROTECT)
-    # TODO this should be a foreign key?
-    project_manager = models.CharField(max_length=400)
-    date_range = fields.DateRangeField()
+class SuperDesignProjectTbl(models.Model):
+    '''Super set of design projects'''
+    # TODO Consider dropping 'super' projectset, projectgroup
+    name = models.CharField(max_length=100)
 
     class Meta:
-        db_table = 'djangoAPI_ProjectTbl'
+        db_table = 'djangoAPI_SuperDesignProjectTbl'
 
 
-class ProjectDesignPhaseTbl(models.Model):
+class DesignProjectTbl(models.Model):
+    '''Table of Design Projects
+    If a design project requires construction
+    it will be linked to this table'''
+    name = models.CharField(max_length=100)
+    super_design_project = models.ForeignKey(
+        SuperDesignProjectTbl, models.PROTECT, blank=True, null=True)
+    phase_number = models.IntegerField(blank=True, null=True)
+    op_bus_unit = models.ForeignKey(OperationalBusinessUnit, models.PROTECT)
+    contract_number = models.CharField(max_length=50, blank=True, null=True)
+    planned_date_range = fields.DateRangeField(blank=True, null=True)
+    budget = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
+    # TODO limited to 999B
+    scope_description = models.TextField(blank=True, null=True)
+    # TODO not in sqldbm but there needs to be a project scope description
+
+    class Meta:
+        db_table = 'djangoAPI_DesignProjectTbl'
+
+
+class DesignProjectHumanRoleTbl(models.Model):
+    '''Users Related to the project'''
+    user_id = models.ForeignKey(UserTbl, models.PROTECT)
+    design_project = models.ForeignKey(DesignProjectTbl, models.PROTECT)
+    human_role_type = models.ForeignKey(DesignProjectHumanRoleTypeTbl, models.PROTECT)
+
+    class Meta:
+        db_table = 'djangoAPI_DesignProjectHumanRoleTbl'
+
+
+class DesignStageTbl(models.Model):
     '''list all design phases'''
-    project_tbl = models.ForeignKey(ProjectTbl, models.CASCADE)
-    project_design_stage_type = models.ForeignKey(
-        DesignStageTypeTbl, models.PROTECT)  # TODO shouldnt this be a phase?
+    design_project = models.ForeignKey(DesignProjectTbl, models.CASCADE)
+    design_stage_type = models.ForeignKey(DesignStageTypeTbl, models.PROTECT)
     planned_date_range = fields.DateRangeField()
 
     class Meta:
-        db_table = 'djangoAPI_ProjectDesignPhaseTbl'
+        db_table = 'djangoAPI_DesignPhaseTbl'
 
 
-class ProjectConstructionPhaseTbl(models.Model):
+class ConstructionPhaseTbl(models.Model):
     '''list all construction stages'''
-    project_tbl = models.ForeignKey(ProjectTbl, models.CASCADE)
-    phase_number = models.BigIntegerField()
-    planned_date_range = fields.DateRangeField()
+    name = models.CharField(max_length=200)
+    design_project = models.ForeignKey(DesignProjectTbl, models.SET_NULL, blank=True, null=True)
+    phase_number = models.BigIntegerField(blank=True, null=True)
+    op_bus_unit = models.ForeignKey(OperationalBusinessUnit, models.PROTECT)
+    contract_number = models.CharField(max_length=50, blank=True, null=True)
+    budget = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
+    planned_date_range = fields.DateRangeField(blank=True, null=True)
+    scope_description = models.TextField()
+    # TODO same concerns as designprojecttbl
 
     class Meta:
-        db_table = 'djangoAPI_ProjectConstructionPhaseTbl'
+        db_table = 'djangoAPI_ConstructionPhaseTbl'
 
 
-class ProjectConstructionStageTbl(models.Model):
+class ConstructionPhaseHumanRoleTbl(models.Model):
+    user_id = models.ForeignKey(UserTbl, models.PROTECT)
+    construction_phase = models.ForeignKey(ConstructionPhaseTbl, models.PROTECT)
+    human_role_type = models.ForeignKey(ConstructionPhaseHumanRoleTypeTbl, models.PROTECT)
+
+    class Meta:
+        db_table = 'djangoAPI_ConstructionPhaseHumanRoleTbl'
+
+
+class ConstructionStageTbl(models.Model):
     '''list all contruction stages, stage is a subject of phase, daterange for stage must be within phase'''
-    project_construction_phase = models.ForeignKey(
-        ProjectConstructionPhaseTbl, models.CASCADE)
-    project_construction_stage_type = models.ForeignKey(
-        DesignStageTypeTbl, models.PROTECT)
-    # TODO does there need to be a seperate list for construction stages?
+    construction_phase = models.ForeignKey(ConstructionPhaseTbl, models.CASCADE)
+    construction_stage_type = models.ForeignKey(ConstructionStageTypeTbl, models.PROTECT)
     planned_date_range = fields.DateRangeField()
 
     class Meta:
-        db_table = 'djangoAPI_ProjectConstructionStageTbl'
+        db_table = 'djangoAPI_ConstructionStageTbl'
 
 # Avantis Table
+
+
+class ImportedSpatialSiteTbl(models.Model):
+    spatial_site_id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=400)
+    parent_site_id = models.ForeignKey(
+        to='self', to_field='spatial_site_id', on_delete=models.PROTECT, null=True)
+
+    class Meta:
+        db_table = 'djangoAPI_ImportedSpatialSiteTbl'
 
 
 class ClonedAssetAndRoleInRegistryTbl(models.Model):
@@ -84,9 +148,9 @@ class ClonedAssetAndRoleInRegistryTbl(models.Model):
         ImportedSpatialSiteTbl, on_delete=models.PROTECT)
     suspension_id = models.BigIntegerField(null=True, blank=True)
     already_reserved = models.ForeignKey(
-        ProjectTbl, models.SET_NULL, related_name='already_reserved_group', null=True, blank=True)
+        DesignProjectTbl, models.SET_NULL, related_name='already_reserved_group', null=True, blank=True)
     intent_to_reserve = models.ForeignKey(
-        ProjectTbl, models.SET_NULL, related_name='intent_reserve_group', null=True, blank=True)
+        DesignProjectTbl, models.SET_NULL, related_name='intent_reserve_group', null=True, blank=True)
 
     class Meta:
         db_table = 'djangoAPI_ClonedAssetAndRoleInRegistryTbl'
@@ -95,45 +159,6 @@ class ClonedAssetAndRoleInRegistryTbl(models.Model):
         return self.role_name
 
 # Users & Authorization
-
-
-class DBTbls(models.Model):
-    # TODO figure out best way to impliment this
-    # doesnt technically need auto updating since tables do not get created for projects
-    db_table_name = models.CharField(max_length=400)
-
-    class Meta:
-        db_table = 'djangoAPI_DBTbls'
-
-
-class UserType(models.Model):
-    user_type_name = models.CharField(max_length=400)
-    tw_employee = models.BooleanField()
-    city_employee = models.BooleanField()
-
-    class Meta:
-        db_table = 'djangoAPI_UserType'
-
-
-class UserTbl(models.Model):
-    '''Master Table of Users'''
-    username = models.CharField(max_length=400)
-    # TODO how do the types relate to each other?
-    user_type = models.ForeignKey(UserType, models.PROTECT)
-    # should be a predefined list probably
-    organization_name = models.CharField(max_length=400)
-    # TODO do we want email? for sending mail
-
-    class Meta:
-        db_table = 'djangoAPI_UserTbl'
-
-
-class AccessProfileTbl(models.Model):
-    '''Master List of Avaliable User Access Profiles'''
-    profile_name = models.CharField(max_length=400)
-
-    class Meta:
-        db_table = 'djangoAPI_AccessProfileTbl'
 
 
 class UserAccessLinkTbl(models.Model):
@@ -160,7 +185,8 @@ class AccessProfileDefinitionTbl(models.Model):
 class UserProjectLinkTbl(models.Model):
     '''Links Users with their Projects'''
     user = models.ForeignKey(UserTbl, models.CASCADE)
-    project = models.ForeignKey(ProjectTbl, models.CASCADE)
+    project = models.ForeignKey(DesignProjectTbl, models.CASCADE)
+    title = models.ForeignKey(UserRole, models.PROTECT)
 
     class Meta:
         db_table = 'djangoAPI_UserProjectLinkTbl'
@@ -179,7 +205,8 @@ class ProjectAssetRoleRecordTbl(models.Model):
     role_criticality = models.ForeignKey(RoleCriticality, models.PROTECT)
     role_priority = models.ForeignKey(RolePriority, models.PROTECT)
     project_tbl = models.ForeignKey(
-        ProjectTbl, on_delete=models.PROTECT, null=True)
+        DesignProjectTbl, on_delete=models.PROTECT, null=True)
+    approved = models.BooleanField(default=False)
     # to impliment ltree, since the type isnt correctly this table will be unmanaged
     ltree_path = models.TextField(blank=True, null=True)
 
@@ -212,7 +239,7 @@ class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
 class ProjectAssetRecordTbl(models.Model):
     '''Master Table of All Assets'''
     project_tbl = models.ForeignKey(
-        ProjectTbl, on_delete=models.PROTECT, null=True)
+        DesignProjectTbl, on_delete=models.PROTECT, null=True)
     asset_serial_number = models.CharField(
         verbose_name="Serial Number", max_length=300, null=True, blank=True)
 
@@ -250,9 +277,9 @@ class ExistingAssetMovedByProjectTbl(PreDesignReconciledAssetRecordTbl):
     final_project_asset_role_id = models.ForeignKey(
         ProjectAssetRoleRecordTbl, models.PROTECT)
     uninstallation_stage = models.ForeignKey(
-        ProjectConstructionStageTbl, models.PROTECT, 'uninstall_stage')
+        ConstructionStageTbl, models.PROTECT, 'uninstall_stage')
     installation_stage = models.ForeignKey(
-        ProjectConstructionStageTbl, models.PROTECT, 'install_stage')
+        ConstructionStageTbl, models.PROTECT, 'install_stage')
 
     class Meta:
         db_table = 'djangoAPI_ExistingAssetMovedByProjectTbl'
@@ -261,7 +288,7 @@ class ExistingAssetMovedByProjectTbl(PreDesignReconciledAssetRecordTbl):
 class ExistingAssetDisposedByProjectTbl(PreDesignReconciledAssetRecordTbl):
     '''Assets that will be removed'''
     uninstallation_stage = models.ForeignKey(
-        ProjectConstructionStageTbl, models.PROTECT)
+        ConstructionStageTbl, models.PROTECT)
 
     class Meta:
         db_table = 'djangoAPI_ExistingAssetDisposedByProjectTbl'
@@ -272,18 +299,20 @@ class NewAssetDeliveredByProjectTbl(ProjectAssetRecordTbl):
     final_project_asset_role_id = models.ForeignKey(
         ProjectAssetRoleRecordTbl, models.PROTECT)
     installation_stage = models.ForeignKey(
-        ProjectConstructionStageTbl, models.PROTECT)
+        ConstructionStageTbl, models.PROTECT)
 
     class Meta:
         db_table = 'djangoAPI_NewAssetDeliveredByProjectTbl'
 
 
+# Views
 class ReconciliationView(models.Model):
     '''Read only model using data from reconciliation_view'''
     id = models.IntegerField(primary_key=True)
     role_number = models.TextField(null=True)
     role_name = models.TextField(null=True)
-    parent = models.IntegerField(null=True) # TODO try setting this to a FK to get a relation
+    # TODO try setting this to a FK to get a relation
+    parent = models.IntegerField(null=True)
     project_id = models.IntegerField(null=True)
     role_exists = models.BooleanField(null=True)
     role_missing_from_registry = models.BooleanField(null=True)
@@ -307,3 +336,19 @@ class UnassignedAssetsView(models.Model):
     class Meta:
         managed = False
         db_table = "unassigned_assets"
+
+
+class ReservationView(models.Model):
+    '''Read only model using data from reservation_view'''
+    id = models.IntegerField(primary_key=True)
+    role_number = models.TextField(null=True)
+    role_name = models.TextField(null=True)
+    parent = models.IntegerField(null=True)
+    project_id = models.IntegerField(null=True)
+    full_path = models.TextField(null=True)
+    approved = models.BooleanField(null=True)
+    reserved = models.BooleanField(null=True)
+
+    class Meta:
+        managed = False
+        db_table = "reservation_view"

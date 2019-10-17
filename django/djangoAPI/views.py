@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from djangoAPI.models import *
+from djangoAPI.utils import num_to_alpha
 
 
 def init_db(request):
@@ -54,7 +55,6 @@ def init_db(request):
                 RETURN NEW;
             END;
         $$ LANGUAGE plpgsql;
-        
         ''')
         except Exception as e:
             print(type(str(e)))
@@ -72,7 +72,7 @@ def init_db(request):
         cursor.execute(
             '''
         create or replace view reconciliation_view as
-        select 
+        select
         r.id, r.updatable_role_number as role_number,
         r.role_name as role_name,
         r.parent_id_id as parent,
@@ -89,9 +89,9 @@ def init_db(request):
         right join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as pr
         on (br.id=pr.projectassetrolerecordtbl_ptr_id)) as r
         left join (
-        public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa 
-        left join public."djangoAPI_ProjectAssetRecordTbl" as ba 
-        on (pa.projectassetrecordtbl_ptr_id=ba.id)) as a 
+        public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join public."djangoAPI_ProjectAssetRecordTbl" as ba
+        on (pa.projectassetrecordtbl_ptr_id=ba.id)) as a
         on (r.id=a.initial_project_asset_role_id_id);
         ''')
         cursor.execute(
@@ -101,7 +101,22 @@ def init_db(request):
         from public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
         left join public."djangoAPI_ProjectAssetRecordTbl" as ba
         on pa.projectassetrecordtbl_ptr_id=ba.id
-        where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>2;
+        where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>'b';
+        ''')
+        cursor.execute('''
+        create or replace
+        view reservation_view as
+        select
+            id,
+            updatable_role_number as role_number,
+            role_name,
+            parent_id_id as parent,
+            project_tbl_id as project_id,
+            ltree_path as full_path,
+            approved,
+            (not project_tbl_id is null) as reserved
+        from
+            public."djangoAPI_ProjectAssetRoleRecordTbl" ;
         ''')
 
         return HttpResponse("Finished DB init")
@@ -112,79 +127,72 @@ def db_fill(request):
     Fill the DB with test data
     Will eventually switch to initialization with constants for list tables
     '''
-    for i in range(2):
-        i = i + 1
-        OperationalBusinessUnit.objects.create(
-            pk=i,
-            name='OpBusUnit Number ' + str(i),
-        )
-    for i in range(10):
-        Sites.objects.create(
+    InitEnums()
+    InitValueList()
+    for i in range(3):
+        DesignProjectTbl.objects.create(
             pk=i+1,
-            site_id='ST' + str(i),
-            site_name='Site ' + str(i),
-            op_bus_unit_id=i/5+1,
+            planned_date_range=(date.today(), date.today() + timedelta(days=40)),
+            op_bus_unit_id=['a', 'b', 'c'][i],
         )
-    for i in range(5):
-        DesignStageTypeTbl.objects.create(
-            pk=i+1,
-            name='Design Stage Type ' + str(i+1),
-        )
-    lst = ['move', 'dispose', 'nothing']
-    j = 1
-    for i in lst:
-        DesignerPlannedActionTypeTbl.objects.create(
-            pk=j,
-            name=i,
-        )
-        j = j + 1
-    for i in range(5):
-        RoleCriticality.objects.create(
+    lst = [['Tony', 'Huang'], ['Peter', 'Lewis'], ['Stephen', 'Almeida']]
+    for i, value in enumerate(lst):
+        UserTbl.objects.create(
             id=i+1,
+            first_name=value[0],
+            last_name=value[1],
+            username=value[0]+'.'+value[1],
+            organization_name='TW',
+            email=value[0]+'.'+value[1]+'@admin.ca',
+            user_type_id=1,
         )
-    for i in range(5):
-        RolePriority.objects.create(
-            id=i+1,
-        )
-    lst = ['Tony Huang', 'Peter Lewis', 'Stephen Almeida']
-    j = 0
-    for i in lst:
-        ProjectTbl.objects.create(
-            pk=j+1,
-            project_manager=i,
-            date_range=(date.today(), date.today() + timedelta(days=40)),
-            project_site_id=random.randint(1, 2),
-        )
-        j = j + 1
+    for i in range(3):
+        for j in range(3):
+            DesignProjectHumanRoleTbl.objects.create(
+                user_id_id=j+1,
+                design_project_id=i+1,
+                human_role_type_id=num_to_alpha(j+1),
+            )
     today = date.today()
     for i in range(2):
         today = today + timedelta(days=5)
         for j in range(3):
-            ProjectDesignPhaseTbl.objects.create(
+            DesignStageTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=5), today),
-                project_design_stage_type_id=random.randint(1, 5),
-                project_tbl_id=j + 1,
+                design_stage_type_id=[
+                    'a', 'b', 'c', 'd', 'e'][j],
+                design_project_id=j+1,
             )
     today = date.today() + timedelta(days=10)
     for i in range(2):
         today = today + timedelta(days=15)
         for j in range(3):
-            ProjectConstructionPhaseTbl.objects.create(
+            ConstructionPhaseTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=15), today),
                 phase_number=i,
-                project_tbl_id=j + 1,
+                design_project_id=j + 1,
+                scope_description='a project construction phase',
+                op_bus_unit_id=['a', 'b', 'c'][i],
+            )
+    for i in range(3):
+        for j in range(3):
+            ConstructionPhaseHumanRoleTbl.objects.create(
+                user_id_id=j+1,
+                construction_phase_id=i+1,
+                human_role_type_id=num_to_alpha(j+1),
             )
     today = date.today() + timedelta(days=10)
     for i in range(2):
         today = today + timedelta(days=5)
         for j in range(3):
-            ProjectConstructionStageTbl.objects.create(
+            ConstructionStageTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=5), today),
-                project_construction_phase_id=i+1,
-                project_construction_stage_type_id=random.randint(1, 5),
+                construction_phase_id=i+1,
+                construction_stage_type_id=[
+                    'a', 'b', 'c', 'd', 'e'][j],
             )
     asset_line = {}
     with open('avantis.csv', mode='r') as csv_file:
@@ -255,13 +263,15 @@ def update_asset_role(request):
             existing_role.updatable_role_number = entry.role_number
             existing_role.role_name = entry.role_name
             existing_role.parent_id_id = None  # fill this in on the second go
-            existing_role.role_criticality_id = entry.role_criticality
-            existing_role.role_priority_id = entry.role_priority
+            existing_role.role_criticality_id = num_to_alpha(
+                entry.role_criticality)
+            existing_role.role_priority_id = num_to_alpha(entry.role_priority)
             existing_role.role_spatial_site_id = entry.role_spatial_site_id
             existing_role.cloned_role_registry_tbl_id = parent_mtoi[entry.role_number].mtoi
             existing_role.entity_exists = True
             existing_role.missing_from_registry = False
-            existing_role.designer_planned_action_type_tbl_id = 3  # do nothing
+            existing_role.designer_planned_action_type_tbl_id = num_to_alpha(
+                3)  # do nothing
             existing_role.save()
             base_role_dict[existing_role.updatable_role_number] = existing_role.pk
     base_roles = ProjectAssetRoleRecordTbl.objects.all()
@@ -285,7 +295,8 @@ def update_asset_role(request):
             existing_asset.initial_project_asset_role_id_id = base_role_dict[entry.role_number]
             existing_asset.entity_exists = True
             existing_asset.missing_from_registry = False
-            existing_asset.designer_planned_action_type_tbl_id = 3  # do nothing
+            existing_asset.designer_planned_action_type_tbl_id = num_to_alpha(
+                3)  # do nothing
             existing_asset.save()
     return HttpResponse('Finished Updating Asset & Role')
 
