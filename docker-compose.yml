@@ -24,7 +24,7 @@ services:
       - db
 
   db:
-    image: postgres:11.1-alpine
+    image: postgres:11-alpine
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
@@ -68,7 +68,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-      - URL=tw-webapp1.duckdns.org
+      - URL=tw-webapp-alpha.duckdns.org
       - SUBDOMAINS=wildcard
       - VALIDATION=duckdns
       - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1

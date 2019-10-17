@@ -55,7 +55,6 @@ def init_db(request):
                 RETURN NEW;
             END;
         $$ LANGUAGE plpgsql;
-        
         ''')
         except Exception as e:
             print(type(str(e)))
@@ -73,7 +72,7 @@ def init_db(request):
         cursor.execute(
             '''
         create or replace view reconciliation_view as
-        select 
+        select
         r.id, r.updatable_role_number as role_number,
         r.role_name as role_name,
         r.parent_id_id as parent,
@@ -90,9 +89,9 @@ def init_db(request):
         right join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as pr
         on (br.id=pr.projectassetrolerecordtbl_ptr_id)) as r
         left join (
-        public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa 
-        left join public."djangoAPI_ProjectAssetRecordTbl" as ba 
-        on (pa.projectassetrecordtbl_ptr_id=ba.id)) as a 
+        public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join public."djangoAPI_ProjectAssetRecordTbl" as ba
+        on (pa.projectassetrecordtbl_ptr_id=ba.id)) as a
         on (r.id=a.initial_project_asset_role_id_id);
         ''')
         cursor.execute(
@@ -102,7 +101,7 @@ def init_db(request):
         from public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
         left join public."djangoAPI_ProjectAssetRecordTbl" as ba
         on pa.projectassetrecordtbl_ptr_id=ba.id
-        where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>"b";
+        where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>'b';
         ''')
         return HttpResponse("Finished DB init")
 
@@ -112,93 +111,67 @@ def db_fill(request):
     Fill the DB with test data
     Will eventually switch to initialization with constants for list tables
     '''
-    for i in ['a', 'b', 'c']:
-        OperationalBusinessUnit.objects.create(
-            pk=i,
-            name='OpBusUnit Number ' + str(i),
-        )
-    for i in range(10):
-        Sites.objects.create(
+    # InitEnums()
+    InitValueList()
+    for i in range(3):
+        DesignProjectTbl.objects.create(
             pk=i+1,
-            site_id='ST' + str(i),
-            site_name='Site ' + str(i),
-            op_bus_unit_id=['a', 'b', 'c'][int(i/5+1)],
-        )
-    for i in ['a', 'b', 'c', 'd', 'e', 'f']:
-        DesignStageTypeTbl.objects.create(
-            pk=i,
-            name='Design Stage Type ' + str(i),
-        )
-    lst = ['move', 'dispose', 'nothing']
-    j = 1
-    for i in lst:
-        DesignerPlannedActionTypeTbl.objects.create(
-            pk=['a', 'b', 'c', 'd', 'e', 'f'][j-1],
-            name=i,
-        )
-        j = j + 1
-    for i in ['a', 'b', 'c', 'd', 'e', 'f']:
-        RoleCriticality.objects.create(
-            id=i,
-            name='criticality ' + i,
-        )
-    for i in ['a', 'b', 'c', 'd', 'e', 'f']:
-        RolePriority.objects.create(
-            id=i,
-            name='priority ' + i
+            planned_date_range=(date.today(), date.today() + timedelta(days=40)),
+            op_bus_unit_id=['a', 'b', 'c'][i],
         )
     for i in range(3):
-        ProjectTbl.objects.create(
-            pk=i+1,
-            date_range=(date.today(), date.today() + timedelta(days=40)),
-            project_op_bus_unit_id=['a', 'b', 'c'][i],
-        )
+        for j in range(3):
+            DesignProjectHumanRoleTbl.objects.create(
+                user_id=j+1,
+                design_project_id=i+1,
+                human_role_type_id=j+1,
+            )
     today = date.today()
     for i in range(2):
         today = today + timedelta(days=5)
         for j in range(3):
-            ProjectDesignPhaseTbl.objects.create(
+            DesignStageTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=5), today),
-                project_design_stage_type_id=[
+                design_stage_type_id=[
                     'a', 'b', 'c', 'd', 'e'][j],
-                project_tbl_id=j + 1,
+                design_projec_id=j + 1,
             )
-    UserType.objects.create(
-        id=1,
-        user_type_name='a user',
-        tw_employee=True,
-        city_employee=True,
-    )
-    lst = ['Tony Huang', 'Peter Lewis', 'Stephen Almeida']
-    j = 0
-    for i in lst:
+    lst = [['Tony', 'Huang'], ['Peter', 'Lewis'], ['Stephen', 'Almeida']]
+    for i, value in enumerate(lst):
         UserTbl.objects.create(
-            id=j+1,
-            name=i,
-            username=i,
+            id=i+1,
+            first_name=value[0],
+            last_name=value[1],
+            username=value[0]+'.'+value[1],
             organization_name='TW',
-            email='admin@admin.ca',
+            email=value[0]+'.'+value[1]+'@admin.ca',
             user_type_id=1,
         )
-        j = j + 1
     today = date.today() + timedelta(days=10)
     for i in range(2):
         today = today + timedelta(days=15)
         for j in range(3):
-            ProjectConstructionPhaseTbl.objects.create(
+            ConstructionPhaseTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=15), today),
                 phase_number=i,
-                project_tbl_id=j + 1,
-                description='a project construction phase',
-                manager_id=j + 1,
+                design_project_id=j + 1,
+                scope_description='a project construction phase',
+                op_bus_unit_id=['a', 'b', 'c'][i],
+            )
+    for i in range(3):
+        for j in range(3):
+            ConstructionPhaseHumanRoleTbl.objects.create(
+                user_id=j+1,
+                construction_phase_id=i+1,
+                human_role_type_id=j+1,
             )
     today = date.today() + timedelta(days=10)
     for i in range(2):
         today = today + timedelta(days=5)
         for j in range(3):
-            ProjectConstructionStageTbl.objects.create(
+            ConstructionStageTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=5), today),
                 project_construction_phase_id=i+1,
