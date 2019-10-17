@@ -281,29 +281,34 @@ def ReserveEntityUtil(data, info):
             return {'result': 1,
                     'errors': 'DB inconsistancy error asset and role reserved by different projects. Please Contact Tony Huang',
                     }
-        if not (asset.project_tbl is None):
-            if (asset.project_tbl_id == auth['group']):
-                if not data['reserved']:  # when reserved=False they are trying to unreserve
-                    asset.project_tbl = None
-                    role.project_tbl = None
-                else:
-                    return {'result': 1,
-                            'errors': 'Your project group has already reserved this entity',
-                            }
+        if asset.project_tbl is None:  # asset is free real estate
+            if data['reserved']:
+                asset.project_tbl_id = auth['group']
+                role.project_tbl_id = auth['group']
+            else:
+                return {'result': 1,
+                        'errors': 'Asset is already unreserved',
+                        }
+        elif asset.project_tbl_id == auth['group']:  # asset is reserved by this group
+            if not data['reserved']:  # when reserved=False they are trying to unreserve
+                asset.project_tbl = None
+                role.project_tbl = None
+            else:
+                return {'result': 1,
+                        'errors': 'Asset is already reserved by your group',
+                        }
+        else:  # asset is reserved by another group
             return {'result': 1,
                     'errors': 'Asset is reserved by another project group',
                     }
-    if data['reserved']:  # when reserved=True they are trying to reserve
-        asset.project_tbl_id = auth['group']
-        role.project_tbl_id = auth['group']
-    try:
-        asset.save()
-        role.save()
-    except Exception as e:
-        return {'result': 1,
-                'errors': 'Cannot change reservation' + str(e) + ' ' + str(type(e)),
-                }
-    else:
-        return {'result': 0,
-                'errors': role.pk,
-                }
+        try:
+            asset.save()
+            role.save()
+        except Exception as e:
+            return {'result': 1,
+                    'errors': 'Cannot change reservation' + str(e) + ' ' + str(type(e)),
+                    }
+        else:
+            return {'result': 0,
+                    'errors': role.pk,
+                    }
