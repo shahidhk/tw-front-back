@@ -293,6 +293,7 @@ def ReserveEntityUtil(data, info):
             if not data['reserved']:  # when reserved=False they are trying to unreserve
                 asset.project_tbl = None
                 role.project_tbl = None
+                role.approved = False
             else:
                 return {'result': 1,
                         'errors': 'Asset is already reserved by your group',
