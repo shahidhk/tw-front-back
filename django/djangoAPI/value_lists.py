@@ -43,21 +43,21 @@ class UserType(models.Model):
 def InitValueList():
     # there is probably a way to just iterate through all class in this module
     '''Initialize ValueLists with Test Values'''
-    # for i in ['a', 'b', 'c']:
-    #     OperationalBusinessUnit.objects.create(
-    #         pk=i,
-    #         name='OpBusUnit ' + str(i),
-    #     )
+    for i in ['a', 'b', 'c']:
+        OperationalBusinessUnit.objects.create(
+            pk=i,
+            name='OpBusUnit ' + str(i),
+        )
     for i, value in enumerate(['a', 'b', 'c', 'd', 'e', 'f']):
         Sites.objects.create(
-            pk=i,
+            pk=i+1,
             site_id=value,
             name='site ' + value,
-            op_bus_unit_id=['a', 'b', 'c', 'd', 'e', 'f'][int((i+1)/2)]
+            op_bus_unit_id=['a', 'b', 'c', 'd', 'e', 'f'][int((i)/2)]
         )
     UserType.objects.create(
         id=1,
-        user_type_name='a user',
+        name='a user',
         tw_employee=True,
         city_employee=True,
     )

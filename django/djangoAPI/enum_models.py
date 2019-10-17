@@ -107,7 +107,7 @@ def InitEnums():
         )
     for i, value in enumerate(['move', 'dispose', 'nothing']):
         DesignerPlannedActionTypeTbl.objects.create(
-            pk=num_to_alpha(i),
+            pk=num_to_alpha(i+1),
             name=value,
         )
     for i in ['a', 'b', 'c', 'd', 'e', 'f']:

@@ -244,3 +244,28 @@ def RoleParentUtil(data):
         return {'result': 0,
                 'errors': role.pk,
                 }
+
+
+def ReserveEntity(data):
+    '''Reserves Role and Asset for a project'''
+    try:
+        asset = ProjectAssetRecordTbl.objects.get(pk=data['id'])
+    except Exception as e:
+        return {'result': 1,
+                'errors': 'Cannot find coorsponding asset, are you sure this is an Avantis Asset? ' + str(e) + ' ' + str(type(e)),
+                }
+    else:
+        if not asset.project_tbl is None:
+            return {'result': 1,
+                    'errors': 'Asset is already reserved',
+                    }
+    try:
+        role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
+    except Exception as e:
+        return {'result': 1,
+                'errors': 'Cannot find coorsponding role, are you sure this is an Avantis Asset? ' + str(e) + ' ' + str(type(e)),
+                }
+        if not role.project_tbl is None:
+            return {'result': 1,
+                    'errors': 'role is already reserved',
+                    }

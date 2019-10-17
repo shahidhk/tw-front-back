@@ -111,7 +111,7 @@ def db_fill(request):
     Fill the DB with test data
     Will eventually switch to initialization with constants for list tables
     '''
-    # InitEnums()
+    InitEnums()
     InitValueList()
     for i in range(3):
         DesignProjectTbl.objects.create(
@@ -119,24 +119,6 @@ def db_fill(request):
             planned_date_range=(date.today(), date.today() + timedelta(days=40)),
             op_bus_unit_id=['a', 'b', 'c'][i],
         )
-    for i in range(3):
-        for j in range(3):
-            DesignProjectHumanRoleTbl.objects.create(
-                user_id=j+1,
-                design_project_id=i+1,
-                human_role_type_id=j+1,
-            )
-    today = date.today()
-    for i in range(2):
-        today = today + timedelta(days=5)
-        for j in range(3):
-            DesignStageTbl.objects.create(
-                pk=i*3+j,
-                planned_date_range=(today-timedelta(days=5), today),
-                design_stage_type_id=[
-                    'a', 'b', 'c', 'd', 'e'][j],
-                design_projec_id=j + 1,
-            )
     lst = [['Tony', 'Huang'], ['Peter', 'Lewis'], ['Stephen', 'Almeida']]
     for i, value in enumerate(lst):
         UserTbl.objects.create(
@@ -148,6 +130,24 @@ def db_fill(request):
             email=value[0]+'.'+value[1]+'@admin.ca',
             user_type_id=1,
         )
+    for i in range(3):
+        for j in range(3):
+            DesignProjectHumanRoleTbl.objects.create(
+                user_id_id=j+1,
+                design_project_id=i+1,
+                human_role_type_id=num_to_alpha(j+1),
+            )
+    today = date.today()
+    for i in range(2):
+        today = today + timedelta(days=5)
+        for j in range(3):
+            DesignStageTbl.objects.create(
+                pk=i*3+j,
+                planned_date_range=(today-timedelta(days=5), today),
+                design_stage_type_id=[
+                    'a', 'b', 'c', 'd', 'e'][j],
+                design_project_id=j+1,
+            )
     today = date.today() + timedelta(days=10)
     for i in range(2):
         today = today + timedelta(days=15)
@@ -163,9 +163,9 @@ def db_fill(request):
     for i in range(3):
         for j in range(3):
             ConstructionPhaseHumanRoleTbl.objects.create(
-                user_id=j+1,
+                user_id_id=j+1,
                 construction_phase_id=i+1,
-                human_role_type_id=j+1,
+                human_role_type_id=num_to_alpha(j+1),
             )
     today = date.today() + timedelta(days=10)
     for i in range(2):
@@ -174,8 +174,8 @@ def db_fill(request):
             ConstructionStageTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=5), today),
-                project_construction_phase_id=i+1,
-                project_construction_stage_type_id=[
+                construction_phase_id=i+1,
+                construction_stage_type_id=[
                     'a', 'b', 'c', 'd', 'e'][j],
             )
     asset_line = {}
