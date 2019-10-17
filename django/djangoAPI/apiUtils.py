@@ -19,7 +19,9 @@ def MissingRoleUtil(role_data):
     Adds a Role record that was missing from Avantis
     Checks to make sure role_number does not already exist
     '''
-    if role_data['parent_id'] != -1:
+    if role_data['parent_id'] == 0:
+        role_data['parent_id'] = None
+    else:
         try:
             parent = ProjectAssetRoleRecordTbl.objects.get(
                 pk=role_data['parent_id'])
@@ -88,8 +90,8 @@ def AssignAssetToRoleUtil(data):
     Expects Dictionary with asset_id, role_id
     Raises exception if another role is in that assets location
     '''
-    if data['role_id'] is None:
-        pass
+    if data['role_id'] is None or data['role_id'] == 0:
+        data['role_id'] = None
     else:
         asset = list(PreDesignReconciledAssetRecordTbl.objects.filter(
             initial_project_asset_role_id_id=data['role_id']))
@@ -226,7 +228,9 @@ def RoleParentUtil(data):
         return {'result': 1,
                 'errors': 'Role cannot be found please refresh your View: ' + str(data['role_id'])
                 }
-    if data['parent_id'] != -1:
+    if data['parent_id'] == 0:
+        data['parent_id'] = None
+    else:
         try:
             parent = data['parent_id']
             parent = ProjectAssetRoleRecordTbl.objects.get(id=parent)
