@@ -26,9 +26,14 @@ class UnassAssViewType(DjangoObjectType):
 class UnassAssViewTypeDeleted(graphene.ObjectType):
     asset_serial_number = graphene.String()
     id = graphene.Int()
+
+
+class ReservationViewType(DjangoObjectType):
+    class Meta:
+        model = ReservationView
+
+
 # classes for inputs
-
-
 class EQ(graphene.InputObjectType):
     _eq = graphene.Int(required=True)
 
@@ -62,9 +67,17 @@ class UnassViewSet(convert_serializer_to_input_type(UnassViewSerial)):
     role_id = graphene.Int()
 
 
+class ReserViewSerial(serializers.ModelSerializer):
+    class Meta:
+        model = ReservationView
+        exclude = ('id',)
+
+
+class ReserViewSet(convert_serializer_to_input_type(ReserViewSerial)):
+    pass
+
+
 # recon view mutations
-
-
 class UpdateReconView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
@@ -181,6 +194,23 @@ class DeleteUnassView(graphene.Mutation):
         raise GraphQLError(data['errors'])
 
 
+class UpdateReserView(graphene.Mutation):
+    class Arguments:
+        where = IDEQ(required=True)
+        _set = ReserViewSet(required=True)
+    returning = graphene.Field(ReservationViewType)
+
+    @staticmethod
+    def mutate(root, info, where=None, _set=None):
+        data = {'id': where.id._eq, 'reserved': _set.reserved}
+        data = ReserveEntityUtil(data, info)
+        if data['result'] == 0:
+            data = ReservationView.objects.get(
+                pk=data['errors'])
+            return UpdateReserView(returning=data)
+        raise GraphQLError(data['errors'])
+
+
 class Query(ObjectType):
     reconciliation_view_2 = graphene.List(ReconViewType)
     unassigned_assets_2 = graphene.List(UnassAssViewType)
@@ -198,6 +228,7 @@ class Mutations(graphene.ObjectType):
     insert_unassigned_assets = InsertUnassView.Field()
     update_unassigned_assets = UpdateUnassView.Field()
     delete_unassigned_assets = DeleteUnassView.Field()
+    update_reservation_view = UpdateReserView.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations, auto_camelcase=False)

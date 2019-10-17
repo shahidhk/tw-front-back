@@ -336,3 +336,19 @@ class UnassignedAssetsView(models.Model):
     class Meta:
         managed = False
         db_table = "unassigned_assets"
+
+
+class ReservationView(models.Model):
+    '''Read only model using data from reservation_view'''
+    id = models.IntegerField(primary_key=True)
+    role_number = models.TextField(null=True)
+    role_name = models.TextField(null=True)
+    parent = models.IntegerField(null=True)
+    project_id = models.IntegerField(null=True)
+    full_path = models.TextField(null=True)
+    approved = models.BooleanField(null=True)
+    reserved = models.BooleanField(null=True)
+
+    class Meta:
+        managed = False
+        db_table = "reservation_view"

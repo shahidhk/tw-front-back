@@ -103,6 +103,21 @@ def init_db(request):
         on pa.projectassetrecordtbl_ptr_id=ba.id
         where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>'b';
         ''')
+        cursor.execute('''
+        create or replace
+        view reservation_view as
+        select
+            id,
+            updatable_role_number as role_number,
+            role_name,
+            parent_id_id as parent,
+            project_tbl_id as project_id,
+            ltree_path as full_path,
+            approved,
+            (not project_tbl_id is null) as reserved
+        from
+            public."djangoAPI_ProjectAssetRoleRecordTbl" ;
+        ''')
         return HttpResponse("Finished DB init")
 
 

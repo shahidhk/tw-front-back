@@ -167,9 +167,17 @@ def DoesNotExistUtil(data):
                 }
 
 
-def Authorization(auth_token):
-    # TODO
-    return True
+def AuthenticationUtil(info):
+    data = {
+        'valid': True,
+    }
+    if info.context.META['HTTP_X_USERNAME'] == 'amber.brasher':
+        data['group'] = 1
+    elif info.context.META['HTTP_X_USERNAME'] == 'tony.huang':
+        data['group'] = 2
+    else:
+        data['group'] = 2
+    return data
 
 
 def RetireAssetUtil(asset):
@@ -246,26 +254,48 @@ def RoleParentUtil(data):
                 }
 
 
-def ReserveEntity(data):
+def ReserveEntityUtil(data, info):
     '''Reserves Role and Asset for a project'''
+    auth = AuthenticationUtil(info)
+    if not auth['valid']:
+        return {'result': 1,
+                'errors': 'User / Client is not properly authenticated. Please Login.',
+                }
     try:
         asset = ProjectAssetRecordTbl.objects.get(pk=data['id'])
+        role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
     except Exception as e:
         return {'result': 1,
                 'errors': 'Cannot find coorsponding asset, are you sure this is an Avantis Asset? ' + str(e) + ' ' + str(type(e)),
                 }
     else:
-        if not asset.project_tbl is None:
+        if asset.project_tbl != role.project_tbl:
             return {'result': 1,
-                    'errors': 'Asset is already reserved',
+                    'errors': 'DB inconsistancy error asset and role reserved by different projects. Please Contact Tony Huang',
                     }
+        if not (asset.project_tbl is None):
+            if (asset.project_tbl_id == auth['group']):
+                if not data['reserved']:  # when reserved=False they are trying to unreserve
+                    asset.project_tbl = None
+                    role.project_tbl = None
+                else:
+                    return {'result': 1,
+                            'errors': 'Your project group has already reserved this entity',
+                            }
+            return {'result': 1,
+                    'errors': 'Asset is reserved by another project group',
+                    }
+    if data['reserved']:  # when reserved=True they are trying to reserve
+        asset.project_tbl_id = auth['group']
+        role.project_tbl_id = auth['group']
     try:
-        role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
+        asset.save()
+        role.save()
     except Exception as e:
         return {'result': 1,
-                'errors': 'Cannot find coorsponding role, are you sure this is an Avantis Asset? ' + str(e) + ' ' + str(type(e)),
+                'errors': 'Cannot change reservation' + str(e) + ' ' + str(type(e)),
                 }
-        if not role.project_tbl is None:
-            return {'result': 1,
-                    'errors': 'role is already reserved',
-                    }
+    else:
+        return {'result': 0,
+                'errors': role.pk,
+                }
