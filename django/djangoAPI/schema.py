@@ -89,8 +89,6 @@ class UpdateReconView(graphene.Mutation):
     def mutate(root, info, where=None, _set=None):
         # call different functions depending on what is changed
         # TODO allow changing multiple columns at the same time
-        pprint(info.context.META)
-        print(info.context.META['HTTP_X_USERNAME'])
         if not _set.role_exists is None:
             data = {'role_id': where.id._eq,
                     'entity_exists': _set.role_exists,
@@ -124,8 +122,6 @@ class InsertReconciliationView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, objects=None):
-        pprint(info.context.META)
-        print(info.context.META['HTTP_X_USERNAME'])
         role_data = {
             'role_number': objects.role_number,
             'role_spatial_site_id': 'a',  # objects.role_spatial_site_id
@@ -151,8 +147,6 @@ class InsertUnassView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, objects=None):
-        pprint(info.context.META)
-        print(info.context.META['HTTP_X_USERNAME'])
         data = {'asset_serial_number': objects.asset_serial_number}
         data = MissingAssetUtil(data)
         if data['result'] == 0:
@@ -171,8 +165,6 @@ class UpdateUnassView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
-        pprint(info.context.META)
-        print(info.context.META['HTTP_X_USERNAME'])
         data = {'role_id': _set.role_id,
                 'asset_id': where.id._eq,
                 }
@@ -193,8 +185,6 @@ class DeleteUnassView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None):
-        pprint(info.context.META)
-        print(info.context.META['HTTP_X_USERNAME'])
         data = {'asset_id': where.id._eq, }
         data = RetireAssetUtil(data)
         if data['result'] == 0:
@@ -212,8 +202,14 @@ class UpdateReserView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
-        data = {'id': where.id._eq, 'reserved': _set.reserved}
-        data = ReserveEntityUtil(data, info)
+        if not _set.reserved is None:
+            data = {'id': where.id._eq, 'reserved': _set.reserved}
+            data = ReserveEntityUtil(data, info)
+        elif not _set.approved is None:
+            data = {'id': where.id._eq, 'approved': _set.approved}
+            data = ApproveReservationUtil(data, info)
+        else:
+            raise GraphQLError('Unimplimented')
         if data['result'] == 0:
             data = ReservationView.objects.get(
                 pk=data['errors'])

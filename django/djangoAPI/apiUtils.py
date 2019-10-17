@@ -174,10 +174,14 @@ def DoesNotExistUtil(data):
 def AuthenticationUtil(info):
     data = {
         'valid': True,
+        'approve': False,
+        'group': None,
     }
     if info.context.META['HTTP_X_USERNAME'] == 'amber.brasher':
         data['group'] = 1
+        data['approve'] = True
     elif info.context.META['HTTP_X_USERNAME'] == 'tony.huang':
+        data['approve'] = True
         data['group'] = 2
     else:
         data['group'] = 2
@@ -265,6 +269,7 @@ def RoleParentUtil(data):
 def ReserveEntityUtil(data, info):
     '''Reserves Role and Asset for a project'''
     auth = AuthenticationUtil(info)
+    # TODO consider move valid login to be called by schema module
     if not auth['valid']:
         return {'result': 1,
                 'errors': 'User / Client is not properly authenticated. Please Login.',
@@ -313,3 +318,39 @@ def ReserveEntityUtil(data, info):
             return {'result': 0,
                     'errors': role.pk,
                     }
+
+
+def ApproveReservationUtil(data, info):
+    '''approves reservations'''
+    auth = AuthenticationUtil(info)
+    if not auth['valid']:
+        return {'result': 1,
+                'errors': 'User / Client is not properly authenticated. Please Login.',
+                }
+    if not auth['approve']:
+        return {'result': 1,
+                'errors': 'User is unauthorized for approving assets. Please Login as Tony Huang.',
+                }
+    try:
+        role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
+    except Exception as e:
+        return {'result': 1,
+                'errors': 'Cannot find coorsponding entity, are you sure this entity exists? ' + str(e) + ' ' + str(type(e)),
+                }
+    else:
+        if role.project_tbl is None:
+            return {'result': 1,
+                    'errors': 'There are no pending reservation requests for this entity ' + str(e) + ' ' + str(type(e)),
+                    }
+        else:
+            role.approved = data['approved']
+            try:
+                role.save()
+            except Exception as e:
+                return {'result': 1,
+                        'errors': 'Cannot change reservation' + str(e) + ' ' + str(type(e)),
+                        }
+            else:
+                return {'result': 0,
+                        'errors': role.pk,
+                        }
