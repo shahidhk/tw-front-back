@@ -348,6 +348,7 @@ class ReservationView(models.Model):
     full_path = models.TextField(null=True)
     approved = models.BooleanField(null=True)
     reserved = models.BooleanField(null=True)
+    dummy = models.IntegerField(null=True)
 
     class Meta:
         managed = False

@@ -119,7 +119,8 @@ def init_db(request):
             a.project_tbl_id as project_id,
             a.ltree_path as full_path,
             a.approved,
-            (not a.project_tbl_id is null) as reserved
+            (not a.project_tbl_id is null) as reserved,
+            b.id AS dummy
         from
             public."djangoAPI_ProjectAssetRoleRecordTbl" as a
         left join public."djangoAPI_ProjectAssetRecordTbl" as b on
