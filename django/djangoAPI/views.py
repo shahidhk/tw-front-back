@@ -94,29 +94,36 @@ def init_db(request):
         on (pa.projectassetrecordtbl_ptr_id=ba.id)) as a
         on (r.id=a.initial_project_asset_role_id_id);
         ''')
-        cursor.execute(
-            '''
-        create or replace view unassigned_assets as
-        select ba.id as id, ba.asset_serial_number as asset_serial_number
-        from public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
-        left join public."djangoAPI_ProjectAssetRecordTbl" as ba
-        on pa.projectassetrecordtbl_ptr_id=ba.id
-        where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>'b';
+        cursor.execute('''
+        create or replace
+        view unassigned_assets as
+        select
+            ba.id as id,
+            ba.asset_serial_number as asset_serial_number
+        from
+            public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
+            pa.projectassetrecordtbl_ptr_id = ba.id
+        where
+            pa.initial_project_asset_role_id_id is null
+            and pa.designer_planned_action_type_tbl_id <> 'b';
         ''')
         cursor.execute('''
         create or replace
         view reservation_view as
         select
-            id,
-            updatable_role_number as role_number,
-            role_name,
-            parent_id_id as parent,
-            project_tbl_id as project_id,
-            ltree_path as full_path,
-            approved,
-            (not project_tbl_id is null) as reserved
+            a.id,
+            a.updatable_role_number as role_number,
+            a.role_name,
+            a.parent_id_id as parent,
+            a.project_tbl_id as project_id,
+            a.ltree_path as full_path,
+            a.approved,
+            (not a.project_tbl_id is null) as reserved
         from
-            public."djangoAPI_ProjectAssetRoleRecordTbl" ;
+            public."djangoAPI_ProjectAssetRoleRecordTbl" as a
+        left join public."djangoAPI_ProjectAssetRecordTbl" as b on
+            a.id = b.id ;
         ''')
 
         return HttpResponse("Finished DB init")
