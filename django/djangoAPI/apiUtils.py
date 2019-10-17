@@ -278,12 +278,12 @@ def ReserveEntityUtil(data, info):
         role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
     except Exception as e:
         return {'result': 1,
-                'errors': 'Cannot find coorsponding asset, are you sure this is an Avantis Asset? ' + str(e) + ' ' + str(type(e)),
+                'errors': 'Cannot find corresponding asset, are you sure this is an Avantis Asset? ' + str(e) + ' ' + str(type(e)),
                 }
     else:
         if asset.project_tbl != role.project_tbl:
             return {'result': 1,
-                    'errors': 'DB inconsistancy error asset and role reserved by different projects. Please Contact Tony Huang',
+                    'errors': 'DB inconsistency error asset and role reserved by different projects. Please Contact Tony Huang',
                     }
         if asset.project_tbl is None:  # asset is free real estate
             if data['reserved']:
@@ -334,7 +334,7 @@ def ApproveReservationUtil(data, info):
         role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
     except Exception as e:
         return {'result': 1,
-                'errors': 'Cannot find coorsponding entity, are you sure this entity exists? ' + str(e) + ' ' + str(type(e)),
+                'errors': 'Cannot find corresponding entity, are you sure this entity exists? ' + str(e) + ' ' + str(type(e)),
                 }
     else:
         if role.project_tbl is None:
