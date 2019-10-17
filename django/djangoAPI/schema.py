@@ -48,8 +48,7 @@ class ReconViewSerial(serializers.ModelSerializer):
 
 
 class ReconciliationViewSet(convert_serializer_to_input_type(ReconViewSerial)):
-    pass
-    # role_id = graphene.Int()
+    role_id = graphene.Int()
 
 
 class UnassViewSerial(serializers.ModelSerializer):
