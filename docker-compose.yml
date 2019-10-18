@@ -42,7 +42,7 @@ services:
       PGADMIN_LISTEN_PORT: 5555
 
   graphql-engine:
-    image: hasura/graphql-engine:latest
+    image: hasura/graphql-engine:v1.0.0-beta.6
     depends_on:
       - db
     restart: always
@@ -50,7 +50,6 @@ services:
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:NGNvarvpZIpa8R88@db:5432/postgres
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
-      ## uncomment next line to set an admin secret
       HASURA_GRAPHQL_ADMIN_SECRET: eDfGfj041tHBYkX9
 
   # web-app is a build slave
@@ -68,7 +67,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-      - URL=tw-webapp-alpha.duckdns.org
+      - URL=tw-webapp-next.duckdns.org
       - SUBDOMAINS=wildcard
       - VALIDATION=duckdns
       - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1

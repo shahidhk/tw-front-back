@@ -94,30 +94,39 @@ def init_db(request):
         on (pa.projectassetrecordtbl_ptr_id=ba.id)) as a
         on (r.id=a.initial_project_asset_role_id_id);
         ''')
-        cursor.execute(
-            '''
-        create or replace view unassigned_assets as
-        select ba.id as id, ba.asset_serial_number as asset_serial_number
-        from public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
-        left join public."djangoAPI_ProjectAssetRecordTbl" as ba
-        on pa.projectassetrecordtbl_ptr_id=ba.id
-        where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>'b';
+        cursor.execute('''
+        create or replace
+        view unassigned_assets as
+        select
+            ba.id as id,
+            ba.asset_serial_number as asset_serial_number
+        from
+            public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
+            pa.projectassetrecordtbl_ptr_id = ba.id
+        where
+            pa.initial_project_asset_role_id_id is null
+            and pa.designer_planned_action_type_tbl_id <> 'b';
         ''')
         cursor.execute('''
         create or replace
         view reservation_view as
         select
-            id,
-            updatable_role_number as role_number,
-            role_name,
-            parent_id_id as parent,
-            project_tbl_id as project_id,
-            ltree_path as full_path,
-            approved,
-            (not project_tbl_id is null) as reserved
+            a.id,
+            a.updatable_role_number as role_number,
+            a.role_name,
+            a.parent_id_id as parent,
+            a.project_tbl_id as project_id,
+            a.ltree_path as full_path,
+            a.approved,
+            (not a.project_tbl_id is null) as reserved,
+            b.id AS dummy
         from
-            public."djangoAPI_ProjectAssetRoleRecordTbl" ;
+            public."djangoAPI_ProjectAssetRoleRecordTbl" as a
+        left join public."djangoAPI_ProjectAssetRecordTbl" as b on
+            a.id = b.id ;
         ''')
+
         return HttpResponse("Finished DB init")
 
 
@@ -200,6 +209,11 @@ def db_fill(request):
         for row in csv_reader:
             line_count = line_count + 1
             asset_line[row[0]] = [line_count, row]
+    # create a location for states
+    # wip need to fix spatial sites first
+    # spatial_site = ImportedSpatialSiteTbl()
+    # spatial_site.pk = 1
+
     with transaction.atomic():
         # TODO When creating location tags, remove duplicates, get dictionary of locations
         for asset_row in asset_line.items():
@@ -228,6 +242,21 @@ def db_fill(request):
         avantis_asset.intent_to_reserve_id = 1
         avantis_asset.role_spatial_site_id_id = asset_row[1][0]
         avantis_asset.save()
+
+    # create our state roles
+    states = ['Top Level Roles', 'Orphaned Roles']
+    for i in range(10):
+        role = ProjectAssetRoleRecordTbl()
+        role.pk = i + 1
+        role.updatable_role_number = 'State ' + i+1
+        role.role_name = states[i] if i < len(states) else 'Reserved for Future State'
+        role.parent_id_id = None
+        role.role_criticality_id = 'a'
+        role.role_priority_id = 'a'
+        role.role_spatial_site_id_id = '1'
+        # TODO create admin project to make states not reservable?
+        role.save()
+
     return HttpResponse("Finished DB Fill")
 
 
@@ -262,7 +291,8 @@ def update_asset_role(request):
     # with transaction.atomic():
     for role in base_roles:
         try:
-            role.parent_id_id = base_role_dict[parent_mtoi[role.updatable_role_number].parent_role_number]
+            role.parent_id_id = base_role_dict.get(
+                parent_mtoi[role.updatable_role_number].parent_role_number, None)
             role.save()
         except Exception as e:
             print('cant save parent for ' +

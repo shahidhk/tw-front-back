@@ -1,6 +1,7 @@
 '''Defines the GraphQL Queries and Mutations'''
 
 import graphene
+from pprint import pprint
 from graphql import GraphQLError
 from graphene_django.types import DjangoObjectType, ObjectType
 from graphene_django.rest_framework.serializer_converter import convert_serializer_to_input_type
@@ -53,8 +54,7 @@ class ReconViewSerial(serializers.ModelSerializer):
 
 
 class ReconciliationViewSet(convert_serializer_to_input_type(ReconViewSerial)):
-    pass
-    # role_id = graphene.Int()
+    role_id = graphene.Int()
 
 
 class UnassViewSerial(serializers.ModelSerializer):
@@ -100,6 +100,8 @@ class UpdateReconView(graphene.Mutation):
                     }
             data = RoleParentUtil(data)
         elif not _set.asset_id is None:
+            # this one is kinda weird, assigns an asset to the role,
+            # if moving asset to unassigned assets, the role_id is 0 / None
             data = {'role_id': where.id._eq,
                     'asset_id': _set.asset_id,
                     }
@@ -198,14 +200,20 @@ class UpdateReserView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
         _set = ReserViewSet(required=True)
-    returning = graphene.Field(ReservationViewType)
+    returning = graphene.List(ReservationViewType)
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
-        data = {'id': where.id._eq, 'reserved': _set.reserved}
-        data = ReserveEntityUtil(data, info)
+        if not _set.reserved is None:
+            data = {'id': where.id._eq, 'reserved': _set.reserved}
+            data = ReserveEntityUtil(data, info)
+        elif not _set.approved is None:
+            data = {'id': where.id._eq, 'approved': _set.approved}
+            data = ApproveReservationUtil(data, info)
+        else:
+            raise GraphQLError('Unimplimented')
         if data['result'] == 0:
-            data = ReservationView.objects.get(
+            data = ReservationView.objects.filter(
                 pk=data['errors'])
             return UpdateReserView(returning=data)
         raise GraphQLError(data['errors'])
