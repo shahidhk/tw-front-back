@@ -200,12 +200,10 @@ class ProjectAssetRoleRecordTbl(models.Model):
         to='self', to_field='id', verbose_name="Parent Number", on_delete=models.PROTECT, null=True, blank=True)
     updatable_role_number = models.CharField(max_length=25)
     role_name = models.CharField(max_length=400)
-    role_spatial_site_id = models.ForeignKey(
-        ImportedSpatialSiteTbl, models.PROTECT)
+    role_spatial_site_id = models.ForeignKey(ImportedSpatialSiteTbl, models.PROTECT)
     role_criticality = models.ForeignKey(RoleCriticality, models.PROTECT)
     role_priority = models.ForeignKey(RolePriority, models.PROTECT)
-    project_tbl = models.ForeignKey(
-        DesignProjectTbl, on_delete=models.PROTECT, null=True)
+    project_tbl = models.ForeignKey(DesignProjectTbl, on_delete=models.PROTECT, null=True)
     approved = models.BooleanField(default=False)
     # to impliment ltree, since the type isnt correctly this table will be unmanaged
     ltree_path = models.TextField(blank=True, null=True)

@@ -87,6 +87,7 @@ def MissingAssetUtil(asset_data):
 
 def AssignAssetToRoleUtil(data):
     '''
+    Assigns an Asset to a Role, Assign to null role for unassigned assets
     Expects Dictionary with asset_id, role_id
     Raises exception if another role is in that assets location
     '''
@@ -116,6 +117,7 @@ def AssignAssetToRoleUtil(data):
 
 def DoesNotExistUtil(data):
     '''
+    Marks Asset and Role as Does Not Exist
     only look for the assets in preDesignReconciledAssetRecordTbl, roles in preDesignReconciledRoleRecordTbl
     will only look at the initial position of assets, not sure what happens if assets gets moved then you try to remove
     currently does not check for reservation / permissions
@@ -172,6 +174,8 @@ def DoesNotExistUtil(data):
 
 
 def AuthenticationUtil(info):
+    '''Authenticates the User'''
+    # consider changing to a class to replace dictionary
     data = {
         'valid': True,
         'approve': False,
@@ -189,9 +193,9 @@ def AuthenticationUtil(info):
 
 def RetireAssetUtil(asset):
     '''
-    Takes in asset ID not role ID!!
     Retire the Asset specified and leaves an empty role
     Currently defaults to landfill, and stage(0)
+    Takes in asset ID not role ID!!
     '''
     # TODO if the asset was created just actually delete it
     try:
@@ -212,6 +216,7 @@ def RetireAssetUtil(asset):
             uninstallation_stage_id=0,
         )
         retired_asset.save_base(raw=True)
+        # raw base save is required since the parent object has already been created
     except Exception as e:
         return {'result': 1,
                 'errors': str(type(e)) + ' Operation Failed ' + str(e)
@@ -224,6 +229,7 @@ def RetireAssetUtil(asset):
 
 def RoleParentUtil(data):
     '''
+    Assigns a parent to a role
     takes in id of role and id of its new parent
     '''
     if data['role_id'] == data['parent_id']:
