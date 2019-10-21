@@ -171,7 +171,7 @@ def init_db(request):
             cursor.execute(
                 '''
         CREATE TRIGGER parent_changed_tgr
-            BEFORE UPDATE ON public."djangoAPI_ProjectAssetRoleRecordTbl"
+            BEFORE insert or UPDATE ON public."djangoAPI_ProjectAssetRoleRecordTbl"
             FOR EACH ROW EXECUTE PROCEDURE update_parent_changed();
         ''')
         except Exception as e:
@@ -206,10 +206,9 @@ def init_db(request):
             print(str(e))
         try:
             cursor.execute('''
-            create trigger role_changed_tgr before
-            update
-                on
-                public."djangoAPI_PreDesignReconciledAssetRecordTbl" for each row execute procedure update_role_changed();
+            create trigger role_changed_tgr
+            before insert or update on public."djangoAPI_PreDesignReconciledAssetRecordTbl"
+            for each row execute procedure update_role_changed();
         ''')
         except Exception as e:
             print(type(str(e)))
@@ -380,7 +379,8 @@ def update_asset_role(request):
                 cloned_role_registry_tbl_id=parent_mtoi[entry.role_number].mtoi,
                 entity_exists=True,
                 missing_from_registry=False,
-                designer_planned_action_type_tbl_id=num_to_alpha(3)  # do nothing
+                designer_planned_action_type_tbl_id=num_to_alpha(3),  # do nothing
+                parent_changed=False,
             )
             base_role_dict[existing_role.updatable_role_number] = existing_role.pk
     base_roles = ProjectAssetRoleRecordTbl.objects.all()
@@ -404,8 +404,8 @@ def update_asset_role(request):
             existing_asset.initial_project_asset_role_id_id = base_role_dict[entry.role_number]
             existing_asset.entity_exists = True
             existing_asset.missing_from_registry = False
-            existing_asset.designer_planned_action_type_tbl_id = num_to_alpha(
-                3)  # do nothing
+            existing_asset.designer_planned_action_type_tbl_id = num_to_alpha(3)  # do nothing
+            existing_asset.role_changed = False
             existing_asset.save()
     return HttpResponse('Finished Updating Asset & Role')
 

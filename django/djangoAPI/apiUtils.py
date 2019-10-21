@@ -48,6 +48,7 @@ def MissingRoleUtil(role_data):
                 role.entity_exists = True
                 role.missing_from_registry = True
                 role.designer_planned_action_type_tbl_id = 3
+                role.parent_changed = False
                 role.save()
                 # pass the role pk back to the client?
         except Exception as e:
@@ -75,6 +76,7 @@ def MissingAssetUtil(asset_data):
             asset.initial_project_asset_role_id = None
             asset.missing_from_registry = True
             asset.asset_serial_number = asset_data['asset_serial_number']
+            asset.role_changed = False
             asset.save()
     except Exception as e:
         return {'result': 1,
