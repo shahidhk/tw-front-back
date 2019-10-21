@@ -107,7 +107,7 @@ class UpdateReconView(graphene.Mutation):
                     }
             data = AssignAssetToRoleUtil(data)
         else:
-            raise GraphQLError('Unimplimented')
+            raise GraphQLError('Unimplemented')
         # Check the result of called function and return row on success
         if data['result'] == 0:
             data = ReconciliationView.objects.get(

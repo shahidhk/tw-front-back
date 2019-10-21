@@ -182,12 +182,12 @@ def AuthenticationUtil(info):
         'group': None,
     }
     if info.context.META['HTTP_X_USERNAME'] == 'amber.brasher':
-        data['group'] = 1
+        data['group'] = 3
     elif info.context.META['HTTP_X_USERNAME'] == 'tony.huang':
         data['approve'] = True
         data['group'] = 2
     else:
-        data['group'] = 2
+        data['group'] = 4
     return data
 
 
@@ -349,6 +349,8 @@ def ApproveReservationUtil(data, info):
                     }
         else:
             role.approved = data['approved']
+            if not data['approved']:
+                role.project_tbl_id = None
             try:
                 role.save()
             except Exception as e:

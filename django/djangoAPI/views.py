@@ -25,11 +25,13 @@ def init_db(request):
             print(type(str(e)))
             print(str(e))
         try:
-            cursor.execute('''ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" DROP COLUMN ltree_path;
-        ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl"
-            ADD COLUMN ltree_path ltree;
-        CREATE INDEX parent_id_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" USING GIST (ltree_path);
-        CREATE INDEX parent_path_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" (parent_id_id);''')
+            cursor.execute('''
+            ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" DROP COLUMN ltree_path;
+            ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl"
+                ADD COLUMN ltree_path ltree;
+            CREATE INDEX parent_id_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" USING GIST (ltree_path);
+            CREATE INDEX parent_path_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" (parent_id_id);
+            ''')
         except Exception as e:
             print(type(str(e)))
             print(str(e))
@@ -69,30 +71,30 @@ def init_db(request):
         except Exception as e:
             print(type(str(e)))
             print(str(e))
-        cursor.execute(
-            '''
-        create or replace view reconciliation_view as
+        cursor.execute('''
+        create or replace
+        view reconciliation_view as
         select
-        r.id, r.updatable_role_number as role_number,
-        r.role_name as role_name,
-        r.parent_id_id as parent,
-        r.project_tbl_id as project_id,
-        r.entity_exists as role_exists,
-        r.missing_from_registry as role_missing_from_registry,
-        r.ltree_path as full_path,
-        a.id as asset_id,
-        a.asset_serial_number as asset_serial_number,
-        a.entity_exists as asset_exists,
-        a.missing_from_registry as asset_missing_from_registry
-        from (
-        public."djangoAPI_ProjectAssetRoleRecordTbl" as br
-        right join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as pr
-        on (br.id=pr.projectassetrolerecordtbl_ptr_id)) as r
-        left join (
-        public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
-        left join public."djangoAPI_ProjectAssetRecordTbl" as ba
-        on (pa.projectassetrecordtbl_ptr_id=ba.id)) as a
-        on (r.id=a.initial_project_asset_role_id_id);
+            r.id,
+            r.updatable_role_number as role_number,
+            r.role_name as role_name,
+            r.parent_id_id as parent,
+            r.project_tbl_id as project_id,
+            r.entity_exists as role_exists,
+            r.missing_from_registry as role_missing_from_registry,
+            r.ltree_path as full_path,
+            a.id as asset_id,
+            a.asset_serial_number as asset_serial_number,
+            a.entity_exists as asset_exists,
+            a.missing_from_registry as asset_missing_from_registry
+        from
+            ( public."djangoAPI_ProjectAssetRoleRecordTbl" as br
+        right join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as pr on
+            (br.id = pr.projectassetrolerecordtbl_ptr_id)) as r
+        left join ( public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
+            (pa.projectassetrecordtbl_ptr_id = ba.id)) as a on
+            (r.id = a.initial_project_asset_role_id_id);
         ''')
         cursor.execute('''
         create or replace
@@ -120,7 +122,15 @@ def init_db(request):
             a.ltree_path as full_path,
             a.approved,
             (not a.project_tbl_id is null) as reserved,
-            b.id AS dummy
+            b.id as dummy,
+            (case
+                when (a.approved)
+                and (not a.project_tbl_id is null) then 'Approved'
+                -- true + true
+                when (not a.approved)
+                and (not a.project_tbl_id is null) then 'Pending'
+                -- false + true
+            end ) as approval_status
         from
             public."djangoAPI_ProjectAssetRoleRecordTbl" as a
         left join public."djangoAPI_ProjectAssetRecordTbl" as b on
@@ -137,13 +147,13 @@ def db_fill(request):
     '''
     InitEnums()
     InitValueList()
-    for i in range(3):
+    for i in range(4):
         DesignProjectTbl.objects.create(
             pk=i+1,
             planned_date_range=(date.today(), date.today() + timedelta(days=40)),
-            op_bus_unit_id=['a', 'b', 'c'][i],
+            op_bus_unit_id=['a', 'b', 'c', 'd'][i],
         )
-    lst = [['Tony', 'Huang'], ['Peter', 'Lewis'], ['Stephen', 'Almeida']]
+    lst = [['Super', 'User'], ['Tony', 'Huang'], ['Peter', 'Lewis'], ['Stephen', 'Almeida']]
     for i, value in enumerate(lst):
         UserTbl.objects.create(
             id=i+1,
@@ -209,22 +219,32 @@ def db_fill(request):
         for row in csv_reader:
             line_count = line_count + 1
             asset_line[row[0]] = [line_count, row]
-    # create a location for states
-    # wip need to fix spatial sites first
-    # spatial_site = ImportedSpatialSiteTbl()
-    # spatial_site.pk = 1
 
-    with transaction.atomic():
-        # TODO When creating location tags, remove duplicates, get dictionary of locations
-        for asset_row in asset_line.items():
-            spatial_site = ImportedSpatialSiteTbl()
-            spatial_site.pk = asset_row[1][0]
-            spatial_site.name = asset_row[1][1][7]
-            try:
-                spatial_site.parentSiteId_id = asset_line[asset_row[1][1][3]][0]
-            except Exception:
-                spatial_site.parentSiteId_id = None
-            spatial_site.save()
+    # create a location for states
+    spatial_state = ImportedSpatialSiteTbl.objects.create(
+        name='Virtual Spatial Location for States',
+    )
+    # if pk is specified the autogeneration will not see the entry and will generate conflicting primary keys
+    spatial_state.pk = 1
+    spatial_state.save()
+
+    # create spatial sites
+    locations = {}
+    for asset_row in asset_line.items():
+        if not locations.get(asset_row[1][1][7]):
+            spatial_site = ImportedSpatialSiteTbl.objects.create(
+                name=asset_row[1][1][7]
+            )
+            locations[asset_row[1][1][7]] = [spatial_site.pk, asset_row[1][1][3], spatial_site]
+    for location in locations.values():
+        temp = asset_line.get(location[1])
+        if temp:
+            temp = locations.get(temp[1][7])
+            spatial_site = location[2]
+            if temp:
+                spatial_site.parent_site_id_id = temp[0]
+                spatial_site.save()
+
     for asset_row in asset_line.items():
         avantis_asset = ClonedAssetAndRoleInRegistryTbl()
         avantis_asset.mtoi = asset_row[1][0]
@@ -240,21 +260,22 @@ def db_fill(request):
         avantis_asset.suspension_id_id = 1
         avantis_asset.already_reserved_id = 1
         avantis_asset.intent_to_reserve_id = 1
-        avantis_asset.role_spatial_site_id_id = asset_row[1][0]
+        avantis_asset.role_spatial_site_id_id = locations[asset_row[1][1][7]][0]
         avantis_asset.save()
 
     # create our state roles
     states = ['Top Level Roles', 'Orphaned Roles']
     for i in range(10):
-        role = ProjectAssetRoleRecordTbl()
+        role = ProjectAssetRoleRecordTbl.objects.create(
+            updatable_role_number='State ' + str(i+1),
+            role_name=states[i] if i < len(states) else 'Reserved for Future State',
+            parent_id_id=None,
+            role_criticality_id='a',
+            role_priority_id='a',
+            role_spatial_site_id_id='1',
+            project_tbl_id=1,
+        )
         role.pk = i + 1
-        role.updatable_role_number = 'State ' + i+1
-        role.role_name = states[i] if i < len(states) else 'Reserved for Future State'
-        role.parent_id_id = None
-        role.role_criticality_id = 'a'
-        role.role_priority_id = 'a'
-        role.role_spatial_site_id_id = '1'
-        # TODO create admin project to make states not reservable?
         role.save()
 
     return HttpResponse("Finished DB Fill")
@@ -272,27 +293,25 @@ def update_asset_role(request):
     base_role_dict = {}  # dictionary for tracking roles and its pk
     with transaction.atomic():
         for entry in cloned_assets:
-            existing_role = PreDesignReconciledRoleRecordTbl()
-            existing_role.updatable_role_number = entry.role_number
-            existing_role.role_name = entry.role_name
-            existing_role.parent_id_id = None  # fill this in on the second go
-            existing_role.role_criticality_id = num_to_alpha(
-                entry.role_criticality)
-            existing_role.role_priority_id = num_to_alpha(entry.role_priority)
-            existing_role.role_spatial_site_id = entry.role_spatial_site_id
-            existing_role.cloned_role_registry_tbl_id = parent_mtoi[entry.role_number].mtoi
-            existing_role.entity_exists = True
-            existing_role.missing_from_registry = False
-            existing_role.designer_planned_action_type_tbl_id = num_to_alpha(
-                3)  # do nothing
-            existing_role.save()
+            existing_role = PreDesignReconciledRoleRecordTbl.objects.create(
+                updatable_role_number=entry.role_number,
+                role_name=entry.role_name,
+                parent_id_id=None,  # fill this in on the second go
+                role_criticality_id=num_to_alpha(entry.role_criticality),
+                role_priority_id=num_to_alpha(entry.role_priority),
+                role_spatial_site_id=entry.role_spatial_site_id,
+                cloned_role_registry_tbl_id=parent_mtoi[entry.role_number].mtoi,
+                entity_exists=True,
+                missing_from_registry=False,
+                designer_planned_action_type_tbl_id=num_to_alpha(3)  # do nothing
+            )
             base_role_dict[existing_role.updatable_role_number] = existing_role.pk
     base_roles = ProjectAssetRoleRecordTbl.objects.all()
     # with transaction.atomic():
     for role in base_roles:
-        try:
+        try: # update the parent of roles unless its top level in which case it is suppose to be child of 1
             role.parent_id_id = base_role_dict.get(
-                parent_mtoi[role.updatable_role_number].parent_role_number, None)
+                parent_mtoi[role.updatable_role_number].parent_role_number, 1)
             role.save()
         except Exception as e:
             print('cant save parent for ' +
