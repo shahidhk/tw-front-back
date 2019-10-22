@@ -207,27 +207,27 @@ def init_db(request):
             print(str(e))
         try:
             cursor.execute('''
-            CREATE OR REPLACE FUNCTION update_role_changed() RETURNS TRIGGER AS $$
-            -- only run on updates, since insert implies that the entity did not exist in avantis to begin with, which means this does not apply (false)
-                DECLARE
-                new_role_mtoi int;
-                orig_role_mtoi int;
-                status bool;
-                begin
-            --	    only run trigger if the entry is predesign
-                    status = false;
-                    IF OLD.initial_project_asset_role_id_id != NEW.initial_project_asset_role_id_id then
-                        new_role_mtoi = new.cloned_role_registry_tbl_id;
-                        select cloned_role_registry_tbl_id from public."djangoAPI_PreDesignReconciledRoleRecordTbl"  as rr where rr.projectassetrolerecordtbl_ptr_id = new.initial_project_asset_role_id_id into orig_role_mtoi;
-            --        	raise exception 'new role %, old role %', new_role_mtoi, orig_role_mtoi;
-                    if new_role_mtoi <> orig_role_mtoi then
-                            status = true;
-                        end if;
-                    END IF;
-                    new.role_changed = status;
-                    RETURN NEW;
-                END;
-            $$ LANGUAGE plpgsql;
+        CREATE OR REPLACE FUNCTION update_role_changed() RETURNS TRIGGER AS $$
+        -- only run on updates, since insert implies that the entity did not exist in avantis to begin with, which means this does not apply (false)
+            DECLARE
+            new_role_mtoi int;
+            orig_role_mtoi int;
+            status bool;
+            begin
+        --	    only run trigger if the entry is predesign
+                status = false;
+                IF OLD.initial_project_asset_role_id_id != NEW.initial_project_asset_role_id_id then
+                    new_role_mtoi = new.cloned_role_registry_tbl_id;
+                    select cloned_role_registry_tbl_id from public."djangoAPI_PreDesignReconciledRoleRecordTbl"  as rr where rr.projectassetrolerecordtbl_ptr_id = new.initial_project_asset_role_id_id into orig_role_mtoi;
+        --        	raise exception 'new role %, old role %', new_role_mtoi, orig_role_mtoi;
+                if new_role_mtoi <> orig_role_mtoi then
+                        status = true;
+                    end if;
+                END IF;
+                new.role_changed = status;
+                RETURN NEW;
+            END;
+        $$ LANGUAGE plpgsql;
         ''')
         except Exception as e:
             print(type(str(e)))

@@ -47,7 +47,7 @@ def MissingRoleUtil(role_data):
                 role.role_spatial_site_id_id = role_data['role_spatial_site_id']
                 role.entity_exists = True
                 role.missing_from_registry = True
-                role.designer_planned_action_type_tbl_id = 3
+                role.designer_planned_action_type_tbl_id = 'c'
                 role.parent_changed = False
                 role.save()
                 # pass the role pk back to the client?
