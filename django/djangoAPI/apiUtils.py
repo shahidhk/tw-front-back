@@ -297,7 +297,7 @@ def ReserveEntityUtil(data, info):
             if data['reserved']:
                 asset.project_tbl_id = auth['group']
                 role.project_tbl_id = auth['group']
-            else:
+            else:  # dont return error if already unreserved
                 return {'result': 0,
                         'errors': role.pk,
                         }
@@ -306,7 +306,7 @@ def ReserveEntityUtil(data, info):
                 asset.project_tbl = None
                 role.project_tbl = None
                 role.approved = False
-            else:
+            else:  # dont return error if already reservved
                 return {'result': 0,
                         'errors': role.pk,
                         }
