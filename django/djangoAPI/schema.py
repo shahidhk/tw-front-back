@@ -183,12 +183,14 @@ class UpdateUnassView(graphene.Mutation):
                 'asset_id': where.id._eq,
                 }
         result = UnassignedAssetsView.objects.filter(pk=where.id._eq)  # be optimistic
+        print(vars(result))
         # since we need to return a list with the object we deleted we can get the object before we delete it
         data = AssignAssetToRoleUtil(data, auth)
         if data['result'] == 0:
             # data = UnassignedAssetsView.objects.get(
             #     pk=data['errors'])
             # data = UnassAssViewTypeDeleted(id=where.id._eq)
+            print(vars(result))
             return InsertUnassView(returning=result)
         raise GraphQLError(data['errors'])
 
@@ -205,11 +207,10 @@ class DeleteUnassView(graphene.Mutation):
         if not auth['valid']:
             raise GraphQLError('User / Client is not properly authenticated. Please Login.')
         data = {'asset_id': where.id._eq, }
+        result = UnassignedAssetsView.objects.filter(pk=where.id._eq)
         data = RetireAssetUtil(data, auth)
         if data['result'] == 0:
-            data = UnassAssViewTypeDeleted(
-                id=where.id._eq, asset_serial_number=data['errors'])
-            return InsertUnassView(returning=data)  # same as above where list???
+            return InsertUnassView(returning=result)  # same as above where list???
         raise GraphQLError(data['errors'])
 
 
@@ -231,7 +232,7 @@ class UpdateReserView(graphene.Mutation):
             data = {'id': where.id._eq, 'approved': _set.approved}
             data = ApproveReservationUtil(data, auth)
         else:
-            raise GraphQLError('Unimplimented')
+            raise GraphQLError('Unimplemented')
         if data['result'] == 0:
             data = ReservationView.objects.filter(
                 pk=data['errors'])
