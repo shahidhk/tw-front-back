@@ -209,6 +209,11 @@ def db_fill(request):
         for row in csv_reader:
             line_count = line_count + 1
             asset_line[row[0]] = [line_count, row]
+    # create a location for states
+    # wip need to fix spatial sites first
+    # spatial_site = ImportedSpatialSiteTbl()
+    # spatial_site.pk = 1
+
     with transaction.atomic():
         # TODO When creating location tags, remove duplicates, get dictionary of locations
         for asset_row in asset_line.items():
@@ -238,20 +243,20 @@ def db_fill(request):
         avantis_asset.role_spatial_site_id_id = asset_row[1][0]
         avantis_asset.save()
 
-    # create our top level asset
-    # existing_role = PreDesignReconciledRoleRecordTbl()
-    # existing_role.pk = 0
-    # existing_role.updatable_role_number = 'top level'
-    # existing_role.role_name = 'db top level'
-    # existing_role.parent_id_id = None  # fill this in on the second go
-    # existing_role.role_criticality_id = '1'
-    # existing_role.role_priority_id = '5'
-    # existing_role.role_spatial_site_id_id = '1'
-    # existing_role.cloned_role_registry_tbl_id = None
-    # existing_role.entity_exists = True
-    # existing_role.missing_from_registry = False
-    # existing_role.designer_planned_action_type_tbl_id = 3  # do nothing
-    # existing_role.save()
+    # create our state roles
+    states = ['Top Level Roles', 'Orphaned Roles']
+    for i in range(10):
+        role = ProjectAssetRoleRecordTbl()
+        role.pk = i + 1
+        role.updatable_role_number = 'State ' + i+1
+        role.role_name = states[i] if i < len(states) else 'Reserved for Future State'
+        role.parent_id_id = None
+        role.role_criticality_id = 'a'
+        role.role_priority_id = 'a'
+        role.role_spatial_site_id_id = '1'
+        # TODO create admin project to make states not reservable?
+        role.save()
+
     return HttpResponse("Finished DB Fill")
 
 

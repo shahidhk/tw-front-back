@@ -100,6 +100,8 @@ class UpdateReconView(graphene.Mutation):
                     }
             data = RoleParentUtil(data)
         elif not _set.asset_id is None:
+            # this one is kinda weird, assigns an asset to the role,
+            # if moving asset to unassigned assets, the role_id is 0 / None
             data = {'role_id': where.id._eq,
                     'asset_id': _set.asset_id,
                     }
