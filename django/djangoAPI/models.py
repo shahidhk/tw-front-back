@@ -349,6 +349,7 @@ class ReservationView(models.Model):
     approved = models.BooleanField(null=True)
     reserved = models.BooleanField(null=True)
     dummy = models.IntegerField(null=True)
+    approval_status = models.TextField(null=True)
 
     class Meta:
         managed = False

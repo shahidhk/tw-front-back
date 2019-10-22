@@ -47,7 +47,7 @@ def MissingRoleUtil(role_data):
                 role.role_spatial_site_id_id = role_data['role_spatial_site_id']
                 role.entity_exists = True
                 role.missing_from_registry = True
-                role.designer_planned_action_type_tbl_id = 3
+                role.designer_planned_action_type_tbl_id = 'a'
                 role.save()
                 # pass the role pk back to the client?
         except Exception as e:
@@ -290,8 +290,8 @@ def ReserveEntityUtil(data, info):
                 asset.project_tbl_id = auth['group']
                 role.project_tbl_id = auth['group']
             else:
-                return {'result': 1,
-                        'errors': 'Asset is already unreserved',
+                return {'result': 0,
+                        'errors': role.pk,
                         }
         elif asset.project_tbl_id == auth['group']:  # asset is reserved by this group
             if not data['reserved']:  # when reserved=False they are trying to unreserve
@@ -299,8 +299,8 @@ def ReserveEntityUtil(data, info):
                 role.project_tbl = None
                 role.approved = False
             else:
-                return {'result': 1,
-                        'errors': 'Asset is already reserved by your group',
+                return {'result': 0,
+                        'errors': role.pk,
                         }
         else:  # asset is reserved by another group
             return {'result': 1,
