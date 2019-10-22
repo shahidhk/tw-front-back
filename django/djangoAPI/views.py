@@ -73,7 +73,7 @@ def init_db(request):
             print(str(e))
         cursor.execute('''
         create or replace
-        view reconciliation_view as
+        view reconciliation_view_temp as
         select
             r.id,
             r.updatable_role_number as role_number,
@@ -97,6 +97,26 @@ def init_db(request):
         left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
             (pa.projectassetrecordtbl_ptr_id = ba.id)) as a on
             (r.id = a.initial_project_asset_role_id_id);
+        ''')
+        cursor.execute('''
+        create or replace
+        view reconciliation_view as
+        select
+            *
+        from
+            reconciliation_view_temp
+        where
+            full_path <@ '1'::ltree;
+        ''')
+        cursor.execute('''
+        create or replace
+        view orphan_view as
+        select
+            *
+        from
+            reconciliation_view_temp
+        where
+            full_path <@ '2'::ltree;
         ''')
         cursor.execute('''
         create or replace
