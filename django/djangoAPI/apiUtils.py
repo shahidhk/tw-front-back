@@ -298,8 +298,8 @@ def ReserveEntityUtil(data, info):
                 asset.project_tbl_id = auth['group']
                 role.project_tbl_id = auth['group']
             else:
-                return {'result': 1,
-                        'errors': 'Asset is already unreserved',
+                return {'result': 0,
+                        'errors': role.pk,
                         }
         elif asset.project_tbl_id == auth['group']:  # asset is reserved by this group
             if not data['reserved']:  # when reserved=False they are trying to unreserve
@@ -307,8 +307,8 @@ def ReserveEntityUtil(data, info):
                 role.project_tbl = None
                 role.approved = False
             else:
-                return {'result': 1,
-                        'errors': 'Asset is already reserved by your group',
+                return {'result': 0,
+                        'errors': role.pk,
                         }
         else:  # asset is reserved by another group
             return {'result': 1,
