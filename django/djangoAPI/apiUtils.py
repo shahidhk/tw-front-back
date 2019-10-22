@@ -14,13 +14,15 @@ def ExplorationUtil(result):
                 }
 
 
-def MissingRoleUtil(role_data):
+def MissingRoleUtil(role_data, auth):
     '''
     Adds a Role record that was missing from Avantis
     Checks to make sure role_number does not already exist
     '''
     if role_data['parent_id'] == 0:
-        role_data['parent_id'] = None
+        return {'result': 1,
+                'errors': 'Deprecated: Top level assets should have parent set to 1',
+                }
     else:
         try:
             parent = ProjectAssetRoleRecordTbl.objects.get(
@@ -31,7 +33,6 @@ def MissingRoleUtil(role_data):
             return {'result': 1,
                     'errors': 'Parent Does Not Exist ' + str(role_data['parent_id'])
                     }
-
     try:
         role = ProjectAssetRoleRecordTbl.objects.get(
             updatable_role_number=role_data['role_number'])
@@ -49,6 +50,7 @@ def MissingRoleUtil(role_data):
                 role.missing_from_registry = True
                 role.designer_planned_action_type_tbl_id = 'c'
                 role.parent_changed = False
+                role.project_tbl_id = auth['group']
                 role.save()
                 # pass the role pk back to the client?
         except Exception as e:
@@ -64,19 +66,21 @@ def MissingRoleUtil(role_data):
                 }
 
 
-def MissingAssetUtil(asset_data):
+def MissingAssetUtil(asset_data, auth):
     '''
     Adds an Asset record that was missing from Avantis
     '''
+
     try:
         with transaction.atomic():
             asset = PreDesignReconciledAssetRecordTbl()
-            asset.designer_planned_action_type_tbl_id = 3
+            asset.designer_planned_action_type_tbl_id = 'c'
             asset.entity_exists = False
             asset.initial_project_asset_role_id = None
             asset.missing_from_registry = True
             asset.asset_serial_number = asset_data['asset_serial_number']
             asset.role_changed = False
+            asset.project_tbl_id = auth['group']
             asset.save()
     except Exception as e:
         return {'result': 1,
@@ -87,12 +91,13 @@ def MissingAssetUtil(asset_data):
             }
 
 
-def AssignAssetToRoleUtil(data):
+def AssignAssetToRoleUtil(data, auth):
     '''
     Assigns an Asset to a Role, Assign to null role for unassigned assets
     Expects Dictionary with asset_id, role_id
     Raises exception if another role is in that assets location
     '''
+
     if data['role_id'] is None or data['role_id'] == 0:
         data['role_id'] = None
     else:
@@ -102,27 +107,35 @@ def AssignAssetToRoleUtil(data):
             return {'result': 1,
                     'errors': 'An Asset is currently assigned to the role: ' + str(asset[0].pk)
                     }
-    with transaction.atomic():
-        try:
-            asset = PreDesignReconciledAssetRecordTbl.objects.get(
-                pk=data['asset_id'])
-            asset.initial_project_asset_role_id_id = data['role_id']
-            asset.save()
-            return {'result': 0,
-                    'errors': data['role_id'] if data['role_id'] else 1,
-                    }
-        except Exception as e:
+        role = ProjectAssetRoleRecordTbl.objects.get(pk=data['role_id'])
+        if role.project_tbl_id != auth['group']:
             return {'result': 1,
-                    'errors': str(type(e)) + ' Operation Failed ' + str(e)
+                    'errors': 'Role reserved by another project'
                     }
 
+    asset = ProjectAssetRecordTbl.objects.get(pk=data['asset_id'])
+    if asset.project_tbl_id != auth['group']:
+        return {'result': 1,
+                'errors': 'Asset reserved by another project'
+                }
+    try:
+        asset = PreDesignReconciledAssetRecordTbl.objects.get(pk=data['asset_id'])
+        asset.initial_project_asset_role_id_id = data['role_id']
+        asset.save()
+        return {'result': 0,
+                'errors': data['role_id'] if data['role_id'] else 1,
+                }
+    except Exception as e:
+        return {'result': 1,
+                'errors': str(type(e)) + ' Operation Failed ' + str(e)
+                }
 
-def DoesNotExistUtil(data):
+
+def DoesNotExistUtil(data, auth):
     '''
     Marks Asset and Role as Does Not Exist
     only look for the assets in preDesignReconciledAssetRecordTbl, roles in preDesignReconciledRoleRecordTbl
     will only look at the initial position of assets, not sure what happens if assets gets moved then you try to remove
-    currently does not check for reservation / permissions
     '''
     role_id = data['role_id']
     dne = data['entity_exists']
@@ -157,6 +170,10 @@ def DoesNotExistUtil(data):
             return {'result': 1,
                     'errors': 'There are still roles that have not been removed : ' + str(child_roles)
                     }
+    if asset.project_tbl_id != auth['group'] or role.project_tbl_id != auth['group']:
+        return {'result': 1,
+                'errors': 'Asset or Role reserved by another project',
+                }
     try:
         with transaction.atomic():
             asset.entity_exists = dne
@@ -193,15 +210,14 @@ def AuthenticationUtil(info):
     return data
 
 
-def RetireAssetUtil(asset):
+def RetireAssetUtil(asset, auth):
     '''
     Retire the Asset specified and leaves an empty role
     Currently defaults to landfill, and stage(0)
     Takes in asset ID not role ID!!
     '''
     try:
-        existing_asset = PreDesignReconciledAssetRecordTbl.objects.get(
-            pk=asset['asset_id'])
+        existing_asset = PreDesignReconciledAssetRecordTbl.objects.get(pk=asset['asset_id'])
     except Exception as e:
         print(str(type(e)))
         print(str(e))
@@ -209,6 +225,10 @@ def RetireAssetUtil(asset):
                 'errors': 'Asset cannot be found please refresh your View: ' + str(asset)
                 }
     else:
+        if existing_asset.project_tbl_id != auth['group']:
+            return {'result': 1,
+                    'errors': 'Asset or Role reserved by another project'
+                    }
         serial = existing_asset.asset_serial_number
         try:
             if existing_asset.missing_from_registry:
@@ -233,7 +253,7 @@ def RetireAssetUtil(asset):
                     }
 
 
-def RoleParentUtil(data):
+def RoleParentUtil(data, auth):
     '''
     Assigns a parent to a role
     takes in id of role and id of its new parent
@@ -251,6 +271,10 @@ def RoleParentUtil(data):
         return {'result': 1,
                 'errors': 'Role cannot be found please refresh your View: ' + str(data['role_id'])
                 }
+    if role.project_tbl_id != auth['group']:
+        return {'result': 1,
+                'errors': 'Asset or Role reserved by another project'
+                }
     if data['parent_id'] == 0:
         data['parent_id'] = None
     else:
@@ -263,7 +287,6 @@ def RoleParentUtil(data):
             return {'result': 1,
                     'errors': 'Parent role cannot be found please refresh your View: ' + str(data['parent_id'])
                     }
-
     try:
         role.parent_id_id = data['parent_id']
         role.save()
@@ -277,16 +300,11 @@ def RoleParentUtil(data):
                 }
 
 
-def ReserveEntityUtil(data, info):
+def ReserveEntityUtil(data, auth):
     '''Reserves Role and Asset for a project'''
-    auth = AuthenticationUtil(info)
-    # TODO consider move valid login to be called by schema module
-    if not auth['valid']:
-        return {'result': 1,
-                'errors': 'User / Client is not properly authenticated. Please Login.',
-                }
     try:
-        asset = ProjectAssetRecordTbl.objects.get(pk=data['id'])
+        asset = PreDesignReconciledAssetRecordTbl.objects.get(
+            initial_project_asset_role_id_id=data['id'])
         role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
     except Exception as e:
         return {'result': 1,
@@ -331,13 +349,8 @@ def ReserveEntityUtil(data, info):
                     }
 
 
-def ApproveReservationUtil(data, info):
+def ApproveReservationUtil(data, auth):
     '''approves reservations'''
-    auth = AuthenticationUtil(info)
-    if not auth['valid']:
-        return {'result': 1,
-                'errors': 'User / Client is not properly authenticated. Please Login.',
-                }
     if not auth['approve']:
         return {'result': 1,
                 'errors': 'User is unauthorized for approving assets. Please Login as Tony Huang.',
@@ -355,8 +368,10 @@ def ApproveReservationUtil(data, info):
                     }
         else:
             role.approved = data['approved']
-            if not data['approved']:
-                role.project_tbl_id = None
+            # if not data['approved']:
+            # just undoing approval should not remove reservation request
+            # that should be done through the reservation function
+            #     role.project_tbl_id = None
             try:
                 role.save()
             except Exception as e:

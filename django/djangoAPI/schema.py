@@ -83,34 +83,37 @@ class UpdateReconView(graphene.Mutation):
         where = IDEQ(required=True)
         _set = ReconciliationViewSet(required=True)
 
-    returning = graphene.Field(ReconViewType)
+    returning = graphene.List(ReconViewType)
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
         # call different functions depending on what is changed
         # TODO allow changing multiple columns at the same time
+        auth = AuthenticationUtil(info)
+        if not auth['valid']:
+            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
         if not _set.role_exists is None:
             data = {'role_id': where.id._eq,
                     'entity_exists': _set.role_exists,
                     }
-            data = DoesNotExistUtil(data)
+            data = DoesNotExistUtil(data, auth)
         elif not _set.parent is None:
             data = {'role_id': where.id._eq,
                     'parent_id': _set.parent,
                     }
-            data = RoleParentUtil(data)
+            data = RoleParentUtil(data, auth)
         elif not _set.asset_id is None:
             # this one is kinda weird, assigns an asset to the role,
             # if moving asset to unassigned assets, the role_id is 0 / None
             data = {'role_id': where.id._eq,
                     'asset_id': _set.asset_id,
                     }
-            data = AssignAssetToRoleUtil(data)
+            data = AssignAssetToRoleUtil(data, auth)
         else:
             raise GraphQLError('Unimplemented')
         # Check the result of called function and return row on success
         if data['result'] == 0:
-            data = ReconciliationView.objects.get(
+            data = ReconciliationView.objects.filter(
                 pk=data['errors'])
             return UpdateReconView(returning=data)
         raise GraphQLError(data['errors'])
@@ -120,10 +123,13 @@ class InsertReconciliationView(graphene.Mutation):
     class Arguments:
         objects = ReconciliationViewSet(required=True)
 
-    returning = graphene.Field(ReconViewType)
+    returning = graphene.List(ReconViewType)
 
     @staticmethod
     def mutate(root, info, objects=None):
+        auth = AuthenticationUtil(info)
+        if not auth['valid']:
+            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
         role_data = {
             'role_number': objects.role_number,
             'role_spatial_site_id': 1,  # objects.role_spatial_site_id
@@ -132,9 +138,9 @@ class InsertReconciliationView(graphene.Mutation):
             'role_criticality': 'a',  # objects.role_criticality
             'parent_id': objects.parent,
         }
-        new_entity = MissingRoleUtil(role_data)
+        new_entity = MissingRoleUtil(role_data, auth)
         if new_entity['result'] == 0:
-            new_entity = ReconciliationView.objects.get(
+            new_entity = ReconciliationView.objects.filter(
                 pk=new_entity['errors'])
             return InsertReconciliationView(returning=new_entity)
         raise GraphQLError(new_entity['errors'])
@@ -145,14 +151,17 @@ class InsertUnassView(graphene.Mutation):
     class Arguments:
         objects = UnassViewSet(required=True)
 
-    returning = graphene.Field(UnassAssViewType)
+    returning = graphene.List(UnassAssViewType)
 
     @staticmethod
     def mutate(root, info, objects=None):
+        auth = AuthenticationUtil(info)
+        if not auth['valid']:
+            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
         data = {'asset_serial_number': objects.asset_serial_number}
-        data = MissingAssetUtil(data)
+        data = MissingAssetUtil(data, auth)
         if data['result'] == 0:
-            data = UnassignedAssetsView.objects.get(
+            data = UnassignedAssetsView.objects.filter(
                 pk=data['errors'])
             return InsertUnassView(returning=data)
         raise GraphQLError(data['errors'])
@@ -163,19 +172,24 @@ class UpdateUnassView(graphene.Mutation):
         where = IDEQ(required=True)
         _set = UnassViewSet(required=True)
     # TODO not sure what should be returned since the entry disappears
-    returning = graphene.Field(UnassAssViewTypeDeleted)
+    returning = graphene.List(UnassAssViewTypeDeleted)
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
+        auth = AuthenticationUtil(info)
+        if not auth['valid']:
+            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
         data = {'role_id': _set.role_id,
                 'asset_id': where.id._eq,
                 }
-        data = AssignAssetToRoleUtil(data)
+        result = UnassignedAssetsView.objects.filter(pk=where.id._eq)  # be optimistic
+        # since we need to return a list with the object we deleted we can get the object before we delete it
+        data = AssignAssetToRoleUtil(data, auth)
         if data['result'] == 0:
             # data = UnassignedAssetsView.objects.get(
             #     pk=data['errors'])
-            data = UnassAssViewTypeDeleted(id=where.id._eq)
-            return InsertUnassView(returning=data)
+            # data = UnassAssViewTypeDeleted(id=where.id._eq)
+            return InsertUnassView(returning=result)
         raise GraphQLError(data['errors'])
 
 
@@ -183,16 +197,19 @@ class DeleteUnassView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
     # TODO not sure what should be returned since the entry disappears
-    returning = graphene.Field(UnassAssViewTypeDeleted)
+    returning = graphene.List(UnassAssViewTypeDeleted)
 
     @staticmethod
     def mutate(root, info, where=None):
+        auth = AuthenticationUtil(info)
+        if not auth['valid']:
+            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
         data = {'asset_id': where.id._eq, }
-        data = RetireAssetUtil(data)
+        data = RetireAssetUtil(data, auth)
         if data['result'] == 0:
             data = UnassAssViewTypeDeleted(
                 id=where.id._eq, asset_serial_number=data['errors'])
-            return InsertUnassView(returning=data)
+            return InsertUnassView(returning=data)  # same as above where list???
         raise GraphQLError(data['errors'])
 
 
@@ -204,12 +221,15 @@ class UpdateReserView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
+        auth = AuthenticationUtil(info)
+        if not auth['valid']:
+            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
         if not _set.reserved is None:
             data = {'id': where.id._eq, 'reserved': _set.reserved}
-            data = ReserveEntityUtil(data, info)
+            data = ReserveEntityUtil(data, auth)
         elif not _set.approved is None:
             data = {'id': where.id._eq, 'approved': _set.approved}
-            data = ApproveReservationUtil(data, info)
+            data = ApproveReservationUtil(data, auth)
         else:
             raise GraphQLError('Unimplimented')
         if data['result'] == 0:
