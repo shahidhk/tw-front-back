@@ -109,7 +109,7 @@ def AssignAssetToRoleUtil(data):
             asset.initial_project_asset_role_id_id = data['role_id']
             asset.save()
             return {'result': 0,
-                    'errors': data['role_id'],
+                    'errors': data['role_id'] if data['role_id'] else 1,
                     }
         except Exception as e:
             return {'result': 1,
