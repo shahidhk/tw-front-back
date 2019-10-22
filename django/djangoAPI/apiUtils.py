@@ -199,7 +199,6 @@ def RetireAssetUtil(asset):
     Currently defaults to landfill, and stage(0)
     Takes in asset ID not role ID!!
     '''
-    # TODO if the asset was created just actually delete it
     try:
         existing_asset = PreDesignReconciledAssetRecordTbl.objects.get(
             pk=asset['asset_id'])
@@ -210,23 +209,28 @@ def RetireAssetUtil(asset):
                 'errors': 'Asset cannot be found please refresh your View: ' + str(asset)
                 }
     else:
-        existing_asset.designer_planned_action_type_tbl_id = 2
-        existing_asset.save()
-    try:
-        retired_asset = ExistingAssetDisposedByProjectTbl(
-            predesignreconciledassetrecordtbl_ptr=existing_asset,
-            uninstallation_stage_id=0,
-        )
-        retired_asset.save_base(raw=True)
-        # raw base save is required since the parent object has already been created
-    except Exception as e:
-        return {'result': 1,
-                'errors': str(type(e)) + ' Operation Failed ' + str(e)
-                }
-    else:
-        return {'result': 0,
-                'errors': existing_asset.asset_serial_number,
-                }
+        serial = existing_asset.asset_serial_number
+        try:
+            if existing_asset.missing_from_registry:
+                # if the asset was created just delete it
+                existing_asset.delete()
+            else:
+                existing_asset.designer_planned_action_type_tbl_id = 'b'
+                existing_asset.save()
+                retired_asset = ExistingAssetDisposedByProjectTbl(
+                    predesignreconciledassetrecordtbl_ptr=existing_asset,
+                    uninstallation_stage_id=0,
+                )
+                retired_asset.save_base(raw=True)
+                # raw base save is required since the parent object has already been created
+        except Exception as e:
+            return {'result': 1,
+                    'errors': str(type(e)) + ' Operation Failed ' + str(e)
+                    }
+        else:
+            return {'result': 0,
+                    'errors': serial,
+                    }
 
 
 def RoleParentUtil(data):
