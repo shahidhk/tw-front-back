@@ -326,7 +326,16 @@ class ReconciliationView(models.Model):
 
     class Meta:
         managed = False
-        db_table = "reconciliation_view"
+        db_table = "reconciliation_view_temp"
+
+    @staticmethod
+    def fixed_ltree(pk):
+        '''retrives list of objects with fixed ltree'''
+        lst = list(ReconciliationView.objects.filter(pk=pk))
+        for l in lst:
+            i = l.full_path.index('.')
+            l.full_path = l.full_path[i+1:]
+        return lst
 
 
 class UnassignedAssetsView(models.Model):

@@ -113,8 +113,7 @@ class UpdateReconView(graphene.Mutation):
             raise GraphQLError('Unimplemented')
         # Check the result of called function and return row on success
         if data['result'] == 0:
-            data = ReconciliationView.objects.filter(
-                pk=data['errors'])
+            data = ReconciliationView.fixed_ltree(pk=data['errors'])
             return UpdateReconView(returning=data)
         raise GraphQLError(data['errors'])
 
@@ -182,9 +181,8 @@ class UpdateUnassView(graphene.Mutation):
         data = {'role_id': _set.role_id,
                 'asset_id': where.id._eq,
                 }
-        result = UnassignedAssetsView.objects.filter(pk=where.id._eq)  # be optimistic
+        result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))  # be optimistic
         # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
-        temp = list(result)
         # since we need to return a list with the object we deleted we can get the object before we delete it
         data = AssignAssetToRoleUtil(data, auth)
         if data['result'] == 0:
@@ -204,8 +202,7 @@ class DeleteUnassView(graphene.Mutation):
         if not auth['valid']:
             raise GraphQLError('User / Client is not properly authenticated. Please Login.')
         data = {'asset_id': where.id._eq, }
-        result = UnassignedAssetsView.objects.filter(pk=where.id._eq)
-        temp = list(result)
+        result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))
         data = RetireAssetUtil(data, auth)
         if data['result'] == 0:
             return InsertUnassView(returning=result)  # same as above where list???
@@ -255,21 +252,16 @@ class UpdateOrphanView(graphene.Mutation):
             data = {'role_id': where.id._eq, 'parent_id': _set.parent}
             data = RoleParentUtil(data, auth)
         if data['result'] == 0:
-            data = ReconciliationView.objects.filter(
-                pk=data['errors'])
+            data = ReconciliationView.fixed_ltree(pk=data['errors'])
             return UpdateOrphanView(returning=data)
         raise GraphQLError(data['errors'])
 
 
 class Query(ObjectType):
-    reconciliation_view_2 = graphene.List(ReconViewType)
-    unassigned_assets_2 = graphene.List(UnassAssViewType)
+    dummy_query = graphene.List(ReconViewType)
 
-    def resolve_reconciliation_view_2(self, info, **kwargs):
+    def resolve_dummy_query(self, info, **kwargs):
         return ReconciliationView.objects.all()
-
-    def resolve_all_avantis_2(self, info, **kwargs):
-        return UnassignedAssetsView.objects.all()
 
 
 class Mutations(graphene.ObjectType):
