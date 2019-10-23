@@ -137,8 +137,9 @@ def DoesNotExistUtil(data, auth):
     only look for the assets in preDesignReconciledAssetRecordTbl, roles in preDesignReconciledRoleRecordTbl
     will only look at the initial position of assets, not sure what happens if assets gets moved then you try to remove
     '''
+    # TODO remove the asset and role if it is user created
     role_id = data['role_id']
-    dne = data['entity_exists']
+    entity_exists = data['entity_exists']
     try:
         asset = PreDesignReconciledAssetRecordTbl.objects.get(
             initial_project_asset_role_id_id=role_id)
@@ -156,30 +157,40 @@ def DoesNotExistUtil(data, auth):
         return {'result': 1,
                 'errors': 'This role cannot be found please refresh your View: ' + str(role_id)
                 }
-    child_roles = list(
-        ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
-    # check for existance one by one * parent roles can be empty
-    # it is pythonic to check to booleanness of the list to see if it is empty
-    exist_childs = []
-    if child_roles:
-        for child in child_roles:
-            if child.predesignreconciledrolerecordtbl.entity_exists:
-                exist_childs.append(child)
-        if exist_childs:
-            child_roles = [child.pk for child in child_roles]
-            return {'result': 1,
-                    'errors': 'There are still roles that have not been removed : ' + str(child_roles)
-                    }
     if asset.project_tbl_id != auth['group'] or role.project_tbl_id != auth['group']:
         return {'result': 1,
                 'errors': 'Asset or Role reserved by another project',
                 }
+    child_roles = list(ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
+    # children are orphaned when parents get 'removed'
     try:
         with transaction.atomic():
-            asset.entity_exists = dne
-            asset.save()
-            role.entity_exists = dne
-            role.save()
+            if child_roles:
+                for child in child_roles:
+                    child.parent_id_id = 2
+                    child.save()
+            if not entity_exists:
+                # some logic for deleting roles / assets
+                if asset.missing_from_registry and role.missing_from_registry:
+                    asset.delete()
+                    role.delete()
+                elif asset.missing_from_registry:
+                    asset.delete()
+                    role.entity_exists = dne
+                    role.save()
+                elif role.missing_from_registry:
+                    role.delete()
+                    role.save()
+                else:
+                    asset.entity_exists = entity_exists
+                    asset.save()
+                    role.entity_exists = entity_exists
+                    role.save()
+            else:
+                asset.entity_exists = entity_exists
+                asset.save()
+                role.entity_exists = entity_exists
+                role.save()
     except Exception as e:
         print(str(type(e)))
         print(str(e))

@@ -263,10 +263,11 @@ def init_db(request):
             begin
         --	    only run trigger if the entry is predesign
                 status = false;
-                IF OLD.initial_project_asset_role_id_id != NEW.initial_project_asset_role_id_id then
+			--	raise exception 'new role %, old role %', NEW.initial_project_asset_role_id_id, OLD.initial_project_asset_role_id_id;
+                IF OLD.initial_project_asset_role_id_id != NEW.initial_project_asset_role_id_id or OLD.initial_project_asset_role_id_id is null or NEW.initial_project_asset_role_id_id is null then
                     new_role_mtoi = new.cloned_role_registry_tbl_id;
                     select cloned_role_registry_tbl_id from public."djangoAPI_PreDesignReconciledRoleRecordTbl"  as rr where rr.projectassetrolerecordtbl_ptr_id = new.initial_project_asset_role_id_id into orig_role_mtoi;
-        --        	raise exception 'new role %, old role %', new_role_mtoi, orig_role_mtoi;
+           --     	raise exception 'new role %, old role %', new_role_mtoi, orig_role_mtoi;
                 if new_role_mtoi <> orig_role_mtoi then
                         status = true;
                     end if;
