@@ -102,21 +102,47 @@ def init_db(request):
         create or replace
         view reconciliation_view as
         select
-            *
+            r.id,
+            r.role_number,
+            r.role_name,
+            r.parent,
+            r.project_id,
+            r.role_exists,
+            r.role_missing_from_registry,
+            subpath(r.full_path, 1) as full_path,
+            r.parent_changed,
+            r.asset_id,
+            r.asset_serial_number,
+            r.asset_exists,
+            r.asset_missing_from_registry,
+            r.role_changed
         from
-            reconciliation_view_temp
+            reconciliation_view_temp as r
         where
-            full_path <@ '1'::ltree;
+            r.full_path <@ '1'::ltree;
         ''')
         cursor.execute('''
         create or replace
         view orphan_view as
         select
-            *
+            r.id,
+            r.role_number,
+            r.role_name,
+            r.parent,
+            r.project_id,
+            r.role_exists,
+            r.role_missing_from_registry,
+            subpath(r.full_path, 1) as full_path,
+            r.parent_changed,
+            r.asset_id,
+            r.asset_serial_number,
+            r.asset_exists,
+            r.asset_missing_from_registry,
+            r.role_changed
         from
-            reconciliation_view_temp
+            reconciliation_view_temp as r
         where
-            full_path <@ '2'::ltree;
+            r.full_path <@ '2'::ltree;
         ''')
         cursor.execute('''
         create or replace
@@ -141,7 +167,7 @@ def init_db(request):
             a.role_name,
             a.parent_id_id as parent,
             a.project_tbl_id as project_id,
-            a.ltree_path as full_path,
+            subpath(a.ltree_path, 1) as full_path,
             a.approved,
             (not a.project_tbl_id is null) as reserved,
             b.id as dummy,
@@ -156,7 +182,8 @@ def init_db(request):
         from
             public."djangoAPI_ProjectAssetRoleRecordTbl" as a
         left join public."djangoAPI_ProjectAssetRecordTbl" as b on
-            a.id = b.id ;
+            a.id = b.id 
+        where a.ltree_path <@ '1'::ltree and a.ltree_path <> '1'::ltree;
         ''')
         try:
             cursor.execute(
