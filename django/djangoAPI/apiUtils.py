@@ -176,11 +176,12 @@ def DoesNotExistUtil(data, auth):
                     role.delete()
                 elif asset.missing_from_registry:
                     asset.delete()
-                    role.entity_exists = dne
+                    role.entity_exists = entity_exists
                     role.save()
                 elif role.missing_from_registry:
                     role.delete()
-                    role.save()
+                    asset.entity_exists = entity_exists
+                    asset.save()
                 else:
                     asset.entity_exists = entity_exists
                     asset.save()
