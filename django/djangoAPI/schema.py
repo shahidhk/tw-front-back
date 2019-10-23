@@ -183,7 +183,8 @@ class UpdateUnassView(graphene.Mutation):
                 'asset_id': where.id._eq,
                 }
         result = UnassignedAssetsView.objects.filter(pk=where.id._eq)  # be optimistic
-        temp = list(result) # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
+        # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
+        temp = list(result)
         # since we need to return a list with the object we deleted we can get the object before we delete it
         data = AssignAssetToRoleUtil(data, auth)
         if data['result'] == 0:
@@ -237,6 +238,29 @@ class UpdateReserView(graphene.Mutation):
         raise GraphQLError(data['errors'])
 
 
+class UpdateOrphanView(graphene.Mutation):
+    # Reservation and Orphan View are based on the same table so they can have the same inputs & outputs
+    class Arguments:
+        where = IDEQ(required=True)
+        _set = ReconciliationViewSet(required=True)
+    returning = graphene.List(ReconViewType)
+
+    @staticmethod
+    def mutate(root, info, where=None, _set=None):
+        auth = AuthenticationUtil(info)
+        if not auth['valid']:
+            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+        if not _set.parent is None:
+            # Used to assign orphaned child to a new parent, drags from orphan_view to reconciliation view
+            data = {'role_id': where.id._eq, 'parent_id': _set.parent}
+            data = RoleParentUtil(data, auth)
+        if data['result'] == 0:
+            data = ReconciliationView.objects.filter(
+                pk=data['errors'])
+            return UpdateOrphanView(returning=data)
+        raise GraphQLError(data['errors'])
+
+
 class Query(ObjectType):
     reconciliation_view_2 = graphene.List(ReconViewType)
     unassigned_assets_2 = graphene.List(UnassAssViewType)
@@ -255,6 +279,7 @@ class Mutations(graphene.ObjectType):
     update_unassigned_assets = UpdateUnassView.Field()
     delete_unassigned_assets = DeleteUnassView.Field()
     update_reservation_view = UpdateReserView.Field()
+    update_orphan_view = UpdateOrphanView.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations, auto_camelcase=False)
