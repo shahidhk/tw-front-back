@@ -42,7 +42,7 @@ services:
       PGADMIN_LISTEN_PORT: 5555
 
   graphql-engine:
-    image: hasura/graphql-engine:v1.0.0-beta.6
+    image: hasura/graphql-engine:v1.0.0-beta.8
     depends_on:
       - db
     restart: always
@@ -67,7 +67,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-      - URL=tw-webapp-next.duckdns.org
+      - URL=tw-webapp-alpha.duckdns.org
       - SUBDOMAINS=wildcard
       - VALIDATION=duckdns
       - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1

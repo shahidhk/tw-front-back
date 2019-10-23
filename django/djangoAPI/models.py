@@ -220,6 +220,7 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
     missing_from_registry = models.BooleanField()
     designer_planned_action_type_tbl = models.ForeignKey(
         DesignerPlannedActionTypeTbl, models.PROTECT)
+    parent_changed = models.BooleanField()
 
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledRoleRecordTbl'
@@ -265,6 +266,7 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
         ProjectAssetRoleRecordTbl, models.PROTECT, null=True)  # link to the role the of asset
     designer_planned_action_type_tbl = models.ForeignKey(
         DesignerPlannedActionTypeTbl, models.PROTECT)
+    role_changed = models.BooleanField()
 
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledAssetRecordTbl'
@@ -315,14 +317,25 @@ class ReconciliationView(models.Model):
     role_exists = models.BooleanField(null=True)
     role_missing_from_registry = models.BooleanField(null=True)
     full_path = models.TextField(null=True)
+    parent_changed = models.BooleanField(null=True)
     asset_id = models.IntegerField(null=True)
     asset_serial_number = models.TextField(null=True)
     asset_exists = models.BooleanField(null=True)
     asset_missing_from_registry = models.BooleanField(null=True)
+    role_changed = models.BooleanField(null=True)
 
     class Meta:
         managed = False
-        db_table = "reconciliation_view"
+        db_table = "reconciliation_view_temp"
+
+    @staticmethod
+    def fixed_ltree(pk):
+        '''retrives list of objects with fixed ltree'''
+        lst = list(ReconciliationView.objects.filter(pk=pk))
+        for l in lst:
+            i = l.full_path.index('.')
+            l.full_path = l.full_path[i+1:]
+        return lst
 
 
 class UnassignedAssetsView(models.Model):

@@ -19,7 +19,7 @@ from django.views.generic import RedirectView
 from django.views.decorators.csrf import csrf_exempt
 from graphene_django.views import GraphQLView
 
-from djangoAPI.schema import schema
+from djangoAPI.graphql.schema import schema
 
 urlpatterns = [
     re_path(r'^', include('djangoAPI.apiurls')),
