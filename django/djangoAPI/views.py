@@ -538,7 +538,7 @@ def init_all(request):
                 "definition": {
                     "url": "	https://django.tw-webapp-alpha.duckdns.org/graphql/",
                     # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
-                    "forward_client_headers": true,
+                    "forward_client_headers": True,
                     "timeout_seconds": 60
                 },
             },
