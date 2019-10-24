@@ -87,8 +87,8 @@ def init_db(request):
             a.id as asset_id,
             a.asset_serial_number as asset_serial_number,
             coalesce(a.entity_exists, false) as asset_exists,
-            a.missing_from_registry as asset_missing_from_registry,
-            a.role_changed as role_changed,
+            coalesce(a.missing_from_registry, false) as asset_missing_from_registry,
+            coalesce(a.role_changed, false) as role_changed,
             r.approved as approved
         from
             ( public."djangoAPI_ProjectAssetRoleRecordTbl" as br
