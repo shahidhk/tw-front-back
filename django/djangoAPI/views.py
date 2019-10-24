@@ -179,10 +179,10 @@ def init_db(request):
                 and (not a.project_id is null) then 'Pending'
                 -- false + true
             end ) as approval_status,
-            (a.role_exists and (not a.role_missing_from_registry) and a.asset_exists and (not a.asset_missing_from_registry) and (not a.parent_changed) and (not a.role_changed)) as reservable
+            (a.role_exists and a.asset_exists and (not a.parent_changed) and (not a.role_changed)) as reservable
         from
             reconciliation_view_temp as a
-        where a.full_path <@ '1'::ltree and a.full_path <> '1'::ltree;
+        where a.full_path <@ '1'::ltree and a.full_path <> '1'::ltree and not a.role_missing_from_registry and not a.asset_missing_from_registry;
         ''')
         try:
             cursor.execute('''
