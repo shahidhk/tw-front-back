@@ -15,7 +15,7 @@ from djangoAPI.models import *
 from djangoAPI.utils import num_to_alpha
 
 
-def init_db(request):
+def init_db2():
     '''
     Initilize the DB with extensions, views and ltree specific triggers
     '''
@@ -288,10 +288,14 @@ def init_db(request):
         except Exception as e:
             print(type(str(e)))
             print(str(e))
-        return HttpResponse("Finished DB init")
 
 
-def db_fill(request):
+def init_db(request):
+    init_db2()
+    return HttpResponse("Finished DB init")
+
+
+def db_fill2():
     '''
     Fill the DB with test data
     Will eventually switch to initialization with constants for list tables
@@ -429,10 +433,13 @@ def db_fill(request):
         role.pk = i + 1
         role.save()
 
+
+def db_fill(request):
+    db_fill2()
     return HttpResponse("Finished DB Fill")
 
 
-def update_asset_role(request):
+def update_asset_role2():
     cloned_assets = ClonedAssetAndRoleInRegistryTbl.objects.all()
     parent_mtoi = {}  # dictionary for quickly finding entry by role number
     for entry in cloned_assets:  # populate dict, keys = role number
@@ -482,6 +489,10 @@ def update_asset_role(request):
             existing_asset.designer_planned_action_type_tbl_id = num_to_alpha(3)  # do nothing
             existing_asset.role_changed = False
             existing_asset.save()
+
+
+def update_asset_role(request):
+    update_asset_role2()
     return HttpResponse('Finished Updating Asset & Role')
 
 
@@ -496,20 +507,44 @@ def test(request):
 
 
 def init_all(request):
+    init_db2()
+    db_fill2()
+    update_asset_role2()
+
+    tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets']
+    for table in tables:
+        response = requests.post(
+            'https://hasura.tw-webapp-alpha.duckdns.org/v1/query',
+            json={
+                "type": "track_table",
+                "args": {
+                    "table": {
+                        "schema": "public",
+                        "name": table
+                    }
+                }
+            },
+            headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
+        )
+        if response.json()['message'] != 'success':
+            print('Track ' + table + ' failed!')
+
     response = requests.post(
         'https://hasura.tw-webapp-alpha.duckdns.org/v1/query',
         json={
-            "type": "track_table",
+            "type": "add_remote_schema",
             "args": {
-                "table": {
-                    "schema": "public",
-                    "name": "reconciliation_view"
-                }
-            }
+                "name": "django",
+                "definition": {
+                    "url": "	https://django.tw-webapp-alpha.duckdns.org/graphql/",
+                    # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
+                    "forward_client_headers": true,
+                    "timeout_seconds": 60
+                },
+            },
         },
         headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
     )
-    if response.json()['message'] != 'suceess':
-        print('Track reconciliation_view failed!')
-
+    if response.json()['message'] != 'success':
+        print('Add Remote Schema failed!')
     return HttpResponse('Finished All Init Actions')
