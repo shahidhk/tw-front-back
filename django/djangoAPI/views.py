@@ -86,7 +86,7 @@ def init_db(request):
             r.parent_changed as parent_changed,
             a.id as asset_id,
             a.asset_serial_number as asset_serial_number,
-            a.entity_exists as asset_exists,
+            coalesce(a.entity_exists, false) as asset_exists,
             a.missing_from_registry as asset_missing_from_registry,
             a.role_changed as role_changed,
             r.approved as approved
