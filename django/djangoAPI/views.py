@@ -88,7 +88,8 @@ def init_db(request):
             a.asset_serial_number as asset_serial_number,
             a.entity_exists as asset_exists,
             a.missing_from_registry as asset_missing_from_registry,
-            a.role_changed as role_changed
+            a.role_changed as role_changed,
+            r.approved as approved
         from
             ( public."djangoAPI_ProjectAssetRoleRecordTbl" as br
         right join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as pr on
@@ -163,31 +164,28 @@ def init_db(request):
         view reservation_view as
         select
             a.id,
-            a.updatable_role_number as role_number,
+            a.role_number,
             a.role_name,
-            a.parent_id_id as parent,
-            a.project_tbl_id as project_id,
-            subpath(a.ltree_path, 1) as full_path,
+            a.parent,
+            a.project_id,
+            subpath(a.full_path, 1) as full_path,
             a.approved,
-            (not a.project_tbl_id is null) as reserved,
-            b.id as dummy,
+            (not a.project_id is null) as reserved,
             (case
                 when (a.approved)
-                and (not a.project_tbl_id is null) then 'Approved'
+                and (not a.project_id is null) then 'Approved'
                 -- true + true
                 when (not a.approved)
-                and (not a.project_tbl_id is null) then 'Pending'
+                and (not a.project_id is null) then 'Pending'
                 -- false + true
-            end ) as approval_status
+            end ) as approval_status,
+            (a.role_exists and (not a.role_missing_from_registry) and a.asset_exists and (not a.asset_missing_from_registry) and (not a.parent_changed) and (not a.role_changed)) as reservable
         from
-            public."djangoAPI_ProjectAssetRoleRecordTbl" as a
-        left join public."djangoAPI_ProjectAssetRecordTbl" as b on
-            a.id = b.id 
-        where a.ltree_path <@ '1'::ltree and a.ltree_path <> '1'::ltree;
+            reconciliation_view_temp as a
+        where a.full_path <@ '1'::ltree and a.full_path <> '1'::ltree;
         ''')
         try:
-            cursor.execute(
-                '''
+            cursor.execute('''
             CREATE OR REPLACE FUNCTION update_parent_changed() RETURNS TRIGGER AS $$
             -- only run on updates, since insert implies that the entity did not exist in avantis to begin with, which means this does not apply (false)
                 DECLARE
