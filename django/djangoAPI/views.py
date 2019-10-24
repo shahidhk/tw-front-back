@@ -1,6 +1,7 @@
 import csv
 import json
 import random
+import requests
 from datetime import date, timedelta
 
 from django.db import transaction, connection
@@ -492,3 +493,23 @@ def test(request):
                 str(asset.initial_project_asset_role_id_id) + \
                 'asset serial number'
             asset.save()
+
+
+def init_all(request):
+    response = requests.post(
+        'https://hasura.tw-webapp-alpha.duckdns.org/v1/query',
+        json={
+            "type": "track_table",
+            "args": {
+                "table": {
+                    "schema": "public",
+                    "name": "reconciliation_view"
+                }
+            }
+        },
+        headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
+    )
+    if response.json()['message'] != 'suceess':
+        print('Track reconciliation_view failed!')
+
+    return HttpResponse('Finished All Init Actions')
