@@ -525,7 +525,7 @@ def init_all(request):
     tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets']
     for table in tables:
         response = requests.post(
-            'https://hasura.tw-webapp-alpha.duckdns.org/v1/query',
+            'https://hasura.tw-webapp-next.duckdns.org/v1/query',
             json={
                 "type": "track_table",
                 "args": {
@@ -541,13 +541,13 @@ def init_all(request):
             print('Track ' + table + ' failed!')
 
     response = requests.post(
-        'https://hasura.tw-webapp-alpha.duckdns.org/v1/query',
+        'https://hasura.tw-webapp-next.duckdns.org/v1/query',
         json={
             "type": "add_remote_schema",
             "args": {
                 "name": "django",
                 "definition": {
-                    "url": "	https://django.tw-webapp-alpha.duckdns.org/graphql/",
+                    "url": "	https://django.tw-webapp-next.duckdns.org/graphql/",
                     # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
                     "forward_client_headers": True,
                     "timeout_seconds": 60
