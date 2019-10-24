@@ -497,13 +497,24 @@ def update_asset_role(request):
 
 
 def test(request):
-    base_assets = PreDesignReconciledAssetRecordTbl.objects.all()
-    with transaction.atomic():
-        for asset in base_assets:
-            asset.asset_serial_number = 'role # ' + \
-                str(asset.initial_project_asset_role_id_id) + \
-                'asset serial number'
-            asset.save()
+    response = requests.post(
+        'https://hasura.tw-webapp-alpha.duckdns.org/v1/query',
+        json={
+            "type": "add_remote_schema",
+            "args": {
+                "name": "django2",
+                "definition": {
+                    "url": "https://django.tw-webapp-alpha.duckdns.org/graphql/",
+                    # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
+                    "forward_client_headers": True,
+                    "timeout_seconds": 60
+                },
+            },
+        },
+        headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
+    )
+    if response.json() != "{'message': 'success'}":
+        print('Add Remote Schema failed!')
 
 
 def init_all(request):
@@ -526,7 +537,7 @@ def init_all(request):
             },
             headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
         )
-        if response.json()['message'] != 'success':
+        if response.json() != "{'message': 'success'}":
             print('Track ' + table + ' failed!')
 
     response = requests.post(
@@ -545,6 +556,6 @@ def init_all(request):
         },
         headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
     )
-    if response.json()['message'] != 'success':
+    if response.json() != "{'message': 'success'}":
         print('Add Remote Schema failed!')
     return HttpResponse('Finished All Init Actions')
