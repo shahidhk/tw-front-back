@@ -482,7 +482,7 @@ def update_asset_role2():
     with transaction.atomic():
         for entry in cloned_assets:
             existing_asset = PreDesignReconciledAssetRecordTbl()
-            existing_asset.asset_serial_number = 'disguised asset serial number'
+            existing_asset.asset_serial_number = 'ASN ' + entry.role_number
             existing_asset.cloned_role_registry_tbl_id = parent_mtoi[entry.role_number].mtoi
             existing_asset.initial_project_asset_role_id_id = base_role_dict[entry.role_number]
             existing_asset.entity_exists = True
