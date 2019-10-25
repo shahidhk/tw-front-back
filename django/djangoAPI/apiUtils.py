@@ -3,6 +3,24 @@ from django.db import transaction
 import json
 
 
+def AuthenticationUtil(info):
+    '''Authenticates the User'''
+    # consider changing to a class to replace dictionary
+    data = {
+        'valid': True,
+        'approve': False,
+        'group': None,
+    }
+    if info.context.META['HTTP_X_USERNAME'] == 'amber.brasher':
+        data['group'] = 2
+    elif info.context.META['HTTP_X_USERNAME'] == 'tony.huang':
+        data['approve'] = True
+        data['group'] = 2
+    else:
+        data['group'] = 4
+    return data
+
+
 def ExplorationUtil(result):
     if result:
         return {'result': 1,
@@ -202,24 +220,6 @@ def DoesNotExistUtil(data, auth):
         return {'result': 0,
                 'errors': role.pk,
                 }
-
-
-def AuthenticationUtil(info):
-    '''Authenticates the User'''
-    # consider changing to a class to replace dictionary
-    data = {
-        'valid': True,
-        'approve': False,
-        'group': None,
-    }
-    if info.context.META['HTTP_X_USERNAME'] == 'amber.brasher':
-        data['group'] = 3
-    elif info.context.META['HTTP_X_USERNAME'] == 'tony.huang':
-        data['approve'] = True
-        data['group'] = 2
-    else:
-        data['group'] = 4
-    return data
 
 
 def RetireAssetUtil(asset, auth):

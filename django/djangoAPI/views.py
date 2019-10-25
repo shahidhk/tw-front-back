@@ -1,4 +1,5 @@
 import csv
+import os
 import json
 import random
 import requests
@@ -497,14 +498,15 @@ def update_asset_role(request):
 
 
 def test(request):
+    subdomain = '-' + os.getenv('BRANCH', '')
     response = requests.post(
-        'https://hasura.tw-webapp-alpha.duckdns.org/v1/query',
+        'https://hasura.tw-webapp' + subdomain + '.duckdns.org/v1/query',
         json={
             "type": "add_remote_schema",
             "args": {
                 "name": "django2",
                 "definition": {
-                    "url": "https://django.tw-webapp-alpha.duckdns.org/graphql/",
+                    "url": "https://django.tw-webapp" + subdomain + ".duckdns.org/graphql/",
                     # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
                     "forward_client_headers": True,
                     "timeout_seconds": 60
@@ -521,11 +523,11 @@ def init_all(request):
     init_db2()
     db_fill2()
     update_asset_role2()
-
+    subdomain = '-' + os.getenv('BRANCH', '')
     tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets']
     for table in tables:
         response = requests.post(
-            'https://hasura.tw-webapp-alpha.duckdns.org/v1/query',
+            'https://hasura.tw-webapp' + subdomain + '.duckdns.org/v1/query',
             json={
                 "type": "track_table",
                 "args": {
@@ -541,13 +543,13 @@ def init_all(request):
             print('Track ' + table + ' failed!')
 
     response = requests.post(
-        'https://hasura.tw-webapp-alpha.duckdns.org/v1/query',
+        'https://hasura.tw-webapp' + subdomain + '.duckdns.org/v1/query',
         json={
             "type": "add_remote_schema",
             "args": {
                 "name": "django",
                 "definition": {
-                    "url": "https://django.tw-webapp-alpha.duckdns.org/graphql/",
+                    "url": "https://django.tw-webapp" + subdomain + "duckdns.org/graphql/",
                     # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
                     "forward_client_headers": True,
                     "timeout_seconds": 60
