@@ -129,9 +129,14 @@ def AssignAssetToRoleUtil(data, auth):
                     'errors': 'E6: An Asset is currently assigned to the role: ' + str(asset[0].pk)
                     }
         role = ProjectAssetRoleRecordTbl.objects.get(pk=data['role_id'])
+        print(vars(role))
         if role.project_tbl_id != auth['group']:
             return {'result': 1,
                     'errors': 'E7: Role reserved by another project'
+                    }
+        elif not role.predesignreconciledrolerecordtbl.entity_exists:
+            return {'result': 1,
+                    'errors': 'E32: You are assigning an asset to a role that is marked as Non Existant'
                     }
 
     asset = ProjectAssetRecordTbl.objects.get(pk=data['asset_id'])
