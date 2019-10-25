@@ -317,10 +317,10 @@ def RoleParentUtil(data, auth):
 
 def ReserveEntityUtil(data, auth):
     '''Reserves Role and Asset for a project'''
-    if auth['approve']:
-        return {'result': 1,
-                'errors': 'E22: You are logged in as an Approver. Approvers are not allowed to change reservations',
-                }
+    # if auth['approve']:
+    #     return {'result': 1,
+    #             'errors': 'E22: You are logged in as an Approver. Approvers are not allowed to change reservations',
+    #             }
     try:
         asset = PreDesignReconciledAssetRecordTbl.objects.get(
             initial_project_asset_role_id_id=data['id'])
@@ -388,7 +388,7 @@ def ApproveReservationUtil(data, auth):
         else:
             role.approved = data['approved']
             if not data['approved']:
-            # disapproving a reservation removes its reservation
+                # disapproving a reservation removes its reservation
                 role.project_tbl_id = None
             try:
                 role.save()
