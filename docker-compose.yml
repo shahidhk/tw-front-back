@@ -57,7 +57,7 @@ services:
   web-app:
     build: ./webapp
     environment:
-      - "VUE_APP_URL=wss://hasura.tw-webapp-alpha.duckdns.org/v1/graphql"
+      - "VUE_APP_URL=wss://hasura.tw-webapp-next.duckdns.org/v1/graphql"
     volumes:
       - webapp_build:/app/tw-webapp
 
