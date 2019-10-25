@@ -8,7 +8,6 @@ verify_ssl = true
 [packages]
 django = "~=2.2"
 gunicorn = "~=19.9"
-openpyxl = "~=2.6"
 django-silk = "~=3.0"
 requests = "~=2.22"
 djangorestframework = "~=3.10"
