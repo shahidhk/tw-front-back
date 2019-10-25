@@ -20,7 +20,7 @@ services:
       - SQL_HOST=db
       - SQL_PORT=5432
       - DATABASE=postgres
-      - BRANCH=tw-webapp-next
+      - BRANCH=${DUCKDNS:?No DUCKDNS set}
     depends_on:
       - db
 
@@ -57,7 +57,7 @@ services:
   web-app:
     build: ./webapp
     environment:
-      - "VUE_APP_URL=wss://hasura.tw-webapp-next.duckdns.org/v1/graphql"
+      - "VUE_APP_URL=wss://hasura.${DUCKDNS:?No DUCKDNS set}.duckdns.org/v1/graphql"
     volumes:
       - webapp_build:/app/tw-webapp
 
@@ -70,7 +70,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-      - URL=tw-webapp-next.duckdns.org
+      - URL=${DUCKDNS:?No DUCKDNS set}.duckdns.org
       - SUBDOMAINS=wildcard
       - VALIDATION=duckdns
       - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
