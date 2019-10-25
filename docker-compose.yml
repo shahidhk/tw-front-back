@@ -20,7 +20,7 @@ services:
       - SQL_HOST=db
       - SQL_PORT=5432
       - DATABASE=postgres
-      - BRANCH=alpha
+      - BRANCH=tw-webapp-alpha
     depends_on:
       - db
 

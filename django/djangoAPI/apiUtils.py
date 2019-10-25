@@ -16,6 +16,9 @@ def AuthenticationUtil(info):
     elif info.context.META['HTTP_X_USERNAME'] == 'tony.huang':
         data['approve'] = True
         data['group'] = 2
+    elif info.context.META['HTTP_X_USERNAME'] == 'jon.ma':
+        data['approve'] = True
+        data['group'] = 3
     else:
         data['group'] = 4
     return data
@@ -367,10 +370,10 @@ def ReserveEntityUtil(data, auth):
 
 def ApproveReservationUtil(data, auth):
     '''approves reservations'''
-    if not auth['approve']:
-        return {'result': 1,
-                'errors': 'E27: User is unauthorized for approving assets. Please Login as Tony Huang.',
-                }
+    # if not auth['approve']:
+    #     return {'result': 1,
+    #             'errors': 'E27: User is unauthorized for approving assets. Please Login as Tony Huang.',
+    #             }
     try:
         role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
     except Exception as e:
@@ -384,10 +387,9 @@ def ApproveReservationUtil(data, auth):
                     }
         else:
             role.approved = data['approved']
-            # if not data['approved']:
-            # just undoing approval should not remove reservation request
-            # that should be done through the reservation function
-            #     role.project_tbl_id = None
+            if not data['approved']:
+            # disapproving a reservation removes its reservation
+                role.project_tbl_id = None
             try:
                 role.save()
             except Exception as e:
