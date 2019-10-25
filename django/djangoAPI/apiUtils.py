@@ -275,7 +275,7 @@ def RetireAssetUtil(asset, auth):
 
 def RoleParentUtil(data, auth):
     '''
-    Assigns a parent to a role
+    Assigns a role to a parent
     takes in id of role and id of its new parent
     '''
     if data['role_id'] == data['parent_id']:
@@ -291,6 +291,11 @@ def RoleParentUtil(data, auth):
         return {'result': 1,
                 'errors': 'E18: Role cannot be found please refresh your View: ' + str(data['role_id'])
                 }
+    else:
+        if not role.predesignreconciledrolerecordtbl.entity_exists:
+            return {'result': 1,
+                    'errors': 'E33: You are assigning an role to a parent that is marked as Non Existant'
+                    }
     if role.project_tbl_id != auth['group']:
         return {'result': 1,
                 'errors': 'E19: Asset or Role reserved by another project'
