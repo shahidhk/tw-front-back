@@ -523,7 +523,7 @@ def init_all(request):
     init_db2()
     db_fill2()
     update_asset_role2()
-    subdomain = '-' + os.getenv('BRANCH', '')
+    subdomain = os.getenv('BRANCH', '')
     tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets']
     for table in tables:
         response = requests.post(
