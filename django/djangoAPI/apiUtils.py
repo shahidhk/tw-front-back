@@ -390,6 +390,15 @@ def ApproveReservationUtil(data, auth):
             if not data['approved']:
                 # disapproving a reservation removes its reservation
                 role.project_tbl_id = None
+                try:
+                    asset = PreDesignReconciledAssetRecordTbl.objects.get(
+                        initial_project_asset_role_id_id=data['id'])
+                    asset.project_tbl_id = None
+                    asset.save()
+                except Exception as e:
+                    return {'result': 1,
+                            'errors': 'E31: Cannot change reservation for attached asset' + str(e) + ' ' + str(type(e)),
+                            }
             try:
                 role.save()
             except Exception as e:
