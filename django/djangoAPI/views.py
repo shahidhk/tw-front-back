@@ -515,7 +515,7 @@ def test(request):
         },
         headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
     )
-    if response.json() != "{'message': 'success'}":
+    if response.json()['message'] != 'success':
         print('Add Remote Schema failed!')
 
 
@@ -539,8 +539,9 @@ def init_all(request):
             },
             headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
         )
-        if response.json() != "{'message': 'success'}":
+        if response.json()['message'] != 'success':
             print('Track ' + table + ' failed!')
+            print(response.json())
 
     response = requests.post(
         'https://hasura.' + subdomain + '.duckdns.org/v1/query',
@@ -549,7 +550,7 @@ def init_all(request):
             "args": {
                 "name": "django",
                 "definition": {
-                    "url": "https://django." + subdomain + "duckdns.org/graphql/",
+                    "url": "https://django." + subdomain + ".duckdns.org/graphql/",
                     # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
                     "forward_client_headers": True,
                     "timeout_seconds": 60
@@ -558,6 +559,7 @@ def init_all(request):
         },
         headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
     )
-    if response.json() != "{'message': 'success'}":
+    if response.json()['message'] != 'success':
         print('Add Remote Schema failed!')
+        print(response.json())
     return HttpResponse('Finished All Init Actions')
