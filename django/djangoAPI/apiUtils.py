@@ -326,10 +326,6 @@ def RoleParentUtil(data, auth):
 
 def ReserveEntityUtil(data, auth):
     '''Reserves Role and Asset for a project'''
-    # if auth['approve']:
-    #     return {'result': 1,
-    #             'errors': 'E22: You are logged in as an Approver. Approvers are not allowed to change reservations',
-    #             }
     try:
         asset = PreDesignReconciledAssetRecordTbl.objects.get(
             initial_project_asset_role_id_id=data['id'])
@@ -356,7 +352,7 @@ def ReserveEntityUtil(data, auth):
                 asset.project_tbl = None
                 role.project_tbl = None
                 role.approved = False
-            else:  # dont return error if already reservved
+            else:  # dont return error if already reserved
                 return {'result': 0,
                         'errors': role.pk,
                         }
@@ -379,10 +375,10 @@ def ReserveEntityUtil(data, auth):
 
 def ApproveReservationUtil(data, auth):
     '''approves reservations'''
-    # if not auth['approve']:
-    #     return {'result': 1,
-    #             'errors': 'E27: User is unauthorized for approving assets. Please Login as Tony Huang.',
-    #             }
+    if not auth['approve']:
+        return {'result': 1,
+                'errors': 'E27: User is unauthorized for approving assets. Please Login as an Approver.',
+                }
     try:
         role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
     except Exception as e:
