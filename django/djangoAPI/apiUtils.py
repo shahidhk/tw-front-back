@@ -163,7 +163,6 @@ def DoesNotExistUtil(data, auth):
     only look for the assets in preDesignReconciledAssetRecordTbl, roles in preDesignReconciledRoleRecordTbl
     will only look at the initial position of assets, not sure what happens if assets gets moved then you try to remove
     '''
-    # TODO remove the asset and role if it is user created
     role_id = data['role_id']
     entity_exists = data['entity_exists']
     try:
