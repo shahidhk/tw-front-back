@@ -5,6 +5,9 @@ import random
 import requests
 from datetime import date, timedelta
 
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+
 from django.db import transaction, connection
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -29,17 +32,19 @@ def init_db2():
         try:
             cursor.execute('''
             ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" DROP COLUMN ltree_path;
-            ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl"
-                ADD COLUMN ltree_path ltree;
+            ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" ADD COLUMN ltree_path ltree;
             CREATE INDEX parent_id_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" USING GIST (ltree_path);
             CREATE INDEX parent_path_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" (parent_id_id);
+            ALTER TABLE public."djangoAPI_AvantisAdditions" DROP COLUMN full_path;
+            ALTER TABLE public."djangoAPI_AvantisAdditions" ADD COLUMN full_path ltree;
+            CREATE INDEX parent_id_idx ON public."djangoAPI_AvantisAdditions" USING GIST (full_path);
+            CREATE INDEX parent_path_idx ON public."djangoAPI_AvantisAdditions" (parent_mtoi_id);
             ''')
         except Exception as e:
             print(type(str(e)))
             print(str(e))
         try:
-            cursor.execute(
-                '''
+            cursor.execute('''
         CREATE OR REPLACE FUNCTION update_parent_path() RETURNS TRIGGER AS $$
             DECLARE
                 path ltree;
@@ -73,6 +78,53 @@ def init_db2():
         except Exception as e:
             print(type(str(e)))
             print(str(e))
+        try:
+            cursor.execute('''
+        CREATE OR REPLACE FUNCTION update_avantis_additions() RETURNS TRIGGER AS $$
+            DECLARE
+                ltree_path ltree;
+                old_path ltree;
+                parent_mtoi int;
+            BEGIN
+                select mtoi from public."djangoAPI_ClonedAssetAndRoleInRegistryTbl" where role_number = new.parent_role_number into parent_mtoi;
+                IF NEW.parent_role_number = '' then
+                    raise notice 'parent role number is empty';
+                    ltree_path = ((new.mtoi::text)::ltree);
+                else
+                    raise notice 'parent role number is NOT empty';
+                    SELECT full_path FROM public."djangoAPI_AvantisAdditions" WHERE clonedassetandroleinregistrytbl_ptr_id = parent_mtoi INTO ltree_path;
+                    IF ltree_path IS NULL THEN
+                        RAISE EXCEPTION 'Invalid parent_id %. Entities must be added parents first', NEW.parent_role_number;
+                    END IF;
+                    ltree_path = ltree_path || new.mtoi::text;
+                    raise notice 'ltree_path is %', ltree_path;
+                end if;
+                if TG_OP = 'INSERT' then
+                    insert into public."djangoAPI_AvantisAdditions"(clonedassetandroleinregistrytbl_ptr_id, full_path, parent_mtoi_id) values(new.mtoi, ltree_path, parent_mtoi);
+                elseif TG_OP = 'UPDATE' then 
+                    raise notice 'updating old values';
+                    select full_path from public."djangoAPI_AvantisAdditions" where clonedassetandroleinregistrytbl_ptr_id = new.mtoi into old_path;
+                    update public."djangoAPI_AvantisAdditions" set full_path = ltree_path, parent_mtoi_id = parent_mtoi where clonedassetandroleinregistrytbl_ptr_id = new.mtoi;
+                    UPDATE public."djangoAPI_AvantisAdditions"
+                        SET full_path = ltree_path || subpath(full_path,nlevel(old_path)) WHERE full_path <@ old_path and full_path != old_path;
+                end if;
+                RETURN NEW;
+            END;
+        $$ LANGUAGE plpgsql;
+        ''')
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+        try:
+            cursor.execute('''
+        CREATE TRIGGER avantis_additions_tgr
+            BEFORE INSERT OR UPDATE ON public."djangoAPI_ClonedAssetAndRoleInRegistryTbl"
+            FOR EACH ROW EXECUTE PROCEDURE update_avantis_additions();
+        ''')
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+
         cursor.execute('''
         create or replace
         view reconciliation_view_temp as
@@ -165,26 +217,31 @@ def init_db2():
         create or replace
         view reservation_view as
         select
-            a.id,
-            a.role_number,
-            a.role_name,
-            a.parent,
-            a.project_id,
-            subpath(a.full_path, 1) as full_path,
-            a.approved,
-            (not a.project_id is null) as reserved,
+            mtoi as id,
+            role_number,
+            role_name,
+            parent_mtoi_id as parent,
+            project_tbl_id as project_id,
+            full_path,
+            approved,
+            (not project_tbl_id is null) as reserved,
             (case
-                when (a.approved)
-                and (not a.project_id is null) then 'Approved'
+                when (approved) and (not project_tbl_id is null) then 'Approved'
                 -- true + true
-                when (not a.approved)
-                and (not a.project_id is null) then 'Pending'
+                when (not approved) and (not project_tbl_id is null) then 'Pending'
                 -- false + true
             end ) as approval_status,
-            (a.role_exists and a.asset_exists and (not a.parent_changed) and (not a.role_changed)) as reservable
+            (role_exists and asset_exists and (not parent_changed) and (not role_changed)) as reservable
         from
-            reconciliation_view_temp as a
-        where a.full_path <@ '1'::ltree and a.full_path <> '1'::ltree and not a.role_missing_from_registry and not a.asset_missing_from_registry;
+            ((public."djangoAPI_ClonedAssetAndRoleInRegistryTbl" as c
+        left join public."djangoAPI_AvantisAdditions" as a on
+            c.mtoi = a.clonedassetandroleinregistrytbl_ptr_id) as ca
+        left join ((select projectassetrolerecordtbl_ptr_id, entity_exists as role_exists, parent_changed, cloned_role_registry_tbl_id from public."djangoAPI_PreDesignReconciledRoleRecordTbl") as pa
+        left join (select id, approved, project_tbl_id from public."djangoAPI_ProjectAssetRoleRecordTbl") as ra on
+            pa.projectassetrolerecordtbl_ptr_id = ra.id) as pr on
+            ca.mtoi = pr.cloned_role_registry_tbl_id) as d
+        left join (select projectassetrecordtbl_ptr_id, entity_exists as asset_exists, role_changed, cloned_role_registry_tbl_id from public."djangoAPI_PreDesignReconciledAssetRecordTbl") as e on
+            d.mtoi = e.cloned_role_registry_tbl_id;
         ''')
         try:
             cursor.execute('''
@@ -402,22 +459,22 @@ def db_fill2():
                 spatial_site.save()
 
     for asset_row in asset_line.items():
-        avantis_asset = ClonedAssetAndRoleInRegistryTbl()
-        avantis_asset.mtoi = asset_row[1][0]
-        avantis_asset.role_number = asset_row[0]
-        avantis_asset.role_name = asset_row[1][1][1]
-        avantis_asset.parent_role_number = asset_row[1][1][3]
-        avantis_asset.role_location = asset_row[1][1][7]
-        avantis_asset.role_criticality = asset_row[1][1][6]
-        avantis_asset.role_priority = 5  # did not exist in my avantis import
-        avantis_asset.role_equipment_type = 'meh'
-        avantis_asset.role_classification = 'does this even matter right now?'
-        avantis_asset.asset_serial_number = 'dont have this value either'
-        avantis_asset.suspension_id_id = 1
-        avantis_asset.already_reserved_id = 1
-        avantis_asset.intent_to_reserve_id = 1
-        avantis_asset.role_spatial_site_id_id = locations[asset_row[1][1][7]][0]
-        avantis_asset.save()
+        avantis_asset = ClonedAssetAndRoleInRegistryTbl.objects.create(
+            mtoi=asset_row[1][0],
+            role_number=asset_row[0],
+            role_name=asset_row[1][1][1],
+            parent_role_number=asset_row[1][1][3],
+            role_location=asset_row[1][1][7],
+            role_criticality=asset_row[1][1][6],
+            role_priority=5,  # did not exist in my avantis import
+            role_equipment_type='meh',
+            role_classification='does this even matter right now?',
+            asset_serial_number='dont have this value either',
+            suspension_id=1,
+            already_reserved_id=1,
+            intent_to_reserve_id=1,
+            role_spatial_site_id_id=locations[asset_row[1][1][7]][0],
+        )
 
     # create our state roles
     states = ['Top Level Roles', 'Orphaned Roles']
@@ -498,25 +555,20 @@ def update_asset_role(request):
 
 
 def test(request):
-    subdomain = os.getenv('BRANCH', 'tw-webapp')
-    response = requests.post(
-        'https://hasura.' + subdomain + '.duckdns.org/v1/query',
-        json={
-            "type": "add_remote_schema",
-            "args": {
-                "name": "django2",
-                "definition": {
-                    "url": "https://django." + subdomain + ".duckdns.org/graphql/",
-                    # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
-                    "forward_client_headers": True,
-                    "timeout_seconds": 60
-                },
-            },
-        },
-        headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
-    )
-    if response.json()['message'] != 'success':
-        print('Add Remote Schema failed!')
+    message = Mail(
+        from_email='amber.brasher@toronto.ca',
+        to_emails='jon.ma@toronto.ca',
+        subject='Meeting with Annette',
+        html_content='<strong>Annette is holding me hostage in the Taylor-Massey Creek meetin room</strong>')
+    try:
+        sg = SendGridAPIClient(
+            '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')
+        response = sg.send(message)
+        print(response.status_code)
+        print(response.body)
+        return HttpResponse(response.headers)
+    except Exception as e:
+        return HttpResponse('error ' + str(e))
 
 
 def init_all(request):

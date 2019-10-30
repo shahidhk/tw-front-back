@@ -132,6 +132,7 @@ class ClonedAssetAndRoleInRegistryTbl(models.Model):
     role_name = models.CharField(verbose_name="Entity Name", max_length=200)
     parent_role_number = models.CharField(
         verbose_name="Parent Number", max_length=25, null=True, blank=True)
+    # TODO bad practise to allow nulls for strings (default is empty string)
     role_location = models.CharField(
         verbose_name="Location", max_length=200, null=True, blank=True)
     role_criticality = models.BigIntegerField(
@@ -144,8 +145,7 @@ class ClonedAssetAndRoleInRegistryTbl(models.Model):
         verbose_name="Classification", max_length=200, null=True, blank=True)
     asset_serial_number = models.CharField(
         verbose_name="Serial Number", max_length=300, null=True, blank=True)
-    role_spatial_site_id = models.ForeignKey(
-        ImportedSpatialSiteTbl, on_delete=models.PROTECT)
+    role_spatial_site_id = models.ForeignKey(ImportedSpatialSiteTbl, on_delete=models.PROTECT)
     suspension_id = models.BigIntegerField(null=True, blank=True)
     already_reserved = models.ForeignKey(
         DesignProjectTbl, models.SET_NULL, related_name='already_reserved_group', null=True, blank=True)
@@ -157,6 +157,18 @@ class ClonedAssetAndRoleInRegistryTbl(models.Model):
 
     def __str__(self):
         return self.role_name
+
+
+class AvantisAdditions(ClonedAssetAndRoleInRegistryTbl):
+    '''Additional processed fields to add data to the avantis table'''
+    parent_mtoi = models.ForeignKey(
+        to='self', on_delete=models.SET_NULL, null=True)
+    # role_spatial_site_id = models.ForeignKey(ImportedSpatialSiteTbl, on_delete=models.PROTECT)
+    full_path = models.TextField()
+
+    class Meta:
+        db_table = 'djangoAPI_AvantisAdditions'
+        managed = False
 
 # Users & Authorization
 
