@@ -170,7 +170,8 @@ def init_db2():
             r.asset_serial_number,
             r.asset_exists,
             r.asset_missing_from_registry,
-            r.role_changed
+            r.role_changed,
+            r.approved
         from
             reconciliation_view_temp as r
         where
@@ -204,7 +205,8 @@ def init_db2():
         view unassigned_assets as
         select
             ba.id as id,
-            ba.asset_serial_number as asset_serial_number
+            ba.asset_serial_number as asset_serial_number,
+            pa.missing_from_registry as asset_missing_from_registry
         from
             public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
         left join public."djangoAPI_ProjectAssetRecordTbl" as ba on

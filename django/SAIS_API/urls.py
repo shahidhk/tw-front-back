@@ -25,5 +25,6 @@ urlpatterns = [
     re_path(r'^', include('djangoAPI.apiurls')),
     path('admin/', admin.site.urls),
     path('djangoAPI/', include('djangoAPI.urls')),
-    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True, schema=schema)))
+    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True, schema=schema))),
 ]
+urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

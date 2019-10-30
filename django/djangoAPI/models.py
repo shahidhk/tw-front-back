@@ -3,6 +3,7 @@ from django.db import models
 
 from djangoAPI.value_lists import *
 from djangoAPI.enum_models import *
+from djangoAPI.utils import *
 
 # Field.null default = False
 # Field.blank default = False
@@ -377,3 +378,36 @@ class ReservationView(models.Model):
     class Meta:
         managed = False
         db_table = "reservation_view"
+
+    def change_reservation(self, project_id, reserve):
+        """Updates reservation project ids for assets & roles"""
+        key = self.pk
+        try:
+            asset = ProjectAssetRecordTbl.objects.get(predesignreconciledassetrecordtbl__cloned_role_registry_tbl=key)
+            role = ProjectAssetRoleRecordTbl.objects.get(predesignreconciledrolerecordtbl__cloned_role_registry_tbl=key)
+        except Exception as e:
+            return Result(success=False, message='Cannot find corresponding asset, are you sure this is an Avantis Asset?', exception=e, error_code=1)
+        if asset.project_tbl != role.project_tbl:
+            return Result(success=False, message='DB inconsistency error asset and role reserved by different projects. Please Contact Tony Huang', exception=e, error_code=2)
+        if asset.project_tbl is None:  # asset is free real estate
+            if reserve:
+                asset.project_tbl_id = project_id
+                role.project_tbl_id = project_id
+            else:  # dont return error if already unreserved
+                return Result(success=True, obj_id=key)
+        elif asset.project_tbl_id == project_id:  # asset is reserved by this group
+            if not reserve:  # when reserved=False they are trying to unreserve
+                asset.project_tbl = None
+                role.project_tbl = None
+                role.approved = False
+            else:  # dont return error if already reserved
+                return Result(success=True, obj_id=key)
+        else:  # asset is reserved by another group
+            return Result(success=False, message='Asset is reserved by another project group', error_code=3)
+        try:
+            asset.save()
+            role.save()
+        except Exception as e:
+            return Result(success=False, message='Cannot change reservation', exception=e, error_code=4)
+        else:
+            return Result(success=True, obj_id=key)
