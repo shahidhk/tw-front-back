@@ -336,6 +336,7 @@ class ReconciliationView(models.Model):
     asset_exists = models.BooleanField(null=True)
     asset_missing_from_registry = models.BooleanField(null=True)
     role_changed = models.BooleanField(null=True)
+    approved = models.BooleanField(null=True)
 
     class Meta:
         managed = False
@@ -356,6 +357,7 @@ class UnassignedAssetsView(models.Model):
     # TODO this probably does not need to be a view, a filter probably works
     id = models.IntegerField(primary_key=True)
     asset_serial_number = models.TextField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)
 
     class Meta:
         managed = False
