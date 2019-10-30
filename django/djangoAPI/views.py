@@ -37,8 +37,8 @@ def init_db2():
             CREATE INDEX parent_path_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" (parent_id_id);
             ALTER TABLE public."djangoAPI_AvantisAdditions" DROP COLUMN full_path;
             ALTER TABLE public."djangoAPI_AvantisAdditions" ADD COLUMN full_path ltree;
-            CREATE INDEX parent_id_idx ON public."djangoAPI_AvantisAdditions" USING GIST (full_path);
-            CREATE INDEX parent_path_idx ON public."djangoAPI_AvantisAdditions" (parent_mtoi_id);
+            CREATE INDEX aa_parent_id_idx ON public."djangoAPI_AvantisAdditions" USING GIST (full_path);
+            CREATE INDEX aa_parent_path_idx ON public."djangoAPI_AvantisAdditions" (parent_mtoi_id);
             ''')
         except Exception as e:
             print(type(str(e)))
