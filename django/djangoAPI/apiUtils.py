@@ -149,7 +149,7 @@ def AssignAssetToRoleUtil(data, auth):
                 'errors': 'E8: Asset reserved by another project'
                 }
     asset = PreDesignReconciledAssetRecordTbl.objects.get(pk=data['asset_id'])
-    if not existing_asset.initial_project_asset_role_id.approved:
+    if not asset.initial_project_asset_role_id.approved:
         return {'result': 1,
                 'errors': 'E38: The reservation for this entity has not been approved'
                 }
