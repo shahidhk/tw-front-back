@@ -19,9 +19,9 @@ class UnassAssViewType(DjangoObjectType):
         model = UnassignedAssetsView
 
 
-class UnassAssViewTypeDeleted(graphene.ObjectType):
-    asset_serial_number = graphene.String()
-    id = graphene.Int()
+# class UnassAssViewTypeDeleted(graphene.ObjectType):
+#     asset_serial_number = graphene.String()
+#     id = graphene.Int()
 
 
 class ReservationViewType(DjangoObjectType):
@@ -78,7 +78,7 @@ class UpdateUnassView(graphene.Mutation):
         where = IDEQ(required=True)
         _set = UnassViewSet(required=True)
     # TODO not sure what should be returned since the entry disappears
-    returning = graphene.List(UnassAssViewTypeDeleted)
+    returning = graphene.List(UnassAssViewType)
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
@@ -101,7 +101,7 @@ class DeleteUnassView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
     # TODO not sure what should be returned since the entry disappears
-    returning = graphene.List(UnassAssViewTypeDeleted)
+    returning = graphene.List(UnassAssViewType)
 
     @staticmethod
     def mutate(root, info, where=None):
