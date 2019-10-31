@@ -206,7 +206,8 @@ def init_db2():
         select
             ba.id as id,
             ba.asset_serial_number as asset_serial_number,
-            pa.missing_from_registry as asset_missing_from_registry
+            pa.missing_from_registry as asset_missing_from_registry,
+            ba.project_tbl_id
         from
             public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
         left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
