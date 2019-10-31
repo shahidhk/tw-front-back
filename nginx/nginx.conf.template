@@ -73,6 +73,6 @@ server {
         client_max_body_size 1M;
     }
     location /static/ {
-        alias /usr/scr/app/static/;
+        alias /usr/scr/django/static/;
     }
 }

@@ -1,0 +1,9 @@
+psycopg2 ~=2.8
+django ~=2.2
+gunicorn ~=19.9
+django-silk ~=3.0
+requests ~=2.22
+djangorestframework ~=3.10
+graphene-django ~=2.0
+django-request-logging ~=0.7
+sendgrid ~=6.1
