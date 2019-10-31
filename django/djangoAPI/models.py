@@ -424,6 +424,7 @@ class UnassignedAssetsView(models.Model):
     id = models.IntegerField(primary_key=True)
     asset_serial_number = models.TextField(null=True)
     asset_missing_from_registry = models.BooleanField(null=True)
+    project_id = models.IntegerField(null=True)
 
     class Meta:
         managed = False
