@@ -23,3 +23,8 @@ class Result():
         self.obj_id = obj_id
         self.error_code = error_code
         self.obj = obj
+
+    def readable_message(self):
+        thing = str(self.exception) + ':' + \
+            str(type(self.exception)) if self.exception else ''
+        return str(self.error_code) + ':' + self.message + ':' + thing

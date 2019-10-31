@@ -1,6 +1,7 @@
 # from django.test import TestCase
 import csv
-
+from django.db import transaction
+from graphql import GraphQLError
 # Create your tests here.
 
 
@@ -21,4 +22,30 @@ with open('avantis.csv', mode='r') as csv_f:
             parent[row[3]].append(row)
         else:
             parent[row[3]] = [row]
-print_tree(0, 'SITE', parent)
+
+
+class abc():
+    def __init__(self, a='a', b='b', c='c'):
+        self.a = a
+        self.b = b
+        self.c = c
+
+    def name(self):
+        print('name is abc')
+
+    # def new(self):
+    #     print(self.d)
+
+
+class abcd(abc):
+    def __init__(self, a='a', b='b', c='c', d='d'):
+        super().__init__(a, b, c)
+        self.d = d
+
+    def long_name(self):
+        print('name is abcd')
+
+
+def thing():
+    with transaction.atomic():
+        raise GraphQLError('there is an error')

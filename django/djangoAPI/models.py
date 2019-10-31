@@ -1,9 +1,11 @@
 from django.contrib.postgres import fields
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
 
 from djangoAPI.value_lists import *
 from djangoAPI.enum_models import *
 from djangoAPI.utils import *
+
 
 # Field.null default = False
 # Field.blank default = False
@@ -238,6 +240,24 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledRoleRecordTbl'
 
+    def remove_reconciliation(self, project_id, entity_exists):
+        """
+        marks existing roles as does not exist
+        deletes user added roles
+        """
+        if self.project_tbl_id != project_id:
+            return Result(error_code=1, message='Role Reserved by Another Project')
+        if not self.approved:
+            return Result(error_code=2, message='Role Reservation not Approved')
+        try:
+            if self.missing_from_registry and not entity_exists:
+                self.delete()
+            else:
+                self.entity_exists = entity_exists
+                self.save()
+        except Exception as e:
+            return Result(success=False, error_code=3, message='Failed to Change Role Information', exception=e)
+        return Result(success=True, obj_id=self.pk)
 
 class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
     new_role = models.BooleanField()
@@ -257,7 +277,6 @@ class ProjectAssetRecordTbl(models.Model):
 
     class Meta:
         db_table = 'djangoAPI_ProjectAssetRecordTbl'
-
 
 class AssetClassificationTbl(models.Model):
     '''List of all Classifications given to an asset'''
@@ -284,6 +303,22 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledAssetRecordTbl'
 
+    def remove_reconciliation(self, project_id, entity_exists):
+        """
+        Marks existing asset as non-existant
+        removes user created asset 
+        """
+        if self.project_tbl_id != project_id:
+            return Result(success=False, error_code=4, message='Asset Reserved by Another Project')
+        try:
+            if self.missing_from_registry and not entity_exists:
+                self.delete()
+            else:
+                self.entity_exists = entity_exists
+                self.save()
+        except Exception as e:
+            return Result(success=False, error_code=5, message='Failed to Change Asset Information', exception=e)
+        return Result(success=True, obj_id=self.pk)
 
 class ExistingAssetMovedByProjectTbl(PreDesignReconciledAssetRecordTbl):
     '''Assets that will need to be moved to a new role'''
@@ -350,6 +385,37 @@ class ReconciliationView(models.Model):
             i = l.full_path.index('.')
             l.full_path = l.full_path[i+1:]
         return lst
+    
+    def remove_entity(self, project_id, exists):
+        """
+        marks existing roles and assets are non-existing
+        removes user created roles and assets
+        """
+        role_id = self.pk
+        try:
+            asset = PreDesignReconciledAssetRecordTbl.objects.get(
+                initial_project_asset_role_id_id=role_id)
+        except ObjectDoesNotExist as e:
+            pass
+        else:
+            result =  asset.remove_reconciliation(project_id, exists)
+            if not result.success:
+                return result
+        try:
+            role = PreDesignReconciledRoleRecordTbl.objects.get(pk=role_id)
+        except ObjectDoesNotExist as e:
+            return Result(success=False, error_code=6, message='Role Cannot be found')
+        if not exists: # removing
+            child_roles = list(ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
+            if child_roles:
+                try:
+                    for child in child_roles:
+                        child.parent_id_id = 2
+                        child.save()
+                except Exception as e:
+                    return Result(success=False, error_code=7, message='Failed to Orphan Children of role', exception=e)
+        return role.remove_reconciliation(project_id, exists)
+
 
 
 class UnassignedAssetsView(models.Model):
@@ -388,9 +454,9 @@ class ReservationView(models.Model):
             asset = ProjectAssetRecordTbl.objects.get(predesignreconciledassetrecordtbl__cloned_role_registry_tbl=key)
             role = ProjectAssetRoleRecordTbl.objects.get(predesignreconciledrolerecordtbl__cloned_role_registry_tbl=key)
         except Exception as e:
-            return Result(success=False, message='Cannot find corresponding asset, are you sure this is an Avantis Asset?', exception=e, error_code=1)
+            return Result(success=False, message='Cannot find corresponding asset, are you sure this is an Avantis Asset?', exception=e, error_code=8)
         if asset.project_tbl != role.project_tbl:
-            return Result(success=False, message='DB inconsistency error asset and role reserved by different projects. Please Contact Tony Huang', exception=e, error_code=2)
+            return Result(success=False, message='DB inconsistency error asset and role reserved by different projects. Please Contact Tony Huang', exception=e, error_code=9)
         if asset.project_tbl is None:  # asset is free real estate
             if reserve:
                 asset.project_tbl_id = project_id
@@ -405,11 +471,11 @@ class ReservationView(models.Model):
             else:  # dont return error if already reserved
                 return Result(success=True, obj_id=key)
         else:  # asset is reserved by another group
-            return Result(success=False, message='Asset is reserved by another project group', error_code=3)
+            return Result(success=False, message='Asset is reserved by another project group', error_code=10)
         try:
             asset.save()
             role.save()
         except Exception as e:
-            return Result(success=False, message='Cannot change reservation', exception=e, error_code=4)
+            return Result(success=False, message='Cannot change reservation', exception=e, error_code=11)
         else:
             return Result(success=True, obj_id=key)

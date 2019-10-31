@@ -149,7 +149,7 @@ def AssignAssetToRoleUtil(data, auth):
                 'errors': 'E8: Asset reserved by another project'
                 }
     asset = PreDesignReconciledAssetRecordTbl.objects.get(pk=data['asset_id'])
-    if asset.initial_project_asset_role_id: # if asset gets moved to unassigned asset it will not have a role
+    if asset.initial_project_asset_role_id:  # if asset gets moved to unassigned asset it will not have a role
         # TODO approval for both asset and roles
         if not asset.initial_project_asset_role_id.approved:
             return {'result': 1,
@@ -167,8 +167,33 @@ def AssignAssetToRoleUtil(data, auth):
                 }
 
 
+def remove_reconciliation(data, auth):
+    """
+    Marks Existing Assets & Role as Non-Existant
+    Deletes User Created Role & Asset
+    """
+    role_id = data['role_id']
+    entity_exists = data['entity_exists']
+    try:
+        entity = ReconciliationView.objects.get(pk=role_id)
+    except Exception as e:
+        return {'result': 1,
+                'errors': 'E:B:' + Result(message='This entity does not exist', exception=e, error_code=-1).readable_message(),
+                }
+    result = entity.remove_entity(auth['group'], entity_exists)
+    if result.success:
+        return {'result': 0,
+                'errors': result.obj_id,
+                }
+    else:
+        return {'result': 1,
+                'errors': 'E:B:' + result.readable_message(),
+                }
+
+
 def DoesNotExistUtil(data, auth):
     '''
+    Deprecated
     Marks Asset and Role as Does Not Exist
     only look for the assets in preDesignReconciledAssetRecordTbl, roles in preDesignReconciledRoleRecordTbl
     will only look at the initial position of assets, not sure what happens if assets gets moved then you try to remove
@@ -351,17 +376,17 @@ def ReserveEntityUtil(data, auth):
     try:
         reserve = ReservationView.objects.get(pk=data['id'])
     except Exception as e:
-        return Result(success=False, message='This entity does not exist', exception=e, error_code=5)
+        return {'result': 1,
+                'errors': 'E:A:' + Result(message='This entity does not exist', exception=e, error_code=-2).readable_message(),
+                }
     result = reserve.change_reservation(auth['group'], data['reserved'])
     if result.success:
         return {'result': 0,
                 'errors': result.obj_id,
                 }
     else:
-        thing = str(result.exception) + ':' + \
-            str(type(result.exception)) if result.exception else ''
         return {'result': 1,
-                'errors': 'E:A:' + str(result.error_code) + ':' + result.message + ':' + thing,
+                'errors': 'E:A:' + result.readable_message(),
                 }
 
 

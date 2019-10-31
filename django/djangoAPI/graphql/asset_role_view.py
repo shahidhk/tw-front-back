@@ -1,13 +1,14 @@
 import graphene
-from graphql import GraphQLError
+from django.db import transaction
+from graphene_django.rest_framework.serializer_converter import \
+    convert_serializer_to_input_type
 from graphene_django.types import DjangoObjectType, ObjectType
-from graphene_django.rest_framework.serializer_converter import convert_serializer_to_input_type
-
+from graphql import GraphQLError
 from rest_framework import serializers
 
-from djangoAPI.models import *
 from djangoAPI.apiUtils import *
 from djangoAPI.graphql.commons import *
+from djangoAPI.models import *
 
 
 # output classes
@@ -65,36 +66,37 @@ class UpdateReconView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
-        # call different functions depending on what is changed
-        # TODO allow changing multiple columns at the same time
-        auth = AuthenticationUtil(info)
-        if not auth['valid']:
-            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-        if not _set.role_exists is None:
-            # marks role and asset as does not exist / deletes user created
-            data = {'role_id': where.id._eq,
-                    'entity_exists': _set.role_exists,
-                    }
-            data = DoesNotExistUtil(data, auth)
-        elif not _set.parent is None:
-            data = {'role_id': where.id._eq,
-                    'parent_id': _set.parent,
-                    }
-            data = RoleParentUtil(data, auth)
-        elif not _set.asset_id is None:
-            # this one is kinda weird, assigns an asset to the role,
-            # if moving asset to unassigned assets, the role_id is 0 / None
-            data = {'role_id': where.id._eq,
-                    'asset_id': _set.asset_id,
-                    }
-            data = AssignAssetToRoleUtil(data, auth)
-        else:
-            raise GraphQLError('Unimplemented')
-        # Check the result of called function and return row on success
-        if data['result'] == 0:
-            data = ReconciliationView.fixed_ltree(pk=data['errors'])
-            return UpdateReconView(returning=data)
-        raise GraphQLError(data['errors'])
+        with transaction.atomic():
+            # call different functions depending on what is changed
+            # TODO allow changing multiple columns at the same time
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            if not _set.role_exists is None:
+                # marks role and asset as does not exist / deletes user created
+                data = {'role_id': where.id._eq,
+                        'entity_exists': _set.role_exists,
+                        }
+                data = remove_reconciliation(data, auth)
+            elif not _set.parent is None:
+                data = {'role_id': where.id._eq,
+                        'parent_id': _set.parent,
+                        }
+                data = RoleParentUtil(data, auth)
+            elif not _set.asset_id is None:
+                # this one is kinda weird, assigns an asset to the role,
+                # if moving asset to unassigned assets, the role_id is 0 / None
+                data = {'role_id': where.id._eq,
+                        'asset_id': _set.asset_id,
+                        }
+                data = AssignAssetToRoleUtil(data, auth)
+            else:
+                raise GraphQLError('Unimplemented')
+            # Check the result of called function and return row on success
+            if data['result'] == 0:
+                data = ReconciliationView.fixed_ltree(pk=data['errors'])
+                return UpdateReconView(returning=data)
+            raise GraphQLError(data['errors'])
 
 
 class DeleteReconView(graphene.Mutation):
@@ -105,16 +107,17 @@ class DeleteReconView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
-        auth = AuthenticationUtil(info)
-        if not auth['valid']:
-            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-        data = {'role_id': where.id._eq, 'entity_exists': False,}
-        result = ReconciliationView.fixed_ltree(pk=where.id._eq)
-        data = DoesNotExistUtil(data, auth)
-        if data['result'] == 0:
-            data = ReconciliationView.fixed_ltree(pk=data['errors'])
-            return UpdateReconView(returning=(data if data else result))
-        raise GraphQLError(data['errors'])
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            data = {'role_id': where.id._eq, 'entity_exists': False, }
+            result = ReconciliationView.fixed_ltree(pk=where.id._eq)
+            data = remove_reconciliation(data, auth)
+            if data['result'] == 0:
+                data = ReconciliationView.fixed_ltree(pk=data['errors'])
+                return UpdateReconView(returning=(data if data else result))
+            raise GraphQLError(data['errors'])
 
 
 class UpdateOrphanView(graphene.Mutation):
