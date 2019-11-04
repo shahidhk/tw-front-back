@@ -637,7 +637,7 @@ def init_all(request):
     db_fill2()
     update_asset_role2()
     subdomain = os.getenv('BRANCH', '')
-    tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets']
+    tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets', 'garbage_can_unassigned_assets', 'garbage_can_reconciliation_view']
     for table in tables:
         response = requests.post(
             'https://hasura.' + subdomain + '.duckdns.org/v1/query',
