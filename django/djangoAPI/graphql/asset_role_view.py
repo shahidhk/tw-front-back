@@ -38,23 +38,24 @@ class InsertReconciliationView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, objects=None):
-        auth = AuthenticationUtil(info)
-        if not auth['valid']:
-            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-        role_data = {
-            'role_number': objects.role_number,
-            'role_spatial_site_id': 1,  # objects.role_spatial_site_id
-            'role_priority': 'a',  # objects.role_priority
-            'role_name': objects.role_name,
-            'role_criticality': 'a',  # objects.role_criticality
-            'parent_id': objects.parent,
-        }
-        new_entity = add_missing_role(role_data, auth)
-        if new_entity['result'] == 0:
-            new_entity = ReconciliationView.objects.filter(
-                pk=new_entity['errors'])
-            return InsertReconciliationView(returning=new_entity)
-        raise GraphQLError(new_entity['errors'])
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            role_data = {
+                'role_number': objects.role_number,
+                'role_spatial_site_id': 1,  # objects.role_spatial_site_id
+                'role_priority': 'a',  # objects.role_priority
+                'role_name': objects.role_name,
+                'role_criticality': 'a',  # objects.role_criticality
+                'parent_id': objects.parent,
+            }
+            new_entity = add_missing_role(role_data, auth)
+            if new_entity['result'] == 0:
+                new_entity = ReconciliationView.objects.filter(
+                    pk=new_entity['errors'])
+                return InsertReconciliationView(returning=new_entity)
+            raise GraphQLError(new_entity['errors'])
 
 
 class UpdateReconView(graphene.Mutation):
@@ -129,14 +130,15 @@ class UpdateOrphanView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
-        auth = AuthenticationUtil(info)
-        if not auth['valid']:
-            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-        if not _set.parent is None:
-            # Used to assign orphaned child to a new parent, drags from orphan_view to reconciliation view
-            data = {'role_id': where.id._eq, 'parent_id': _set.parent}
-            data = RoleParentUtil(data, auth)
-        if data['result'] == 0:
-            data = ReconciliationView.fixed_ltree(pk=data['errors'])
-            return UpdateOrphanView(returning=data)
-        raise GraphQLError(data['errors'])
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            if not _set.parent is None:
+                # Used to assign orphaned child to a new parent, drags from orphan_view to reconciliation view
+                data = {'role_id': where.id._eq, 'parent_id': _set.parent}
+                data = RoleParentUtil(data, auth)
+            if data['result'] == 0:
+                data = ReconciliationView.fixed_ltree(pk=data['errors'])
+                return UpdateOrphanView(returning=data)
+            raise GraphQLError(data['errors'])

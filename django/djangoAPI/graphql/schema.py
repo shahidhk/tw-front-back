@@ -61,16 +61,17 @@ class InsertUnassView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, objects=None):
-        auth = AuthenticationUtil(info)
-        if not auth['valid']:
-            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-        data = {'asset_serial_number': objects.asset_serial_number}
-        data = MissingAssetUtil(data, auth)
-        if data['result'] == 0:
-            data = UnassignedAssetsView.objects.filter(
-                pk=data['errors'])
-            return InsertUnassView(returning=data)
-        raise GraphQLError(data['errors'])
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            data = {'asset_serial_number': objects.asset_serial_number}
+            data = MissingAssetUtil(data, auth)
+            if data['result'] == 0:
+                data = UnassignedAssetsView.objects.filter(
+                    pk=data['errors'])
+                return InsertUnassView(returning=data)
+            raise GraphQLError(data['errors'])
 
 
 class UpdateUnassView(graphene.Mutation):
@@ -82,19 +83,20 @@ class UpdateUnassView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
-        auth = AuthenticationUtil(info)
-        if not auth['valid']:
-            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-        data = {'role_id': _set.role_id,
-                'asset_id': where.id._eq,
-                }
-        result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))  # be optimistic
-        # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
-        # since we need to return a list with the object we deleted we can get the object before we delete it
-        data = AssignAssetToRoleUtil(data, auth)
-        if data['result'] == 0:
-            return InsertUnassView(returning=result)
-        raise GraphQLError(data['errors'])
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            data = {'role_id': _set.role_id,
+                    'asset_id': where.id._eq,
+                    }
+            result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))  # be optimistic
+            # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
+            # since we need to return a list with the object we deleted we can get the object before we delete it
+            data = AssignAssetToRoleUtil(data, auth)
+            if data['result'] == 0:
+                return InsertUnassView(returning=result)
+            raise GraphQLError(data['errors'])
 
 
 class DeleteUnassView(graphene.Mutation):
@@ -105,15 +107,16 @@ class DeleteUnassView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None):
-        auth = AuthenticationUtil(info)
-        if not auth['valid']:
-            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-        data = {'asset_id': where.id._eq, }
-        result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))
-        data = RetireAssetUtil(data, auth)
-        if data['result'] == 0:
-            return InsertUnassView(returning=result)  # same as above where list???
-        raise GraphQLError(data['errors'])
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            data = {'asset_id': where.id._eq, }
+            result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))
+            data = RetireAssetUtil(data, auth)
+            if data['result'] == 0:
+                return InsertUnassView(returning=result)  # same as above where list???
+            raise GraphQLError(data['errors'])
 
 
 class UpdateReserView(graphene.Mutation):
@@ -124,22 +127,23 @@ class UpdateReserView(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
-        auth = AuthenticationUtil(info)
-        if not auth['valid']:
-            raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-        if not _set.reserved is None:
-            data = {'id': where.id._eq, 'reserved': _set.reserved}
-            data = ReserveEntityUtil(data, auth)
-        elif not _set.approved is None:
-            data = {'id': where.id._eq, 'approved': _set.approved}
-            data = ApproveReservationUtil(data, auth)
-        else:
-            raise GraphQLError('Unimplemented')
-        if data['result'] == 0:
-            data = ReservationView.objects.filter(
-                pk=data['errors'])
-            return UpdateReserView(returning=data)
-        raise GraphQLError(data['errors'])
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            if not _set.reserved is None:
+                data = {'id': where.id._eq, 'reserved': _set.reserved}
+                data = ReserveEntityUtil(data, auth)
+            elif not _set.approved is None:
+                data = {'id': where.id._eq, 'approved': _set.approved}
+                data = ApproveReservationUtil(data, auth)
+            else:
+                raise GraphQLError('Unimplemented')
+            if data['result'] == 0:
+                data = ReservationView.objects.filter(
+                    pk=data['errors'])
+                return UpdateReserView(returning=data)
+            raise GraphQLError(data['errors'])
 
 
 class Query(ObjectType):
