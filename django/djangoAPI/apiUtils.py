@@ -51,7 +51,7 @@ def add_missing_role(role_data, auth):
         try:
             with transaction.atomic():
                 role = PreDesignReconciledRoleRecordTbl.objects.create(
-                    updatable_role_number=role_number_obj,
+                    updatable_role_number=role_number_obj.obj,
                     role_name=role_data['role_name'],
                     parent_id_id=role_data['parent_id'],
                     role_criticality_id=role_data['role_criticality'],
