@@ -127,6 +127,17 @@ class ImportedSpatialSiteTbl(models.Model):
         db_table = 'djangoAPI_ImportedSpatialSiteTbl'
 
 
+class MasterRoleNumbersTbl(models.Model):
+    """
+    Master List of all role numbers avaliable and in use
+    """
+    role_number = models.CharField(max_length=25, unique=True)
+    project_tbl = models.ForeignKey(DesignProjectTbl, on_delete=models.PROTECT, null=True)
+
+    class Meta:
+        db_table = 'djangoAPI_MasterRoleNumbersTbl'
+
+
 class ClonedAssetAndRoleInRegistryTbl(models.Model):
     '''From Avantis'''
     mtoi = models.AutoField(verbose_name="Avantis ID", primary_key=True)
@@ -168,7 +179,7 @@ class AvantisAdditions(ClonedAssetAndRoleInRegistryTbl):
         to='self', on_delete=models.SET_NULL, null=True)
     # role_spatial_site_id = models.ForeignKey(ImportedSpatialSiteTbl, on_delete=models.PROTECT)
     full_path = models.TextField()
-    linked_role_number = ForeignKey(MasterRoleNumbersTbl, models.PROTECT)
+    linked_role_number = models.ForeignKey(MasterRoleNumbersTbl, models.PROTECT)
 
     class Meta:
         db_table = 'djangoAPI_AvantisAdditions'
@@ -206,14 +217,6 @@ class UserProjectLinkTbl(models.Model):
 
     class Meta:
         db_table = 'djangoAPI_UserProjectLinkTbl'
-
-
-class MasterRoleNumbersTbl(models.Model):
-    """
-    Master List of all role numbers avaliable and in use
-    """
-    role_number = models.CharField(max_length=25)
-    project_tbl = models.ForeignKey(DesignProjectTbl, on_delete=models.PROTECT, null=True)
 
 
 # Role Tables

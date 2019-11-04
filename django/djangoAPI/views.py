@@ -85,8 +85,10 @@ def init_db2():
                 ltree_path ltree;
                 old_path ltree;
                 parent_mtoi int;
+                role_number_pk int;
             BEGIN
                 select mtoi from public."djangoAPI_ClonedAssetAndRoleInRegistryTbl" where role_number = new.parent_role_number into parent_mtoi;
+                select id from public."djangoAPI_MasterRoleNumbersTbl" where role_number = new.role_number into role_number_pk;
                 IF NEW.parent_role_number = '' then
                     raise notice 'parent role number is empty';
                     ltree_path = ((new.mtoi::text)::ltree);
@@ -100,13 +102,18 @@ def init_db2():
                     raise notice 'ltree_path is %', ltree_path;
                 end if;
                 if TG_OP = 'INSERT' then
-                    insert into public."djangoAPI_AvantisAdditions"(clonedassetandroleinregistrytbl_ptr_id, full_path, parent_mtoi_id) values(new.mtoi, ltree_path, parent_mtoi);
+                    insert into public."djangoAPI_AvantisAdditions"(clonedassetandroleinregistrytbl_ptr_id, full_path, parent_mtoi_id, linked_role_number_id) values(new.mtoi, ltree_path, parent_mtoi, role_number_pk);
                 elseif TG_OP = 'UPDATE' then 
                     raise notice 'updating old values';
                     select full_path from public."djangoAPI_AvantisAdditions" where clonedassetandroleinregistrytbl_ptr_id = new.mtoi into old_path;
-                    update public."djangoAPI_AvantisAdditions" set full_path = ltree_path, parent_mtoi_id = parent_mtoi where clonedassetandroleinregistrytbl_ptr_id = new.mtoi;
+                    -- update the data for the coorsponding entry
+                    update public."djangoAPI_AvantisAdditions" 
+                        set full_path = ltree_path, parent_mtoi_id = parent_mtoi where clonedassetandroleinregistrytbl_ptr_id = new.mtoi;
+                    -- update path for all children
                     UPDATE public."djangoAPI_AvantisAdditions"
                         SET full_path = ltree_path || subpath(full_path,nlevel(old_path)) WHERE full_path <@ old_path and full_path != old_path;
+                    update public."djangoAPI_MasterRoleNumbersTbl"
+                        set role_number = new.role_number where id = role_number_pk;
                 end if;
                 RETURN NEW;
             END;
@@ -130,7 +137,7 @@ def init_db2():
         view reconciliation_view_temp as
         select
             r.id,
-            r.updatable_role_number as role_number,
+            r.role_number as role_number,
             r.role_name as role_name,
             r.parent_id_id as parent,
             r.project_tbl_id as project_id,
@@ -145,10 +152,12 @@ def init_db2():
             coalesce(a.role_changed, false) as role_changed,
             r.approved as approved
         from
-            ( public."djangoAPI_ProjectAssetRoleRecordTbl" as br
+            ((public."djangoAPI_ProjectAssetRoleRecordTbl" as br1
+        left join (select id as idrn, role_number from public."djangoAPI_MasterRoleNumbersTbl") as rn on
+        	br1.updatable_role_number_id = rn.idrn) as br
         right join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as pr on
             (br.id = pr.projectassetrolerecordtbl_ptr_id)) as r
-        left join ( public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join (public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
         left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
             (pa.projectassetrecordtbl_ptr_id = ba.id)) as a on
             (r.id = a.initial_project_asset_role_id_id);
@@ -503,7 +512,30 @@ def db_fill2():
                 spatial_site.parent_site_id_id = temp[0]
                 spatial_site.save()
 
+    # create our state roles
+    states = ['Top Level Roles', 'Orphaned Roles']
+    for i in range(10):
+        name = MasterRoleNumbersTbl.objects.create(
+            role_number='State ' + str(i+1),
+            project_tbl_id=1
+        )
+        role = ProjectAssetRoleRecordTbl.objects.create(
+            updatable_role_number=name,
+            role_name=states[i] if i < len(states) else 'Reserved for Future State',
+            parent_id_id=None,
+            role_criticality_id='a',
+            role_priority_id='a',
+            role_spatial_site_id_id='1',
+            project_tbl_id=1,
+        )
+        role.pk = i + 1
+        role.save()
+
     for asset_row in asset_line.items():
+        name = MasterRoleNumbersTbl.objects.create(
+            role_number=asset_row[0]
+        )
+
         avantis_asset = ClonedAssetAndRoleInRegistryTbl.objects.create(
             mtoi=asset_row[1][0],
             role_number=asset_row[0],
@@ -518,23 +550,7 @@ def db_fill2():
             suspension_id=1,
             already_reserved_id=1,
             intent_to_reserve_id=1,
-            role_spatial_site_id_id=locations[asset_row[1][1][7]][0],
         )
-
-    # create our state roles
-    states = ['Top Level Roles', 'Orphaned Roles']
-    for i in range(10):
-        role = ProjectAssetRoleRecordTbl.objects.create(
-            updatable_role_number='State ' + str(i+1),
-            role_name=states[i] if i < len(states) else 'Reserved for Future State',
-            parent_id_id=None,
-            role_criticality_id='a',
-            role_priority_id='a',
-            role_spatial_site_id_id='1',
-            project_tbl_id=1,
-        )
-        role.pk = i + 1
-        role.save()
 
 
 def db_fill(request):
@@ -550,36 +566,36 @@ def update_asset_role2():
             pass
         else:
             parent_mtoi[entry.role_number] = entry
-
+    role_numbers = MasterRoleNumbersTbl.objects.in_bulk(field_name='role_number')
     base_role_dict = {}  # dictionary for tracking roles and its pk
     with transaction.atomic():
         for entry in cloned_assets:
             existing_role = PreDesignReconciledRoleRecordTbl.objects.create(
-                updatable_role_number=entry.role_number,
+                updatable_role_number=role_numbers[entry.role_number],
                 role_name=entry.role_name,
                 parent_id_id=None,  # fill this in on the second go
                 role_criticality_id=num_to_alpha(entry.role_criticality),
                 role_priority_id=num_to_alpha(entry.role_priority),
-                role_spatial_site_id=entry.role_spatial_site_id,
+                role_spatial_site_id_id=1,  # TODO this is obviously a placeholder
                 cloned_role_registry_tbl_id=parent_mtoi[entry.role_number].mtoi,
                 entity_exists=True,
                 missing_from_registry=False,
                 designer_planned_action_type_tbl_id=num_to_alpha(3),  # do nothing
                 parent_changed=False,
             )
-            base_role_dict[existing_role.updatable_role_number] = existing_role.pk
+            base_role_dict[entry.role_number] = existing_role.pk
     base_roles = ProjectAssetRoleRecordTbl.objects.all()
     # with transaction.atomic():
     for role in base_roles:
         try:  # update the parent of roles unless its top level in which case it is suppose to be child of 1
             role.parent_id_id = base_role_dict.get(
-                parent_mtoi[role.updatable_role_number].parent_role_number, 1)
+                parent_mtoi[role.updatable_role_number.role_number].parent_role_number, 1)
             role.save()
         except Exception as e:
             print('cant save parent for ' +
-                  role.updatable_role_number + str(type(e)) + str(e))
+                  role.updatable_role_number.role_number + str(type(e)) + str(e))
         else:
-            print('saved parent for ' + role.updatable_role_number)
+            print('saved parent for ' + role.updatable_role_number.role_number)
     # populate predesign asset records
     with transaction.atomic():
         for entry in cloned_assets:
