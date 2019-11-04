@@ -137,6 +137,31 @@ class MasterRoleNumbersTbl(models.Model):
     class Meta:
         db_table = 'djangoAPI_MasterRoleNumbersTbl'
 
+    @staticmethod
+    def check_available(role_number, project_id):
+        """
+        Checks to see if a role number has been created.
+
+        If it has been created check which project reserved it.
+
+        If it is reserved check if it is used.
+        """
+        try:
+            number = MasterRoleNumbersTbl.objects.get(role_number=role_number)
+        except ObjectDoesNotExist:
+            number = MasterRoleNumbersTbl.objects.create(
+                role_number=role_number,
+                project_tbl_id=project_id
+            )
+        else:
+            if number.project_tbl_id != project_id:
+                return Result(error_code=12, message='Role Number already reserved by another project')
+            if list(ProjectAssetRoleRecordTbl.objects.filter(updatable_role_number_id=number.pk)):
+                return Result(error_code=13, message='Role Number is already in use')
+        finally:
+            return Result(success=True, obj=number)
+
+
 
 class ClonedAssetAndRoleInRegistryTbl(models.Model):
     '''From Avantis'''

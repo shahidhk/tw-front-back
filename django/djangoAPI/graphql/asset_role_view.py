@@ -49,7 +49,7 @@ class InsertReconciliationView(graphene.Mutation):
             'role_criticality': 'a',  # objects.role_criticality
             'parent_id': objects.parent,
         }
-        new_entity = MissingRoleUtil(role_data, auth)
+        new_entity = add_missing_role(role_data, auth)
         if new_entity['result'] == 0:
             new_entity = ReconciliationView.objects.filter(
                 pk=new_entity['errors'])

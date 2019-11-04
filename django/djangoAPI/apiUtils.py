@@ -35,6 +35,47 @@ def ExplorationUtil(result):
                 }
 
 
+def add_missing_role(role_data, auth):
+    """
+    Adds a Role record that was missing from Avantis
+    """
+    try:
+        parent = ProjectAssetRoleRecordTbl.objects.get(
+            pk=role_data['parent_id'])
+    except Exception as e:
+        return {'result': 1,
+                'errors': 'E:C:' + Result(message='Parent Does Not Exist ' + str(role_data['parent_id']), exception=e, error_code=-3).readable_message(),
+                }
+    role_number_obj = MasterRoleNumbersTbl.check_available(role_data['role_number'], auth['group'])
+    if role_number_obj.success:
+        try:
+            with transaction.atomic():
+                role = PreDesignReconciledRoleRecordTbl.objects.create(
+                    updatable_role_number=role_number_obj,
+                    role_name=role_data['role_name'],
+                    parent_id_id=role_data['parent_id'],
+                    role_criticality_id=role_data['role_criticality'],
+                    role_priority_id=role_data['role_priority'],
+                    role_spatial_site_id_id=role_data['role_spatial_site_id'],
+                    entity_exists=True,
+                    missing_from_registry=True,
+                    designer_planned_action_type_tbl_id='c',
+                    parent_changed=False,
+                    project_tbl_id=auth['group'],
+                )
+        except Exception as e:
+            return {'result': 1,
+                    'errors': 'E:C:' + Result(message='Failed to Create Role', exception=e, error_code=-4).readable_message(),
+                    }
+        return {'result': 0,
+                'errors': role.pk,
+                }
+    else:
+        return {'result': 1,
+                'errors': 'E:C:' + role_number_obj.readable_message(),
+                }
+
+
 def MissingRoleUtil(role_data, auth):
     '''
     Adds a Role record that was missing from Avantis
@@ -410,7 +451,7 @@ def ApproveReservationUtil(data, auth):
                     'errors': 'E29: There are no pending reservation requests for this entity',
                     }
         if role.project_tbl_id != auth['group']:
-                return {'result': 1,
+            return {'result': 1,
                     'errors': 'E39: You are not an approver for this Project',
                     }
         else:
