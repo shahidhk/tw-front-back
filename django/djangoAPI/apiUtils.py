@@ -409,6 +409,10 @@ def ApproveReservationUtil(data, auth):
             return {'result': 1,
                     'errors': 'E29: There are no pending reservation requests for this entity',
                     }
+        if role.project_tbl_id != auth['group']:
+                return {'result': 1,
+                    'errors': 'E39: You are not an approver for this Project',
+                    }
         else:
             role.approved = data['approved']
             if not data['approved']:
