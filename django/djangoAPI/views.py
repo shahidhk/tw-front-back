@@ -175,7 +175,31 @@ def init_db2():
         from
             reconciliation_view_temp as r
         where
-            r.full_path <@ '1'::ltree;
+            r.full_path <@ '1'::ltree and r.role_exists = true;
+        ''')
+        cursor.execute('''
+        create or replace
+        view garbage_can_reconciliation_view as
+        select
+            r.id,
+            r.role_number,
+            r.role_name,
+            r.parent,
+            r.project_id,
+            r.role_exists,
+            r.role_missing_from_registry,
+            subpath(r.full_path, 1) as full_path,
+            r.parent_changed,
+            r.asset_id,
+            r.asset_serial_number,
+            r.asset_exists,
+            r.asset_missing_from_registry,
+            r.role_changed,
+            r.approved
+        from
+            reconciliation_view_temp as r
+        where
+            r.full_path <@ '1'::ltree and r.role_exists = false;
         ''')
         cursor.execute('''
         create or replace
@@ -198,7 +222,7 @@ def init_db2():
         from
             reconciliation_view_temp as r
         where
-            r.full_path <@ '2'::ltree;
+            r.full_path <@ '2'::ltree and r.role_exists = true;
         ''')
         cursor.execute('''
         create or replace
@@ -214,7 +238,25 @@ def init_db2():
             pa.projectassetrecordtbl_ptr_id = ba.id
         where
             pa.initial_project_asset_role_id_id is null
-            and pa.designer_planned_action_type_tbl_id <> 'b';
+            and pa.designer_planned_action_type_tbl_id <> 'b'
+            and pa.entity_exists = true;
+        ''')
+        cursor.execute('''
+        create or replace
+        view garbage_can_unassigned_assets as
+        select
+            ba.id as id,
+            ba.asset_serial_number as asset_serial_number,
+            pa.missing_from_registry as asset_missing_from_registry,
+            ba.project_tbl_id as project_id
+        from
+            public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
+            pa.projectassetrecordtbl_ptr_id = ba.id
+        where
+            pa.initial_project_asset_role_id_id is null
+            and pa.designer_planned_action_type_tbl_id <> 'b'
+            and pa.entity_exists = false;
         ''')
         cursor.execute('''
         create or replace

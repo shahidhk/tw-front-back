@@ -287,10 +287,11 @@ def RetireAssetUtil(asset, auth):
             return {'result': 1,
                     'errors': 'E15: Asset or Role reserved by another project'
                     }
-        elif not existing_asset.initial_project_asset_role_id.approved:
-            return {'result': 1,
-                    'errors': 'E36: The reservation for this entity has not been approved'
-                    }
+        # this check is unnecessary since an asset cannot be unassigned until the reservation has been approved
+        # elif not existing_asset.initial_project_asset_role_id.approved:
+        #     return {'result': 1,
+        #             'errors': 'E36: The reservation for this entity has not been approved'
+        #             }
         serial = existing_asset.asset_serial_number
         try:
             if existing_asset.missing_from_registry:

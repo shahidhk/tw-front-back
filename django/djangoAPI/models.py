@@ -148,7 +148,7 @@ class ClonedAssetAndRoleInRegistryTbl(models.Model):
         verbose_name="Classification", max_length=200, null=True, blank=True)
     asset_serial_number = models.CharField(
         verbose_name="Serial Number", max_length=300, null=True, blank=True)
-    role_spatial_site_id = models.ForeignKey(ImportedSpatialSiteTbl, on_delete=models.PROTECT)
+    # role_spatial_site_id = models.ForeignKey(ImportedSpatialSiteTbl, on_delete=models.PROTECT)
     suspension_id = models.BigIntegerField(null=True, blank=True)
     already_reserved = models.ForeignKey(
         DesignProjectTbl, models.SET_NULL, related_name='already_reserved_group', null=True, blank=True)
@@ -168,6 +168,7 @@ class AvantisAdditions(ClonedAssetAndRoleInRegistryTbl):
         to='self', on_delete=models.SET_NULL, null=True)
     # role_spatial_site_id = models.ForeignKey(ImportedSpatialSiteTbl, on_delete=models.PROTECT)
     full_path = models.TextField()
+    linked_role_number = ForeignKey(MasterRoleNumbersTbl, models.PROTECT)
 
     class Meta:
         db_table = 'djangoAPI_AvantisAdditions'
@@ -206,14 +207,21 @@ class UserProjectLinkTbl(models.Model):
     class Meta:
         db_table = 'djangoAPI_UserProjectLinkTbl'
 
+
+class MasterRoleNumbersTbl(models.Model):
+    """
+    Master List of all role numbers avaliable and in use
+    """
+    role_number = models.CharField(max_length=25)
+    project_tbl = models.ForeignKey(DesignProjectTbl, on_delete=models.PROTECT, null=True)
+
+
 # Role Tables
-
-
 class ProjectAssetRoleRecordTbl(models.Model):
     '''Master List of all Roles'''
     parent_id = models.ForeignKey(
         to='self', to_field='id', verbose_name="Parent Number", on_delete=models.PROTECT, null=True, blank=True)
-    updatable_role_number = models.CharField(max_length=25)
+    updatable_role_number = models.ForeignKey(MasterRoleNumbersTbl, models.PROTECT)
     role_name = models.CharField(max_length=400)
     role_spatial_site_id = models.ForeignKey(ImportedSpatialSiteTbl, models.PROTECT)
     role_criticality = models.ForeignKey(RoleCriticality, models.PROTECT)
@@ -259,6 +267,7 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
             return Result(success=False, error_code=3, message='Failed to Change Role Information', exception=e)
         return Result(success=True, obj_id=self.pk)
 
+
 class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
     new_role = models.BooleanField()
 
@@ -277,6 +286,7 @@ class ProjectAssetRecordTbl(models.Model):
 
     class Meta:
         db_table = 'djangoAPI_ProjectAssetRecordTbl'
+
 
 class AssetClassificationTbl(models.Model):
     '''List of all Classifications given to an asset'''
@@ -319,6 +329,7 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
         except Exception as e:
             return Result(success=False, error_code=5, message='Failed to Change Asset Information', exception=e)
         return Result(success=True, obj_id=self.pk)
+
 
 class ExistingAssetMovedByProjectTbl(PreDesignReconciledAssetRecordTbl):
     '''Assets that will need to be moved to a new role'''
@@ -385,7 +396,7 @@ class ReconciliationView(models.Model):
             i = l.full_path.index('.')
             l.full_path = l.full_path[i+1:]
         return lst
-    
+
     def remove_entity(self, project_id, exists):
         """
         marks existing roles and assets are non-existing
@@ -398,14 +409,14 @@ class ReconciliationView(models.Model):
         except ObjectDoesNotExist as e:
             pass
         else:
-            result =  asset.remove_reconciliation(project_id, exists)
+            result = asset.remove_reconciliation(project_id, exists)
             if not result.success:
                 return result
         try:
             role = PreDesignReconciledRoleRecordTbl.objects.get(pk=role_id)
         except ObjectDoesNotExist as e:
             return Result(success=False, error_code=6, message='Role Cannot be found')
-        if not exists: # removing
+        if not exists:  # removing
             child_roles = list(ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
             if child_roles:
                 try:
@@ -415,7 +426,6 @@ class ReconciliationView(models.Model):
                 except Exception as e:
                     return Result(success=False, error_code=7, message='Failed to Orphan Children of role', exception=e)
         return role.remove_reconciliation(project_id, exists)
-
 
 
 class UnassignedAssetsView(models.Model):
@@ -452,8 +462,10 @@ class ReservationView(models.Model):
         """Updates reservation project ids for assets & roles"""
         key = self.pk
         try:
-            asset = ProjectAssetRecordTbl.objects.get(predesignreconciledassetrecordtbl__cloned_role_registry_tbl=key)
-            role = ProjectAssetRoleRecordTbl.objects.get(predesignreconciledrolerecordtbl__cloned_role_registry_tbl=key)
+            asset = ProjectAssetRecordTbl.objects.get(
+                predesignreconciledassetrecordtbl__cloned_role_registry_tbl=key)
+            role = ProjectAssetRoleRecordTbl.objects.get(
+                predesignreconciledrolerecordtbl__cloned_role_registry_tbl=key)
         except Exception as e:
             return Result(success=False, message='Cannot find corresponding asset, are you sure this is an Avantis Asset?', exception=e, error_code=8)
         if asset.project_tbl != role.project_tbl:
