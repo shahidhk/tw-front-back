@@ -157,7 +157,15 @@ class Mutations(graphene.ObjectType):
     update_unassigned_assets = UpdateUnassView.Field()
     delete_unassigned_assets = DeleteUnassView.Field()
     update_reservation_view = UpdateReserView.Field()
-    update_orphan_view = UpdateOrphanView.Field()
+    insert_orphan_view = InsertReconciliationView.Field()
+    update_orphan_view = UpdateReconView.Field()
+    delete_orphan_view = DeleteReconView.Field()
+    insert_garbage_can_reconciliation_view = InsertReconciliationView.Field()
+    update_garbage_can_reconciliation_view = UpdateReconView.Field()
+    delete_garbage_can_reconciliation_view = DeleteReconView.Field()
+    insert_garbage_can_unassigned_assets = InsertUnassView.Field()
+    update_garbage_can_unassigned_assets = UpdateUnassView.Field()
+    delete_garbage_can_unassigned_assets = DeleteUnassView.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations, auto_camelcase=False)
