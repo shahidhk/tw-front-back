@@ -11,6 +11,7 @@ from sendgrid.helpers.mail import Mail
 from django.db import transaction, connection
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -633,6 +634,7 @@ def test(request):
 
 
 def init_all(request):
+    User.objects.create_superuser('jma', 'jma@toronto.ca', 'tw-admin')
     init_db2()
     db_fill2()
     update_asset_role2()
