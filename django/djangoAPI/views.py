@@ -7,7 +7,7 @@ from datetime import date, timedelta
 
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-
+from django.apps import apps
 from django.db import transaction, connection
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -413,8 +413,7 @@ def db_fill2():
     Fill the DB with test data
     Will eventually switch to initialization with constants for list tables
     '''
-    InitEnums()
-    InitValueList()
+    init_value_lists()
     for i in range(4):
         DesignProjectTbl.objects.create(
             pk=i+1,
@@ -639,7 +638,8 @@ def init_all(request):
     db_fill2()
     update_asset_role2()
     subdomain = os.getenv('BRANCH', '')
-    tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets', 'garbage_can_unassigned_assets', 'garbage_can_reconciliation_view']
+    tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets',
+              'garbage_can_unassigned_assets', 'garbage_can_reconciliation_view']
     for table in tables:
         response = requests.post(
             'https://hasura.' + subdomain + '.duckdns.org/v1/query',

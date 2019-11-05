@@ -1,9 +1,8 @@
 from django.contrib.postgres import fields
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.contrib.auth.models import User
 from djangoAPI.value_lists import *
-from djangoAPI.enum_models import *
 from djangoAPI.utils import *
 
 
@@ -17,13 +16,10 @@ from djangoAPI.utils import *
 
 class UserTbl(models.Model):
     '''Master Table of Users'''
-    # TODO WIP
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=100)
-    user_type = models.ForeignKey(UserType, models.PROTECT)
-    organization_name = models.CharField(max_length=400)
-    email = models.EmailField()
+    # use built in user module for first/last name, username and email
+    auth_user = models.OneToOneField(to=User, on_delete=models.PROTECT, primary_key=True)
+    role = models.ForeignKey(SystemHumanRoleTypeTbl, models.PROTECT)
+    user_group_name = models.ForeignKey(to=UserGroupNameTbl, on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'djangoAPI_UserTbl'
@@ -33,8 +29,7 @@ class UserTbl(models.Model):
 
 class SuperDesignProjectTbl(models.Model):
     '''Super set of design projects'''
-    # TODO Consider dropping 'super' projectset, projectgroup
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=200)
 
     class Meta:
         db_table = 'djangoAPI_SuperDesignProjectTbl'
@@ -44,17 +39,17 @@ class DesignProjectTbl(models.Model):
     '''Table of Design Projects
     If a design project requires construction
     it will be linked to this table'''
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=200)
     super_design_project = models.ForeignKey(
         SuperDesignProjectTbl, models.PROTECT, blank=True, null=True)
     phase_number = models.IntegerField(blank=True, null=True)
-    op_bus_unit = models.ForeignKey(OperationalBusinessUnit, models.PROTECT)
+    op_bus_unit = models.ForeignKey(BusinessUnit, models.PROTECT)
     contract_number = models.CharField(max_length=50, blank=True, null=True)
     planned_date_range = fields.DateRangeField(blank=True, null=True)
     budget = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
-    # TODO limited to 999B
+    # limited to 999B
     scope_description = models.TextField(blank=True, null=True)
-    # TODO not in sqldbm but there needs to be a project scope description
+    designer_organization_name = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'djangoAPI_DesignProjectTbl'
@@ -77,7 +72,7 @@ class DesignStageTbl(models.Model):
     planned_date_range = fields.DateRangeField()
 
     class Meta:
-        db_table = 'djangoAPI_DesignPhaseTbl'
+        db_table = 'djangoAPI_DesignStageTbl'
 
 
 class ConstructionPhaseTbl(models.Model):
@@ -85,12 +80,12 @@ class ConstructionPhaseTbl(models.Model):
     name = models.CharField(max_length=200)
     design_project = models.ForeignKey(DesignProjectTbl, models.SET_NULL, blank=True, null=True)
     phase_number = models.BigIntegerField(blank=True, null=True)
-    op_bus_unit = models.ForeignKey(OperationalBusinessUnit, models.PROTECT)
+    op_bus_unit = models.ForeignKey(BusinessUnit, models.PROTECT)
     contract_number = models.CharField(max_length=50, blank=True, null=True)
     budget = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
     planned_date_range = fields.DateRangeField(blank=True, null=True)
     scope_description = models.TextField()
-    # TODO same concerns as designprojecttbl
+    designer_organization_name = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'djangoAPI_ConstructionPhaseTbl'
@@ -171,7 +166,7 @@ class ClonedAssetAndRoleInRegistryTbl(models.Model):
     role_name = models.CharField(verbose_name="Entity Name", max_length=200)
     parent_role_number = models.CharField(
         verbose_name="Parent Number", max_length=25, null=True, blank=True)
-    # TODO bad practise to allow nulls for strings (default is empty string)
+    # TODO bad practice to allow nulls for strings (default is empty string)
     role_location = models.CharField(
         verbose_name="Location", max_length=200, null=True, blank=True)
     role_criticality = models.BigIntegerField(
@@ -223,15 +218,17 @@ class UserAccessLinkTbl(models.Model):
 
 
 class AccessProfileDefinitionTbl(models.Model):
-    profile = models.ForeignKey(AccessProfileTbl, models.CASCADE)
     db_table = models.ForeignKey(DBTbls, models.PROTECT)
-    view = models.BooleanField()
-    update = models.BooleanField()
-    add = models.BooleanField()
-    delete = models.BooleanField()
+    role = models.ForeignKey(to=AllHumanRoleTypeTbl, on_delete=models.PROTECT)
+    permission_to_view = models.BooleanField()
+    permission_to_update = models.BooleanField()
+
 
     class Meta:
         db_table = 'djangoAPI_AccessProfileDefinitionTbl'
+        constraints = [
+            models.UniqueConstraint(fields=['db_table', 'role'], name='one_permission_for_each_table_and_role_pair')
+        ]
 
 
 class UserProjectLinkTbl(models.Model):
@@ -256,7 +253,7 @@ class ProjectAssetRoleRecordTbl(models.Model):
     role_priority = models.ForeignKey(RolePriority, models.PROTECT)
     project_tbl = models.ForeignKey(DesignProjectTbl, on_delete=models.PROTECT, null=True)
     approved = models.BooleanField(default=False)
-    # to impliment ltree, since the type isnt correctly this table will be unmanaged
+    # to implement ltree, since the type isn't correctly this table will be unmanaged
     ltree_path = models.TextField(blank=True, null=True)
 
     class Meta:
