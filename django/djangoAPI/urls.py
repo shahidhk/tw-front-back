@@ -6,4 +6,5 @@ urlpatterns = [
     path('db-fill/', views.db_fill),
     path('db-update/', views.update_asset_role),
     path('test/', views.test),
+    path('init-all', views.init_all),
 ]

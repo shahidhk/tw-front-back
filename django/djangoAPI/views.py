@@ -1,19 +1,26 @@
 import csv
+import os
 import json
 import random
+import requests
 from datetime import date, timedelta
+
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 from django.db import transaction, connection
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from djangoAPI.models import *
+from djangoAPI.utils import num_to_alpha
 
 
-def init_db(request):
+def init_db2():
     '''
     Initilize the DB with extensions, views and ltree specific triggers
     '''
@@ -24,17 +31,21 @@ def init_db(request):
             print(type(str(e)))
             print(str(e))
         try:
-            cursor.execute('''ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" DROP COLUMN ltree_path;
-        ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl"
-            ADD COLUMN ltree_path ltree;
-        CREATE INDEX parent_id_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" USING GIST (ltree_path);
-        CREATE INDEX parent_path_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" (parent_id_id);''')
+            cursor.execute('''
+            ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" DROP COLUMN ltree_path;
+            ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" ADD COLUMN ltree_path ltree;
+            CREATE INDEX parent_id_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" USING GIST (ltree_path);
+            CREATE INDEX parent_path_idx ON public."djangoAPI_ProjectAssetRoleRecordTbl" (parent_id_id);
+            ALTER TABLE public."djangoAPI_AvantisAdditions" DROP COLUMN full_path;
+            ALTER TABLE public."djangoAPI_AvantisAdditions" ADD COLUMN full_path ltree;
+            CREATE INDEX aa_parent_id_idx ON public."djangoAPI_AvantisAdditions" USING GIST (full_path);
+            CREATE INDEX aa_parent_path_idx ON public."djangoAPI_AvantisAdditions" (parent_mtoi_id);
+            ''')
         except Exception as e:
             print(type(str(e)))
             print(str(e))
         try:
-            cursor.execute(
-                '''
+            cursor.execute('''
         CREATE OR REPLACE FUNCTION update_parent_path() RETURNS TRIGGER AS $$
             DECLARE
                 path ltree;
@@ -54,7 +65,6 @@ def init_db(request):
                 RETURN NEW;
             END;
         $$ LANGUAGE plpgsql;
-        
         ''')
         except Exception as e:
             print(type(str(e)))
@@ -69,121 +79,406 @@ def init_db(request):
         except Exception as e:
             print(type(str(e)))
             print(str(e))
-        cursor.execute(
-            '''
-        create or replace view reconciliation_view as
-        select 
-        r.id, r.updatable_role_number as role_number,
-        r.role_name as role_name,
-        r.parent_id_id as parent,
-        r.project_tbl_id as project_id,
-        r.entity_exists as role_exists,
-        r.missing_from_registry as role_missing_from_registry,
-        r.ltree_path as full_path,
-        a.id as asset_id,
-        a.asset_serial_number as asset_serial_number,
-        a.entity_exists as asset_exists,
-        a.missing_from_registry as asset_missing_from_registry
-        from (
-        public."djangoAPI_ProjectAssetRoleRecordTbl" as br
-        right join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as pr
-        on (br.id=pr.projectassetrolerecordtbl_ptr_id)) as r
-        left join (
-        public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa 
-        left join public."djangoAPI_ProjectAssetRecordTbl" as ba 
-        on (pa.projectassetrecordtbl_ptr_id=ba.id)) as a 
-        on (r.id=a.initial_project_asset_role_id_id);
+        try:
+            cursor.execute('''
+        CREATE OR REPLACE FUNCTION update_avantis_additions() RETURNS TRIGGER AS $$
+            DECLARE
+                ltree_path ltree;
+                old_path ltree;
+                parent_mtoi int;
+                role_number_pk int;
+            BEGIN
+                select mtoi from public."djangoAPI_ClonedAssetAndRoleInRegistryTbl" where role_number = new.parent_role_number into parent_mtoi;
+                select id from public."djangoAPI_MasterRoleNumbersTbl" where role_number = new.role_number into role_number_pk;
+                IF NEW.parent_role_number = '' then
+                    raise notice 'parent role number is empty';
+                    ltree_path = ((new.mtoi::text)::ltree);
+                else
+                    raise notice 'parent role number is NOT empty';
+                    SELECT full_path FROM public."djangoAPI_AvantisAdditions" WHERE clonedassetandroleinregistrytbl_ptr_id = parent_mtoi INTO ltree_path;
+                    IF ltree_path IS NULL THEN
+                        RAISE EXCEPTION 'Invalid parent_id %. Entities must be added parents first', NEW.parent_role_number;
+                    END IF;
+                    ltree_path = ltree_path || new.mtoi::text;
+                    raise notice 'ltree_path is %', ltree_path;
+                end if;
+                if TG_OP = 'INSERT' then
+                    insert into public."djangoAPI_AvantisAdditions"(clonedassetandroleinregistrytbl_ptr_id, full_path, parent_mtoi_id, linked_role_number_id) values(new.mtoi, ltree_path, parent_mtoi, role_number_pk);
+                elseif TG_OP = 'UPDATE' then 
+                    raise notice 'updating old values';
+                    select full_path from public."djangoAPI_AvantisAdditions" where clonedassetandroleinregistrytbl_ptr_id = new.mtoi into old_path;
+                    -- update the data for the coorsponding entry
+                    update public."djangoAPI_AvantisAdditions" 
+                        set full_path = ltree_path, parent_mtoi_id = parent_mtoi where clonedassetandroleinregistrytbl_ptr_id = new.mtoi;
+                    -- update path for all children
+                    UPDATE public."djangoAPI_AvantisAdditions"
+                        SET full_path = ltree_path || subpath(full_path,nlevel(old_path)) WHERE full_path <@ old_path and full_path != old_path;
+                    update public."djangoAPI_MasterRoleNumbersTbl"
+                        set role_number = new.role_number where id = role_number_pk;
+                end if;
+                RETURN NEW;
+            END;
+        $$ LANGUAGE plpgsql;
         ''')
-        cursor.execute(
-            '''
-        create or replace view unassigned_assets as
-        select ba.id as id, ba.asset_serial_number as asset_serial_number
-        from public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
-        left join public."djangoAPI_ProjectAssetRecordTbl" as ba
-        on pa.projectassetrecordtbl_ptr_id=ba.id
-        where pa.initial_project_asset_role_id_id is null and pa.designer_planned_action_type_tbl_id<>2;
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+        try:
+            cursor.execute('''
+        CREATE TRIGGER avantis_additions_tgr
+            BEFORE INSERT OR UPDATE ON public."djangoAPI_ClonedAssetAndRoleInRegistryTbl"
+            FOR EACH ROW EXECUTE PROCEDURE update_avantis_additions();
         ''')
-        return HttpResponse("Finished DB init")
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+
+        cursor.execute('''
+        create or replace
+        view reconciliation_view_temp as
+        select
+            r.id,
+            r.role_number as role_number,
+            r.role_name as role_name,
+            r.parent_id_id as parent,
+            r.project_tbl_id as project_id,
+            r.entity_exists as role_exists,
+            r.missing_from_registry as role_missing_from_registry,
+            r.ltree_path as full_path,
+            r.parent_changed as parent_changed,
+            a.id as asset_id,
+            a.asset_serial_number as asset_serial_number,
+            coalesce(a.entity_exists, false) as asset_exists,
+            coalesce(a.missing_from_registry, false) as asset_missing_from_registry,
+            coalesce(a.role_changed, false) as role_changed,
+            r.approved as approved
+        from
+            ((public."djangoAPI_ProjectAssetRoleRecordTbl" as br1
+        left join (select id as idrn, role_number from public."djangoAPI_MasterRoleNumbersTbl") as rn on
+        	br1.updatable_role_number_id = rn.idrn) as br
+        right join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as pr on
+            (br.id = pr.projectassetrolerecordtbl_ptr_id)) as r
+        left join (public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
+            (pa.projectassetrecordtbl_ptr_id = ba.id)) as a on
+            (r.id = a.initial_project_asset_role_id_id);
+        ''')
+        cursor.execute('''
+        create or replace
+        view reconciliation_view as
+        select
+            r.id,
+            r.role_number,
+            r.role_name,
+            r.parent,
+            r.project_id,
+            r.role_exists,
+            r.role_missing_from_registry,
+            subpath(r.full_path, 1) as full_path,
+            r.parent_changed,
+            r.asset_id,
+            r.asset_serial_number,
+            r.asset_exists,
+            r.asset_missing_from_registry,
+            r.role_changed,
+            r.approved
+        from
+            reconciliation_view_temp as r
+        where
+            r.full_path <@ '1'::ltree and r.role_exists = true;
+        ''')
+        cursor.execute('''
+        create or replace
+        view garbage_can_reconciliation_view as
+        select
+            r.id,
+            r.role_number,
+            r.role_name,
+            r.parent,
+            r.project_id,
+            r.role_exists,
+            r.role_missing_from_registry,
+            subpath(r.full_path, 1) as full_path,
+            r.parent_changed,
+            r.asset_id,
+            r.asset_serial_number,
+            r.asset_exists,
+            r.asset_missing_from_registry,
+            r.role_changed,
+            r.approved
+        from
+            reconciliation_view_temp as r
+        where
+            r.full_path <@ '1'::ltree and r.role_exists = false;
+        ''')
+        cursor.execute('''
+        create or replace
+        view orphan_view as
+        select
+            r.id,
+            r.role_number,
+            r.role_name,
+            r.parent,
+            r.project_id,
+            r.role_exists,
+            r.role_missing_from_registry,
+            subpath(r.full_path, 1) as full_path,
+            r.parent_changed,
+            r.asset_id,
+            r.asset_serial_number,
+            r.asset_exists,
+            r.asset_missing_from_registry,
+            r.role_changed
+        from
+            reconciliation_view_temp as r
+        where
+            r.full_path <@ '2'::ltree and r.role_exists = true;
+        ''')
+        cursor.execute('''
+        create or replace
+        view unassigned_assets as
+        select
+            ba.id as id,
+            ba.asset_serial_number as asset_serial_number,
+            pa.missing_from_registry as asset_missing_from_registry,
+            ba.project_tbl_id as project_id
+        from
+            public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
+            pa.projectassetrecordtbl_ptr_id = ba.id
+        where
+            pa.initial_project_asset_role_id_id is null
+            and pa.designer_planned_action_type_tbl_id <> 'b'
+            and pa.entity_exists = true;
+        ''')
+        cursor.execute('''
+        create or replace
+        view garbage_can_unassigned_assets as
+        select
+            ba.id as id,
+            ba.asset_serial_number as asset_serial_number,
+            pa.missing_from_registry as asset_missing_from_registry,
+            ba.project_tbl_id as project_id
+        from
+            public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
+        left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
+            pa.projectassetrecordtbl_ptr_id = ba.id
+        where
+            pa.initial_project_asset_role_id_id is null
+            and pa.designer_planned_action_type_tbl_id <> 'b'
+            and pa.entity_exists = false;
+        ''')
+        cursor.execute('''
+        create or replace
+        view reservation_view as
+        select
+            mtoi as id,
+            role_number,
+            role_name,
+            parent_mtoi_id as parent,
+            project_tbl_id as project_id,
+            full_path,
+            approved,
+            (not project_tbl_id is null) as reserved,
+            (case
+                when (approved) and (not project_tbl_id is null) then 'Approved'
+                -- true + true
+                when (not approved) and (not project_tbl_id is null) then 'Pending'
+                -- false + true
+            end ) as approval_status,
+            (role_exists and asset_exists and (not parent_changed) and (not role_changed)) as reservable
+        from
+            ((public."djangoAPI_ClonedAssetAndRoleInRegistryTbl" as c
+        left join public."djangoAPI_AvantisAdditions" as a on
+            c.mtoi = a.clonedassetandroleinregistrytbl_ptr_id) as ca
+        left join ((select projectassetrolerecordtbl_ptr_id, entity_exists as role_exists, parent_changed, cloned_role_registry_tbl_id from public."djangoAPI_PreDesignReconciledRoleRecordTbl") as pa
+        left join (select id, approved, project_tbl_id from public."djangoAPI_ProjectAssetRoleRecordTbl") as ra on
+            pa.projectassetrolerecordtbl_ptr_id = ra.id) as pr on
+            ca.mtoi = pr.cloned_role_registry_tbl_id) as d
+        left join (select projectassetrecordtbl_ptr_id, entity_exists as asset_exists, role_changed, cloned_role_registry_tbl_id from public."djangoAPI_PreDesignReconciledAssetRecordTbl") as e on
+            d.mtoi = e.cloned_role_registry_tbl_id;
+        ''')
+        try:
+            cursor.execute('''
+            CREATE OR REPLACE FUNCTION update_parent_changed() RETURNS TRIGGER AS $$
+            -- only run on updates, since insert implies that the entity did not exist in avantis to begin with, which means this does not apply (false)
+                DECLARE
+                new_parent_mtoi int;
+                orig_parent_mtoi int;
+                status bool;
+                begin
+            --	    only run trigger if the entry is predesign
+                    if exists (select 1 from public."djangoAPI_PreDesignReconciledRoleRecordTbl" as rr1 where rr1.projectassetrolerecordtbl_ptr_id = new.id) then
+                        status = false;
+                        IF OLD.parent_id_id != NEW.parent_id_id then
+                            select
+                                cloned_role_registry_tbl_id
+                            from
+                                public."djangoAPI_PreDesignReconciledRoleRecordTbl"
+                            where
+                                projectassetrolerecordtbl_ptr_id  = new.parent_id_id
+                            into
+                                new_parent_mtoi;
+                            
+                            select
+                                mtoi
+                            from
+                                public."djangoAPI_ClonedAssetAndRoleInRegistryTbl"
+                            where
+                                role_number = (
+                                select
+                                    parent_role_number
+                                from
+                                    public."djangoAPI_ClonedAssetAndRoleInRegistryTbl"
+                                where
+                                    mtoi = (
+                                    select
+                                        cloned_role_registry_tbl_id
+                                    from
+                                        public."djangoAPI_PreDesignReconciledRoleRecordTbl"
+                                    where
+                                        projectassetrolerecordtbl_ptr_id = new.id))
+                            into
+                                orig_parent_mtoi;
+            --				raise exception 'new mtoi %, old mtoi %', new_parent_mtoi, orig_parent_mtoi;
+                            if new_parent_mtoi <> orig_parent_mtoi then
+                                status = true;
+                            end if;
+                        END IF;
+                        update public."djangoAPI_PreDesignReconciledRoleRecordTbl" as rr set parent_changed = status where rr.projectassetrolerecordtbl_ptr_id = new.id;
+                    end if;
+                    RETURN NEW;
+                END;
+            $$ LANGUAGE plpgsql;
+        ''')
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+        try:
+            cursor.execute(
+                '''
+        CREATE TRIGGER parent_changed_tgr
+            BEFORE insert or UPDATE ON public."djangoAPI_ProjectAssetRoleRecordTbl"
+            FOR EACH ROW EXECUTE PROCEDURE update_parent_changed();
+        ''')
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+        try:
+            cursor.execute('''
+        CREATE OR REPLACE FUNCTION update_role_changed() RETURNS TRIGGER AS $$
+        -- only run on updates, since insert implies that the entity did not exist in avantis to begin with, which means this does not apply (false)
+            DECLARE
+            new_role_mtoi int;
+            orig_role_mtoi int;
+            status bool;
+            begin
+        --	    only run trigger if the entry is predesign
+                status = false;
+			--	raise exception 'new role %, old role %', NEW.initial_project_asset_role_id_id, OLD.initial_project_asset_role_id_id;
+                IF OLD.initial_project_asset_role_id_id != NEW.initial_project_asset_role_id_id or OLD.initial_project_asset_role_id_id is null or NEW.initial_project_asset_role_id_id is null then
+                    new_role_mtoi = new.cloned_role_registry_tbl_id;
+                    select cloned_role_registry_tbl_id from public."djangoAPI_PreDesignReconciledRoleRecordTbl"  as rr where rr.projectassetrolerecordtbl_ptr_id = new.initial_project_asset_role_id_id into orig_role_mtoi;
+           --     	raise exception 'new role %, old role %', new_role_mtoi, orig_role_mtoi;
+                if new_role_mtoi <> orig_role_mtoi then
+                        status = true;
+                    end if;
+                END IF;
+                new.role_changed = status;
+                RETURN NEW;
+            END;
+        $$ LANGUAGE plpgsql;
+        ''')
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
+        try:
+            cursor.execute('''
+            create trigger role_changed_tgr
+            before insert or update on public."djangoAPI_PreDesignReconciledAssetRecordTbl"
+            for each row execute procedure update_role_changed();
+        ''')
+        except Exception as e:
+            print(type(str(e)))
+            print(str(e))
 
 
-def db_fill(request):
+def init_db(request):
+    init_db2()
+    return HttpResponse("Finished DB init")
+
+
+def db_fill2():
     '''
     Fill the DB with test data
     Will eventually switch to initialization with constants for list tables
     '''
-    for i in range(2):
-        i = i + 1
-        OperationalBusinessUnit.objects.create(
-            pk=i,
-            name='OpBusUnit Number ' + str(i),
-        )
-    for i in range(10):
-        Sites.objects.create(
+    InitEnums()
+    InitValueList()
+    for i in range(4):
+        DesignProjectTbl.objects.create(
             pk=i+1,
-            site_id='ST' + str(i),
-            site_name='Site ' + str(i),
-            op_bus_unit_id=i/5+1,
+            planned_date_range=(date.today(), date.today() + timedelta(days=40)),
+            op_bus_unit_id=['a', 'b', 'c', 'd'][i],
         )
-    for i in range(5):
-        DesignStageTypeTbl.objects.create(
-            pk=i+1,
-            name='Design Stage Type ' + str(i+1),
-        )
-    lst = ['move', 'dispose', 'nothing']
-    j = 1
-    for i in lst:
-        DesignerPlannedActionTypeTbl.objects.create(
-            pk=j,
-            name=i,
-        )
-        j = j + 1
-    for i in range(5):
-        RoleCriticality.objects.create(
+    lst = [['Super', 'User'], ['Tony', 'Huang'], ['Peter', 'Lewis'], ['Stephen', 'Almeida']]
+    for i, value in enumerate(lst):
+        UserTbl.objects.create(
             id=i+1,
+            first_name=value[0],
+            last_name=value[1],
+            username=value[0]+'.'+value[1],
+            organization_name='TW',
+            email=value[0]+'.'+value[1]+'@admin.ca',
+            user_type_id=1,
         )
-    for i in range(5):
-        RolePriority.objects.create(
-            id=i+1,
-        )
-    lst = ['Tony Huang', 'Peter Lewis', 'Stephen Almeida']
-    j = 0
-    for i in lst:
-        ProjectTbl.objects.create(
-            pk=j+1,
-            project_manager=i,
-            date_range=(date.today(), date.today() + timedelta(days=40)),
-            project_site_id=random.randint(1, 2),
-        )
-        j = j + 1
+    for i in range(3):
+        for j in range(3):
+            DesignProjectHumanRoleTbl.objects.create(
+                user_id_id=j+1,
+                design_project_id=i+1,
+                human_role_type_id=num_to_alpha(j+1),
+            )
     today = date.today()
     for i in range(2):
         today = today + timedelta(days=5)
         for j in range(3):
-            ProjectDesignPhaseTbl.objects.create(
+            DesignStageTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=5), today),
-                project_design_stage_type_id=random.randint(1, 5),
-                project_tbl_id=j + 1,
+                design_stage_type_id=[
+                    'a', 'b', 'c', 'd', 'e'][j],
+                design_project_id=j+1,
             )
     today = date.today() + timedelta(days=10)
     for i in range(2):
         today = today + timedelta(days=15)
         for j in range(3):
-            ProjectConstructionPhaseTbl.objects.create(
+            ConstructionPhaseTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=15), today),
                 phase_number=i,
-                project_tbl_id=j + 1,
+                design_project_id=j + 1,
+                scope_description='a project construction phase',
+                op_bus_unit_id=['a', 'b', 'c'][i],
+            )
+    for i in range(3):
+        for j in range(3):
+            ConstructionPhaseHumanRoleTbl.objects.create(
+                user_id_id=j+1,
+                construction_phase_id=i+1,
+                human_role_type_id=num_to_alpha(j+1),
             )
     today = date.today() + timedelta(days=10)
     for i in range(2):
         today = today + timedelta(days=5)
         for j in range(3):
-            ProjectConstructionStageTbl.objects.create(
+            ConstructionStageTbl.objects.create(
                 pk=i*3+j,
                 planned_date_range=(today-timedelta(days=5), today),
-                project_construction_phase_id=i+1,
-                project_construction_stage_type_id=random.randint(1, 5),
+                construction_phase_id=i+1,
+                construction_stage_type_id=[
+                    'a', 'b', 'c', 'd', 'e'][j],
             )
     asset_line = {}
     with open('avantis.csv', mode='r') as csv_file:
@@ -192,38 +487,79 @@ def db_fill(request):
         for row in csv_reader:
             line_count = line_count + 1
             asset_line[row[0]] = [line_count, row]
-    with transaction.atomic():
-        # TODO When creating location tags, remove duplicates, get dictionary of locations
-        for asset_row in asset_line.items():
-            spatial_site = ImportedSpatialSiteTbl()
-            spatial_site.pk = asset_row[1][0]
-            spatial_site.name = asset_row[1][1][7]
-            try:
-                spatial_site.parentSiteId_id = asset_line[asset_row[1][1][3]][0]
-            except Exception:
-                spatial_site.parentSiteId_id = None
-            spatial_site.save()
+
+    # create a location for states
+    spatial_state = ImportedSpatialSiteTbl.objects.create(
+        name='Virtual Spatial Location for States',
+    )
+    # if pk is specified the autogeneration will not see the entry and will generate conflicting primary keys
+    spatial_state.pk = 1
+    spatial_state.save()
+
+    # create spatial sites
+    locations = {}
     for asset_row in asset_line.items():
-        avantis_asset = ClonedAssetAndRoleInRegistryTbl()
-        avantis_asset.mtoi = asset_row[1][0]
-        avantis_asset.role_number = asset_row[0]
-        avantis_asset.role_name = asset_row[1][1][1]
-        avantis_asset.parent_role_number = asset_row[1][1][3]
-        avantis_asset.role_location = asset_row[1][1][7]
-        avantis_asset.role_criticality = asset_row[1][1][6]
-        avantis_asset.role_priority = 5  # did not exist in my avantis import
-        avantis_asset.role_equipment_type = 'meh'
-        avantis_asset.role_classification = 'does this even matter right now?'
-        avantis_asset.asset_serial_number = 'dont have this value either'
-        avantis_asset.suspension_id_id = 1
-        avantis_asset.already_reserved_id = 1
-        avantis_asset.intent_to_reserve_id = 1
-        avantis_asset.role_spatial_site_id_id = asset_row[1][0]
-        avantis_asset.save()
+        if not locations.get(asset_row[1][1][7]):
+            spatial_site = ImportedSpatialSiteTbl.objects.create(
+                name=asset_row[1][1][7]
+            )
+            locations[asset_row[1][1][7]] = [spatial_site.pk, asset_row[1][1][3], spatial_site]
+    for location in locations.values():
+        temp = asset_line.get(location[1])
+        if temp:
+            temp = locations.get(temp[1][7])
+            spatial_site = location[2]
+            if temp:
+                spatial_site.parent_site_id_id = temp[0]
+                spatial_site.save()
+
+    # create our state roles
+    states = ['Top Level Roles', 'Orphaned Roles']
+    for i in range(10):
+        name = MasterRoleNumbersTbl.objects.create(
+            role_number='State ' + str(i+1),
+            project_tbl_id=1
+        )
+        role = ProjectAssetRoleRecordTbl.objects.create(
+            updatable_role_number=name,
+            role_name=states[i] if i < len(states) else 'Reserved for Future State',
+            parent_id_id=None,
+            role_criticality_id='a',
+            role_priority_id='a',
+            role_spatial_site_id_id='1',
+            project_tbl_id=1,
+        )
+        role.pk = i + 1
+        role.save()
+
+    for asset_row in asset_line.items():
+        name = MasterRoleNumbersTbl.objects.create(
+            role_number=asset_row[0]
+        )
+
+        avantis_asset = ClonedAssetAndRoleInRegistryTbl.objects.create(
+            mtoi=asset_row[1][0],
+            role_number=asset_row[0],
+            role_name=asset_row[1][1][1],
+            parent_role_number=asset_row[1][1][3],
+            role_location=asset_row[1][1][7],
+            role_criticality=asset_row[1][1][6],
+            role_priority=5,  # did not exist in my avantis import
+            role_equipment_type='meh',
+            role_classification='does this even matter right now?',
+            asset_serial_number='dont have this value either',
+            suspension_id=1,
+            already_reserved_id=1,
+            intent_to_reserve_id=1,
+        )
+
+
+def db_fill(request):
+    db_fill2()
     return HttpResponse("Finished DB Fill")
 
 
-def update_asset_role(request):
+def update_asset_role2():
     cloned_assets = ClonedAssetAndRoleInRegistryTbl.objects.all()
     parent_mtoi = {}  # dictionary for quickly finding entry by role number
     for entry in cloned_assets:  # populate dict, keys = role number
@@ -231,53 +567,114 @@ def update_asset_role(request):
             pass
         else:
             parent_mtoi[entry.role_number] = entry
-
+    role_numbers = MasterRoleNumbersTbl.objects.in_bulk(field_name='role_number')
     base_role_dict = {}  # dictionary for tracking roles and its pk
     with transaction.atomic():
         for entry in cloned_assets:
-            existing_role = PreDesignReconciledRoleRecordTbl()
-            existing_role.updatable_role_number = entry.role_number
-            existing_role.role_name = entry.role_name
-            existing_role.parent_id_id = None  # fill this in on the second go
-            existing_role.role_criticality_id = entry.role_criticality
-            existing_role.role_priority_id = entry.role_priority
-            existing_role.role_spatial_site_id = entry.role_spatial_site_id
-            existing_role.cloned_role_registry_tbl_id = parent_mtoi[entry.role_number].mtoi
-            existing_role.entity_exists = True
-            existing_role.missing_from_registry = False
-            existing_role.designer_planned_action_type_tbl_id = 3  # do nothing
-            existing_role.save()
-            base_role_dict[existing_role.updatable_role_number] = existing_role.pk
+            existing_role = PreDesignReconciledRoleRecordTbl.objects.create(
+                updatable_role_number=role_numbers[entry.role_number],
+                role_name=entry.role_name,
+                parent_id_id=None,  # fill this in on the second go
+                role_criticality_id=num_to_alpha(entry.role_criticality),
+                role_priority_id=num_to_alpha(entry.role_priority),
+                role_spatial_site_id_id=1,  # TODO this is obviously a placeholder
+                cloned_role_registry_tbl_id=parent_mtoi[entry.role_number].mtoi,
+                entity_exists=True,
+                missing_from_registry=False,
+                designer_planned_action_type_tbl_id=num_to_alpha(3),  # do nothing
+                parent_changed=False,
+            )
+            base_role_dict[entry.role_number] = existing_role.pk
     base_roles = ProjectAssetRoleRecordTbl.objects.all()
     # with transaction.atomic():
     for role in base_roles:
-        try:
-            role.parent_id_id = base_role_dict[parent_mtoi[role.updatable_role_number].parent_role_number]
+        try:  # update the parent of roles unless its top level in which case it is suppose to be child of 1
+            role.parent_id_id = base_role_dict.get(
+                parent_mtoi[role.updatable_role_number.role_number].parent_role_number, 1)
             role.save()
         except Exception as e:
             print('cant save parent for ' +
-                  role.updatable_role_number + str(type(e)) + str(e))
+                  role.updatable_role_number.role_number + str(type(e)) + str(e))
         else:
-            print('saved parent for ' + role.updatable_role_number)
+            print('saved parent for ' + role.updatable_role_number.role_number)
     # populate predesign asset records
     with transaction.atomic():
         for entry in cloned_assets:
             existing_asset = PreDesignReconciledAssetRecordTbl()
-            existing_asset.asset_serial_number = 'disguised asset serial number'
+            existing_asset.asset_serial_number = 'ASN ' + entry.role_number
             existing_asset.cloned_role_registry_tbl_id = parent_mtoi[entry.role_number].mtoi
             existing_asset.initial_project_asset_role_id_id = base_role_dict[entry.role_number]
             existing_asset.entity_exists = True
             existing_asset.missing_from_registry = False
-            existing_asset.designer_planned_action_type_tbl_id = 3  # do nothing
+            existing_asset.designer_planned_action_type_tbl_id = num_to_alpha(3)  # do nothing
+            existing_asset.role_changed = False
             existing_asset.save()
+
+
+def update_asset_role(request):
+    update_asset_role2()
     return HttpResponse('Finished Updating Asset & Role')
 
 
 def test(request):
-    base_assets = PreDesignReconciledAssetRecordTbl.objects.all()
-    with transaction.atomic():
-        for asset in base_assets:
-            asset.asset_serial_number = 'role # ' + \
-                str(asset.initial_project_asset_role_id_id) + \
-                'asset serial number'
-            asset.save()
+    message = Mail(
+        from_email='amber.brasher@toronto.ca',
+        to_emails='jon.ma@toronto.ca',
+        subject='Meeting with Annette',
+        html_content='<strong>Annette is holding me hostage in the Taylor-Massey Creek meetin room</strong>')
+    try:
+        sg = SendGridAPIClient(
+            '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')
+        response = sg.send(message)
+        print(response.status_code)
+        print(response.body)
+        return HttpResponse(response.headers)
+    except Exception as e:
+        return HttpResponse('error ' + str(e))
+
+
+def init_all(request):
+    User.objects.create_superuser('jma', 'jma@toronto.ca', 'tw-admin')
+    init_db2()
+    db_fill2()
+    update_asset_role2()
+    subdomain = os.getenv('BRANCH', '')
+    tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets', 'garbage_can_unassigned_assets', 'garbage_can_reconciliation_view']
+    for table in tables:
+        response = requests.post(
+            'https://hasura.' + subdomain + '.duckdns.org/v1/query',
+            json={
+                "type": "track_table",
+                "args": {
+                    "table": {
+                        "schema": "public",
+                        "name": table
+                    }
+                }
+            },
+            headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
+        )
+        if response.json()['message'] != 'success':
+            print('Track ' + table + ' failed!')
+            print(response.json())
+
+    response = requests.post(
+        'https://hasura.' + subdomain + '.duckdns.org/v1/query',
+        json={
+            "type": "add_remote_schema",
+            "args": {
+                "name": "django",
+                "definition": {
+                    "url": "https://django." + subdomain + ".duckdns.org/graphql/",
+                    # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
+                    "forward_client_headers": True,
+                    "timeout_seconds": 60
+                },
+            },
+        },
+        headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
+    )
+    if response.json()['message'] != 'success':
+        print('Add Remote Schema failed!')
+        print(response.json())
+    return HttpResponse('Finished All Init Actions')

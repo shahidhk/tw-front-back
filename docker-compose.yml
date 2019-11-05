@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 services:
   django:
@@ -7,6 +7,7 @@ services:
     command: gunicorn SAIS_API.wsgi:application --bind 0.0.0.0:8000 -t 300 --workers 4 --log-level=debug
     volumes:
       - ./django/:/usr/src/django/
+      - static_volume:/usr/src/django/static
     expose:
       - 8000
     environment:
@@ -19,19 +20,20 @@ services:
       - SQL_HOST=db
       - SQL_PORT=5432
       - DATABASE=postgres
+      - BRANCH=${DUCKDNS:?No DUCKDNS set}
     depends_on:
       - db
 
   db:
-    image: postgres:11.1-alpine
+    image: postgres:11-alpine
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
       POSTGRES_PASSWORD: NGNvarvpZIpa8R88
-  
+
   pgadmin:
-    restart: always  
+    restart: always
     image: dpage/pgadmin4:latest
     links:
       - db
@@ -41,7 +43,7 @@ services:
       PGADMIN_LISTEN_PORT: 5555
 
   graphql-engine:
-    image: hasura/graphql-engine:latest
+    image: hasura/graphql-engine:v1.0.0-beta.8
     depends_on:
       - db
     restart: always
@@ -49,32 +51,42 @@ services:
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:NGNvarvpZIpa8R88@db:5432/postgres
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
-      ## uncomment next line to set an admin secret
       HASURA_GRAPHQL_ADMIN_SECRET: eDfGfj041tHBYkX9
-  # web-app is a build slave
 
+  # web-app is a build slave
   web-app:
     build: ./webapp
+    environment:
+      - "VUE_APP_URL=wss://hasura.${DUCKDNS:?No DUCKDNS set}.duckdns.org/v1/graphql"
     volumes:
       - webapp_build:/app/tw-webapp
-      
-  apollo:
-    build: ./apollo
-    restart: always
-  
+
   nginx:
-    image: nginx:stable-alpine
+    build: ./nginx
     restart: always
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - URL=${DUCKDNS:?No DUCKDNS set}.duckdns.org
+      - SUBDOMAINS=wildcard
+      - VALIDATION=duckdns
+      - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
+      - STAGING=false
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - webapp_build:/app
+      - webapp_build:/webapp
+      - static_volume:/usr/src/django/static
+      - /home/appdata/letsencrypt:/config
     ports:
       - 80:80
+      - 443:443
     depends_on:
       - web-app
-      - apollo
       - graphql-engine
 
 volumes:
   webapp_build:
+  static_volume:
   postgres_data:

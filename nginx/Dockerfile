@@ -1,5 +1,4 @@
-# Not Used
-FROM nginx:stable-alpine
-
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d
+FROM linuxserver/letsencrypt
+# COPY ./entrypoint.sh /app/entrypoint.sh
+# COPY ./nginx.conf.template /app/nginx.conf.template
+# ENTRYPOINT ["sh", "/app/entrypoint.sh"]

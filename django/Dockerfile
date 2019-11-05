@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.7-alpine
+FROM python:3.8-alpine
 
 # set environment varibles
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -10,18 +10,12 @@ WORKDIR /usr/src/django
 
 # install psycopg2
 RUN apk update \
-    && apk add --virtual build-deps gcc python3-dev musl-dev \
-    && apk add postgresql-dev \
-    && pip install psycopg2 \
-    && apk add linux-headers \
-    && pip install psutil \
-    && apk del build-deps
+    && apk add postgresql-dev gcc python3-dev musl-dev
 
 # install dependencies
 RUN pip install --upgrade pip
-RUN pip install pipenv
-COPY ./Pipfile /usr/src/django/Pipfile
-RUN pipenv install --skip-lock --system --dev
+COPY ./requirements.txt /usr/src/django/requirements.txt
+RUN pip install -r requirements.txt
 
 # copy project
 COPY . /usr/src/django/
