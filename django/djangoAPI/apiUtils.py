@@ -113,6 +113,7 @@ def MissingRoleUtil(role_data, auth):
                 role.designer_planned_action_type_tbl_id = 'c'
                 role.parent_changed = False
                 role.project_tbl_id = auth['group']
+                role.approved = True
                 role.save()
                 # pass the role pk back to the client?
         except Exception as e:
