@@ -400,6 +400,10 @@ def RoleParentUtil(data, auth):
             return {'result': 1,
                     'errors': 'E20: Parent role cannot be found please refresh your View: ' + str(data['parent_id'])
                     }
+        if str(role.pk) in parent.ltree_path.split('.'):
+            return {'result': 1,
+                    'errors': 'E40: This action will create a circular reference: ' + role.role_name + ' is in hierarchy of ' + parent.role_name
+                    }
     try:
         role.parent_id_id = data['parent_id']
         role.save()
