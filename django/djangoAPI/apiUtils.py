@@ -268,7 +268,9 @@ def DoesNotExistUtil(data, auth):
                 'errors': 'E35: The reservation for this entity has not been approved'
                 }
     child_roles = list(ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
+
     # children are orphaned when parents get 'removed'
+
     try:
         with transaction.atomic():
             if child_roles:
