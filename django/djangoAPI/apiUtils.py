@@ -197,6 +197,10 @@ def AssignAssetToRoleUtil(data, auth):
             return {'result': 1,
                     'errors': 'E38: The reservation for this entity has not been approved'
                     }
+    if asset.designer_planned_action_type_tbl_id == 'b':
+        asset.designer_planned_action_type_tbl_id = 'c'
+        asset_dispose = ExistingAssetDisposedByProjectTbl.objects.get(pk=asset.pk)
+        asset_dispose.delete(keep_parents=True)
     try:
         asset.initial_project_asset_role_id_id = data['role_id']
         asset.save()
