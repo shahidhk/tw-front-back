@@ -135,7 +135,7 @@ class UserGroupNameTbl(models.Model):
     name = models.CharField(max_length=20)
     within_city = models.BooleanField()
     with_toronto_water = models.BooleanField()
-    outside_organization_name = models.CharField(max_length=50)
+    outside_organization_name = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         db_table = 'djangoAPI_UserGroupNameTbl'
@@ -222,9 +222,11 @@ def init_value_lists():
             id=i,
             role_title='user role ' + i
         )
-    for i in ['a', 'b', 'c', 'd', 'e', 'f']:
-        UserGroupNameTbl.objects.create(
-            id='user group id '+i,
+    for i, value in enumerate(['a', 'b', 'c', 'd', 'e', 'f']):
+        obj = UserGroupNameTbl.objects.create(
+            name='user group id '+value,
             within_city=True,
-            with_toronto_water=True
+            with_toronto_water=True,
         )
+        obj.pk = i + 1
+        obj.save()

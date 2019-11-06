@@ -44,7 +44,7 @@ class DesignProjectTbl(models.Model):
         SuperDesignProjectTbl, models.PROTECT, blank=True, null=True)
     phase_number = models.IntegerField(blank=True, null=True)
     op_bus_unit = models.ForeignKey(BusinessUnit, models.PROTECT)
-    contract_number = models.CharField(max_length=50, blank=True, null=True)
+    contract_number = models.CharField(max_length=50, blank=True, null=True, unique=True)
     planned_date_range = fields.DateRangeField(blank=True, null=True)
     budget = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
     # limited to 999B
@@ -81,11 +81,11 @@ class ConstructionPhaseTbl(models.Model):
     design_project = models.ForeignKey(DesignProjectTbl, models.SET_NULL, blank=True, null=True)
     phase_number = models.BigIntegerField(blank=True, null=True)
     op_bus_unit = models.ForeignKey(BusinessUnit, models.PROTECT)
-    contract_number = models.CharField(max_length=50, blank=True, null=True)
+    contract_number = models.CharField(max_length=50, blank=True, null=True, unique=True)
     budget = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
     planned_date_range = fields.DateRangeField(blank=True, null=True)
     scope_description = models.TextField()
-    designer_organization_name = models.CharField(max_length=50)
+    constructor_organization_name = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'djangoAPI_ConstructionPhaseTbl'
@@ -222,7 +222,6 @@ class AccessProfileDefinitionTbl(models.Model):
     role = models.ForeignKey(to=AllHumanRoleTypeTbl, on_delete=models.PROTECT)
     permission_to_view = models.BooleanField()
     permission_to_update = models.BooleanField()
-
 
     class Meta:
         db_table = 'djangoAPI_AccessProfileDefinitionTbl'

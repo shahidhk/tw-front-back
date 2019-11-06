@@ -3,6 +3,7 @@ import os
 import json
 import random
 import requests
+from uuid import uuid4
 from datetime import date, timedelta
 
 from sendgrid import SendGridAPIClient
@@ -24,7 +25,7 @@ def init_db2():
     '''
     Initilize the DB with extensions, views and ltree specific triggers
     '''
-    with open('views.sql', 'r') as sql_file: 
+    with open('views.sql', 'r') as sql_file:
         queries = sql_file.read()
     queries = queries.split('!!!')
     with connection.cursor() as cursor:
@@ -48,21 +49,29 @@ def db_fill2():
     '''
     init_value_lists()
     for i in range(4):
-        DesignProjectTbl.objects.create(
-            pk=i+1,
+        obj = DesignProjectTbl.objects.create(
+            pk=i + 1,
+            name='design project phase name ' + str(i+1),
+            designer_organization_name='designer organization name ' + str(i+1),
+            phase_number=1,
             planned_date_range=(date.today(), date.today() + timedelta(days=40)),
-            op_bus_unit_id=['a', 'b', 'c', 'd'][i],
+            op_bus_unit_id=num_to_alpha(i+1),
+            budget=1000000000.99,
+            scope_description='this is a scope description',
         )
+
     lst = [['Super', 'User'], ['Tony', 'Huang'], ['Peter', 'Lewis'], ['Stephen', 'Almeida']]
     for i, value in enumerate(lst):
-        UserTbl.objects.create(
-            id=i+1,
-            first_name=value[0],
-            last_name=value[1],
-            username=value[0]+'.'+value[1],
-            organization_name='TW',
-            email=value[0]+'.'+value[1]+'@admin.ca',
-            user_type_id=1,
+        usr = User.objects.create_user(
+            value[0]+'.'+value[1], value[0]+'.'+value[1]+'@example.com', 'default')
+        usr.last_name = value[1]
+        usr.first_name = value[0]
+        usr.save()
+        obj = UserTbl.objects.create(
+            pk=i + 1,
+            auth_user_id=usr.pk,
+            role_id='a',
+            user_group_name_id=1,
         )
     for i in range(3):
         for j in range(3):
@@ -86,13 +95,19 @@ def db_fill2():
     for i in range(2):
         today = today + timedelta(days=15)
         for j in range(3):
+            num = str(uuid4())
+            print(num)
             ConstructionPhaseTbl.objects.create(
                 pk=i*3+j,
+                name='project construction phase ' + str(i*3+j),
                 planned_date_range=(today-timedelta(days=15), today),
                 phase_number=i,
                 design_project_id=j + 1,
                 scope_description='a project construction phase',
                 op_bus_unit_id=['a', 'b', 'c'][i],
+                constructor_organization_name='construction company, hopefully not snc lavalin',
+                contract_number=num,
+                budget=10000000.68
             )
     for i in range(3):
         for j in range(3):
@@ -112,6 +127,14 @@ def db_fill2():
                 construction_stage_type_id=[
                     'a', 'b', 'c', 'd', 'e'][j],
             )
+    for tbl in DBTbls.objects.all():
+        for usr in AllHumanRoleTypeTbl.objects.all():
+            AccessProfileDefinitionTbl.objects.create(
+                db_table=tbl,
+                role=usr,
+                permission_to_view=True,
+                permission_to_update=True
+            )
     asset_line = {}
     with open('avantis.csv', mode='r') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -122,11 +145,11 @@ def db_fill2():
 
     # create a location for states
     spatial_state = ImportedSpatialSiteTbl.objects.create(
+        pk=1,
         name='Virtual Spatial Location for States',
     )
-    # if pk is specified the autogeneration will not see the entry and will generate conflicting primary keys
-    spatial_state.pk = 1
-    spatial_state.save()
+    with connection.cursor() as cursor:
+        cursor.execute("""SELECT setval(pg_get_serial_sequence('"djangoAPI_ImportedSpatialSiteTbl"','spatial_site_id'), coalesce(max("spatial_site_id"), 1), max("spatial_site_id") IS NOT null) FROM "djangoAPI_ImportedSpatialSiteTbl";""")
 
     # create spatial sites
     locations = {}
@@ -153,6 +176,7 @@ def db_fill2():
             project_tbl_id=1
         )
         role = ProjectAssetRoleRecordTbl.objects.create(
+            pk=i + 1,
             updatable_role_number=name,
             role_name=states[i] if i < len(states) else 'Reserved for Future State',
             parent_id_id=None,
@@ -161,8 +185,8 @@ def db_fill2():
             role_spatial_site_id_id='1',
             project_tbl_id=1,
         )
-        role.pk = i + 1
-        role.save()
+    with connection.cursor() as cursor:
+        cursor.execute("""SELECT setval(pg_get_serial_sequence('"djangoAPI_ProjectAssetRoleRecordTbl"','id'), coalesce(max("id"), 1), max("id") IS NOT null) FROM "djangoAPI_ProjectAssetRoleRecordTbl";""")
 
     for asset_row in asset_line.items():
         name = MasterRoleNumbersTbl.objects.create(
@@ -266,10 +290,11 @@ def test(request):
 
 
 def init_all(request):
-    User.objects.create_superuser('jma', 'jma@toronto.ca', 'tw-admin')
+    # with transaction.atomic():
     init_db2()
     db_fill2()
     update_asset_role2()
+    User.objects.create_superuser('jma', 'jma@toronto.ca', 'tw-admin')
     subdomain = os.getenv('BRANCH', '')
     tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets',
               'garbage_can_unassigned_assets', 'garbage_can_reconciliation_view']
