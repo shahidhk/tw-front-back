@@ -212,8 +212,9 @@ left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
     pa.projectassetrecordtbl_ptr_id = ba.id
 where
     pa.initial_project_asset_role_id_id is null
-    and pa.designer_planned_action_type_tbl_id <> 'b'
-    and pa.entity_exists = false;
+    and pa.designer_planned_action_type_tbl_id = 'b';
+    --and pa.entity_exists = false;
+    --assets are moved to the existingassetdisposedbyprojecttbl
 !!!
 create or replace
 view reservation_view as
