@@ -382,10 +382,6 @@ def RoleParentUtil(data, auth):
         return {'result': 1,
                 'errors': 'E18: Role cannot be found please refresh your View: ' + str(data['role_id'])
                 }
-    if not role.predesignreconciledrolerecordtbl.entity_exists:
-        return {'result': 1,
-                'errors': 'E33: You are assigning an role to a parent that is marked as Non Existant'
-                }
     if role.project_tbl_id != auth['group']:
         return {'result': 1,
                 'errors': 'E19: Entity unreserved or reserved by another project'
@@ -410,8 +406,14 @@ def RoleParentUtil(data, auth):
             return {'result': 1,
                     'errors': 'E40: This action will create a circular reference: ' + role.role_name + ' is in hierarchy of ' + parent.role_name
                     }
+        if not parent.predesignreconciledrolerecordtbl.entity_exists:
+            return {'result': 1,
+                    'errors': 'E33: You are assigning an role to a parent that is marked as Non Existant'
+                    }
     try:
         role.parent_id_id = data['parent_id']
+        data['entity_exists'] = True
+        remove_reconciliation(data, auth)
         role.save()
     except Exception as e:
         return {'result': 1,
