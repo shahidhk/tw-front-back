@@ -290,11 +290,15 @@ def test(request):
 
 
 def init_all(request):
-    # with transaction.atomic():
-    init_db2()
-    db_fill2()
-    update_asset_role2()
-    User.objects.create_superuser('jma', 'jma@toronto.ca', 'tw-admin')
+    with transaction.atomic():
+        init_db2()
+        db_fill2()
+        update_asset_role2()
+        User.objects.create_superuser('jma', 'jma@toronto.ca', 'tw-admin')
+    with open('reset_sequence.sql', 'r') as sql_file:
+        query = sql_file.read()
+    with connection.cursor() as cursor:
+        cursor.execute(query)
     subdomain = os.getenv('BRANCH', '')
     tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets',
               'garbage_can_unassigned_assets', 'garbage_can_reconciliation_view']
