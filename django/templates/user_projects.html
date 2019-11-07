@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>List of Tasks</h1>
+
+{% if projects %}
+
+<table class="projects">
+    <tr class="header">
+        <td>Project Number</td>
+        <td>Project Name</td>
+        <td>My Role</td>
+    </tr>
+    {% for project in projects %}
+    <tr class="data">
+        <td>{{task.project_number}}</td>
+        <td>{{task.project_name}}</td>
+        <td>{{task.user_role}}</td>
+        <!-- <td>
+            <a href="{% url 'task-detail' pk=task.0 %}">Details</a>
+        </td> -->
+    </tr>
+    {% endfor %}
+</table>
+
+{% else %}
+<p>You Currently Have no Projects.</p>
+{% endif %}
+{% endblock %}

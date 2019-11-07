@@ -26,7 +26,7 @@ SECRET_KEY = '*^&+a%@4-!wik+5jw%f_bjbr3*5d9bxf)j%$upx((%0bgz2oz7'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
+LOGIN_REDIRECT_URL = '/'
 
 # Application definition
 
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'djangoAPI',
+    'project',
     'silk',
     'rest_framework',
     'graphene_django',
@@ -60,7 +61,9 @@ ROOT_URLCONF = 'SAIS_API.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

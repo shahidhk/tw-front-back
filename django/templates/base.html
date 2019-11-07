@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% block title %}<title>SAIS: Toronto Water: Project Management</title>{% endblock %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/static/eiw_tool/favicon-32x32.png" sizes="32x32">
+    <!-- Add additional CSS in static file currently we have non-->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'eiw_tool/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+    <script type="text/javascript" src="{% static 'eiw_tool/common.js' %}"></script>
+</head>
+
+<body>
+    <header>
+        <img id='logo' src="/static/eiw_tool/toronto-water-white-468.gif" alt="Toronto Water Logo"></img>
+        <h1>Asset Information Service</h1>
+        <div class='login-div'>
+            {% if user.is_authenticated %}
+            <p>Welcome: {{ user.get_username }}</p>
+            <a href="{% url 'logout'%}?next={{request.path}}">
+                <p>Logout</p>
+            </a>
+            {% else %}
+            <a href="{% url 'login'%}?next={{request.path}}">
+                <p>Login</p>
+            </a>
+            {% endif %}
+        </div>
+    </header>
+    <div class="content">
+        <div id="sidebar">
+            {% block sidebar %}
+            <!-- stuff that sits in the sidebar, different info is shown based on logged in status -->
+            <div class="sidebar-nav">
+                <a href="{% url 'user-projects' %}">
+                    <p>Home</p>
+                </a> -->
+            </div>
+            {% endblock %}
+        </div>
+        <div id="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    <footer>
+        <p class='inline-block'>© Toronto Water: Water Infrastructure Management 2019</p>
+    </footer>
+</body>
+
+</html>
