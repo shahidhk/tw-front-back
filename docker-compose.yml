@@ -8,6 +8,7 @@ services:
     volumes:
       - ./django/:/usr/src/django/
       - static_volume:/usr/src/django/static
+      - webapp:/usr/src/django/webapp
     expose:
       - 8000
     environment:
@@ -53,14 +54,6 @@ services:
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       HASURA_GRAPHQL_ADMIN_SECRET: eDfGfj041tHBYkX9
 
-  # web-app is a build slave
-  web-app:
-    build: ./webapp
-    environment:
-      - "VUE_APP_URL=wss://hasura.${DUCKDNS:?No DUCKDNS set}.duckdns.org/v1/graphql"
-    volumes:
-      - webapp_build:/app/tw-webapp
-
   nginx:
     build: ./nginx
     restart: always
@@ -76,7 +69,7 @@ services:
       - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
       - STAGING=false
     volumes:
-      - webapp_build:/webapp
+      - webapp:/webapp
       - static_volume:/usr/src/django/static
       - /home/appdata/letsencrypt:/config
     ports:
@@ -87,6 +80,6 @@ services:
       - graphql-engine
 
 volumes:
-  webapp_build:
+  webapp:
   static_volume:
   postgres_data:
