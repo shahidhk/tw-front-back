@@ -23,7 +23,7 @@ def UserProjects(request):
     constr_proj_roles = ConstructionPhaseHumanRoleTbl.objects.filter(
         human_role_type_id=usr_obj.role_id)
     for constr_proj_role in constr_proj_roles:
-        constr_proj = ConstructionPhaseTbl.objects.get(pk=constr_proj_role.design_project_id)
+        constr_proj = ConstructionPhaseTbl.objects.get(pk=constr_proj_role.construction_phase_id)
         usr_role = ConstructionPhaseHumanRoleTypeTbl.objects.get(
             pk=constr_proj_role.human_role_type_id)
         display_proj = DisplayUserProjects(constr_proj.id, constr_proj.name, usr_role.name)

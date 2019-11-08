@@ -1,0 +1,184 @@
+table.result {
+    counter-reset: rowNumber;
+    width: 100%;
+}
+
+table.result tr:not(:first-child) {
+    counter-increment: rowNumber;
+}
+
+table.tasks {
+    width: 98%;
+}
+
+tr.header {
+    font-size: 1.5em;
+    font-style: oblique;
+}
+
+tr.Q td:nth-child(4) {
+    background-color: lightblue;
+}
+
+tr.F td:nth-child(4) {
+    background-color: firebrick;
+}
+
+tr.U td:nth-child(4) {
+    background-color: red;
+}
+
+tr.D td:nth-child(4) {
+    background-color: lightgreen;
+}
+
+tr.W td:nth-child(4) {
+    background-color: gold;
+}
+
+td, th {
+    border-style: solid;
+    border-width: 1px;
+    min-width: 5%;
+}
+
+table.result tr:not(:first-child) td:first-child::before {
+    content: counter(rowNumber);
+    min-width: 1em;
+    margin-right: 0.5em;
+}
+
+.errors {
+    background-color: tomato;
+}
+
+.warnings {
+    background-color: LightGoldenRodYellow;
+}
+
+.infos {
+    background-color: lightblue;
+}
+
+/* table.result td:nth-child(4) {
+    font-size: 50%;
+} */
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0px;
+    font-family: "Calibri Light", Helvetica, sans-serif;
+}
+
+header {
+    flex: 0 0 auto;
+    height: 5em;
+    display: flex;
+    justify-content: space-between;
+    background-color: #165788;
+    overflow: auto;
+}
+
+header img, header h1, header div {
+    margin-left: 2%;
+    margin-right: 2%;
+    margin-top: 0.5%;
+}
+
+header div * {
+    margin: 0;
+    text-align: right;
+}
+
+header h1 {
+    color: white;
+    font-size: 3em;
+}
+
+header .login-div {
+    font-size: 1.5em;
+    color: white;
+}
+.content {
+    flex: 1 1 auto;
+    display: flex;
+}
+
+#sidebar {
+    flex: 0 0 auto;
+    vertical-align: top;
+    width: 15%;
+    height: 100%;
+    overflow: auto;
+    /* border-right: 2px;
+    border-right-color: #165788;
+    border-right-style: solid; */
+    background-color: #0E74B3;
+}
+
+.sidebar-nav {
+    font-size: 1.5em;
+    margin-left: 2%;
+    margin-right: 2%;
+}
+
+#main-content {
+    flex: 1 1 auto;
+    margin-left: 2%;
+    margin-right: 2%;
+    height: calc(100vh - 7em);
+    overflow: auto;
+}
+
+footer {
+    flex: 0 0 auto;
+    height: 2em;
+    display: flex;
+    justify-content: space-between;
+    background-color: orange;
+    font-size: 1em;
+    overflow: auto;
+}
+
+footer p {
+    text-align: right;
+    margin-right: 0.5em;
+    margin-left: 0.5em;
+    margin-bottom: 0px;
+    margin-top: 0.5em;
+}
+
+#logo {
+    height: 46px;
+}
+
+.portrait {
+    height: 30%;
+}
+
+/* hyperlink css */
+
+a:link p {
+    color: lightgrey;
+}
+
+a p:hover {
+    background-color: #2F8CA0;
+}
+
+a:visited p{
+    color: lightgrey;
+}
+
+
+.sidebar-nav a, .login-div a {
+    text-decoration: none;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+/* https://stackoverflow.com/questions/35506196/render-scrollbar-on-flexbox-div-not-browser-window */
