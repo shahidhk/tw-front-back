@@ -10,7 +10,10 @@
     <!-- Add additional CSS in static file-->
     <link rel="stylesheet" href="{% static 'project/styles.css' %}">
     {% block extra_css %}{% endblock %}
-    <script type="text/javascript" src="{% static 'project/common.js' %}"></script>
+    <script type="text/javascript" src="{% static 'project/js/jquery-3.4.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'project/js/common.js' %}"></script>
+    <script type="text/javascript" src="{% static 'project/js/js.cookie-2.2.1.min.js' %}"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
@@ -37,7 +40,7 @@
             <div class="sidebar-nav">
                 <a href="{% url 'project-home' %}">
                     <p>Home</p>
-                </a> -->
+                </a>
             </div>
             {% endblock %}
         </div>

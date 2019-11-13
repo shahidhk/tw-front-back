@@ -26,7 +26,7 @@ SECRET_KEY = '*^&+a%@4-!wik+5jw%f_bjbr3*5d9bxf)j%$upx((%0bgz2oz7'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-LOGIN_REDIRECT_URL = 'user-projects'
+LOGIN_REDIRECT_URL = 'project-home'
 LOGOUT_REDIRECT_URL = 'project-home'
 
 # Application definition

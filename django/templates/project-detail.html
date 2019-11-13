@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class=project-header>
+    <h1>Detailed Project Information</h1>
+    <button id="project-edit" onclick="editProject(this);">Edit Project</button>
+    <!-- Make this open a new page instead -->
+</div>
+
+<table class='project-info'>
+    <tr>
+        <td>Business Unit:</td>
+        <td>{{proj.bus_unit}}</td>
+    </tr>
+    <tr>
+        <td>Design Contract Number:</td>
+        <td>{{proj.design_contract_number}}</td>
+    </tr>
+    <tr>
+        <td>Design Project Manager:</td>
+        <td>{{proj.project_manager}}</td>
+        <td>Design Project Manager Email:</td>
+        <td>{{proj.project_manager_email}}</td>
+    </tr>
+    <tr>
+        <td>Asset Data Steward:</td>
+        <td>{{proj.asset_data_steward}}</td>
+        <td>Asset Data Steward Email:</td>
+        <td>{{proj.asset_data_steward_email}}</td>
+    </tr>
+    <tr>
+        <td>Key Business Unit Contact:</td>
+        <td>{{proj.key_bus_unit_contract}}</td>
+        <td>Key Business Unit Contact Email:</td>
+        <td>{{proj.key_bus_unit_contract_email}}</td>
+    </tr>
+    <tr>
+        <td>Project Scope Description:</td>
+        <td>{{proj.project_scope_description}}</td>
+    </tr>
+    <tr>
+        <td>Start Date:</td>
+        <td>{{proj.start_date}}</td>
+    </tr>
+</table>
+
+<h2>Project {{type}} Phases</h2>
+<table class="phases" id='tbl'>
+    <tr class="header">
+        <td>Phase Number</td>
+        <td>Phase Name</td>
+        <td>Phase Contract Number</td>
+        <td>Phase Scope Description</td>
+        <td><img src="{% static 'project/plus-6.svg' %}" alt="Add Phase" class="button" onclick="addRow(this);"></img>
+        </td>
+    </tr>
+    {% for phase in phases %}
+    <tr class="data" id="{{type}}-phase-{{forloop.counter}}">
+        <td><a href="google.com">{{forloop.counter}}</a></td>
+        <td><a href="google.com" id="name">Placeholder: Name</a></td>
+        <td><a href="google.com" id="number">Placeholder: Contract Number</a></td>
+        <td><a href="google.com" id="description">{{phase.design_stage_type.name}}</a></td>
+        <td><img src="{% static 'project/edit-5.svg' %}" alt="Edit Phase" onclick="editPhase(this);"></img></td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

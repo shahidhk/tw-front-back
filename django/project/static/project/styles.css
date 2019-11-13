@@ -183,8 +183,12 @@ a:visited p{
 
 .project-header {
     display: flex;
-    justify-content: space-between;
     flex-direction: row;
+}
+
+.project-header * {
+    margin: 2%;
+    margin-left: 0%;
 }
 
 /* https://stackoverflow.com/questions/35506196/render-scrollbar-on-flexbox-div-not-browser-window */
