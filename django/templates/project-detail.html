@@ -51,7 +51,8 @@
         <td>Phase Name</td>
         <td>Phase Contract Number</td>
         <td>Phase Scope Description</td>
-        <td><img src="{% static 'project/plus-6.svg' %}" alt="Add Phase" class="button" onclick="addRow(this);"></img>
+        <td><input type="image" src="{% static 'project/plus-6.svg' %}" alt="Add Phase" class="button"
+                onclick="addRow(this);">
         </td>
     </tr>
     {% for phase in phases %}
@@ -60,7 +61,8 @@
         <td><a href="google.com" id="name">Placeholder: Name</a></td>
         <td><a href="google.com" id="number">Placeholder: Contract Number</a></td>
         <td><a href="google.com" id="description">{{phase.design_stage_type.name}}</a></td>
-        <td><img src="{% static 'project/edit-5.svg' %}" alt="Edit Phase" onclick="editPhase(this);"></img></td>
+        <td><input type="image" src="{% static 'project/edit-5.svg' %}" alt="Edit Phase" onclick="editPhase(this);">
+        </td>
     </tr>
     {% endfor %}
 </table>

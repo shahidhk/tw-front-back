@@ -28,7 +28,7 @@ function editPhase(n) {
     };
     cell = row.children[i];
     // this will be the last cell
-    cell.innerHTML = '<input type="image" src="/static/project/save-2.svg" alt="Submit" onclick="savePhase(this);">';
+    cell.innerHTML = '<input type="image" src="/static/project/save-2.svg" alt="Save Phase" onclick="savePhase(this);">';
 };
 
 function savePhase(n) {
@@ -73,4 +73,7 @@ function updatePhase(n) {
         cell = row.children[i];
         cell.innerHTML = '<a id="' + colID[i - 1] + '" href="google.com">' + n.data[colID[i - 1]] + '</a>'
     };
+    cell = row.children[i];
+    // this will be the last cell
+    cell.innerHTML = '<input type="image" src="/static/project/edit-5.svg" alt="Edit Phase" onclick="editPhase(this);">';
 }
