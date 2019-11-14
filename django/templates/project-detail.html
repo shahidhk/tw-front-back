@@ -7,42 +7,62 @@
     <!-- Make this open a new page instead -->
 </div>
 
-<table class='project-info'>
-    <tr>
-        <td>Business Unit:</td>
-        <td>{{proj.bus_unit}}</td>
-    </tr>
-    <tr>
-        <td>Design Contract Number:</td>
-        <td>{{proj.design_contract_number}}</td>
-    </tr>
-    <tr>
-        <td>Design Project Manager:</td>
-        <td>{{proj.project_manager}}</td>
-        <td>Design Project Manager Email:</td>
-        <td>{{proj.project_manager_email}}</td>
-    </tr>
-    <tr>
-        <td>Asset Data Steward:</td>
-        <td>{{proj.asset_data_steward}}</td>
-        <td>Asset Data Steward Email:</td>
-        <td>{{proj.asset_data_steward_email}}</td>
-    </tr>
-    <tr>
-        <td>Key Business Unit Contact:</td>
-        <td>{{proj.key_bus_unit_contract}}</td>
-        <td>Key Business Unit Contact Email:</td>
-        <td>{{proj.key_bus_unit_contract_email}}</td>
-    </tr>
-    <tr>
-        <td>Project Scope Description:</td>
-        <td>{{proj.project_scope_description}}</td>
-    </tr>
-    <tr>
-        <td>Start Date:</td>
-        <td>{{proj.start_date}}</td>
-    </tr>
-</table>
+<form id="project-details" ic-post-to="/api/save-project/">
+    <div>
+        <label for="bus_unit">Business Unit:</label>
+        <input type="text" id="bus_unit" name="bus_unit" value="{{proj.bus_unit}}" disabled=true />
+    </div>
+    <div>
+        <label for="design_contract_number">Design Contract Number:</label>
+        <input type="text" id="design_contract_number" name="design_contract_number"
+            value="{{proj.design_contract_number}}" disabled=true />
+    </div>
+    <div>
+        <label for="project_manager">Design Project Manager:</label>
+        <input type="text" id="project_manager" name="project_manager" value="{{proj.project_manager}}" disabled=true />
+    </div>
+    <div>
+        <label for="project_manager_email">Design Project Manager Email:</label>
+        <input type="email" id="project_manager_email" name="project_manager_email"
+            value="{{proj.project_manager_email}}" disabled=true />
+    </div>
+    <div>
+        <label for="asset_data_steward">Asset Data Steward:</label>
+        <input type="text" id="asset_data_steward" name="asset_data_steward" value="{{proj.asset_data_steward}}"
+            disabled=true />
+    </div>
+    <div>
+        <label for="asset_data_steward_email">Asset Data Steward Email:</label>
+        <input type="email" id="asset_data_steward_email" name="asset_data_steward_email"
+            value="{{proj.asset_data_steward_email}}" disabled=true />
+    </div>
+    <div>
+        <label for="key_bus_unit_contract">Key Business Unit Contact:</label>
+        <input type="text" id="key_bus_unit_contract" name="key_bus_unit_contract"
+            value="{{proj.key_bus_unit_contract}}" disabled=true />
+    </div>
+    <div>
+        <label for="key_bus_unit_contract_email">Key Business Unit Contact Email:</label>
+        <input type="email" id="key_bus_unit_contract_email" name="key_bus_unit_contract_email"
+            value="{{proj.key_bus_unit_contract_email}}" disabled=true />
+    </div>
+    <div>
+        <label for="project_scope_description">Project Scope Description:</label>
+        <textarea id="project_scope_description" name="project_scope_description"
+            disabled=true>{{proj.project_scope_description}}</textarea>
+    </div>
+    <div>
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" value="{{proj.start_date}}" disabled=true />
+    </div>
+    <div class="hidden">
+        <label for="project_type">Project Type:</label>
+        <input type="text" id="project_type" name="project_type" value="{{type}}" />
+    </div>
+    <div>
+        {% csrf_token %}
+    </div>
+</form>
 
 <h2>Project {{type}} Phases</h2>
 <table class="phases" id='tbl'>

@@ -1,3 +1,5 @@
+'use strict';
+
 function addRow(n) {
     var table = document.getElementById('tbl');
     var row = table.insertRow(-1);
@@ -14,9 +16,30 @@ function addRow(n) {
 };
 
 function editProject(n) {
-    console.log(n);
+    var form, i;
     n.innerText = "Save Project";
+    n.setAttribute("onclick", "saveProject(this);");
+    form = document.getElementById("project-details");
+    for (i = 0; i < form.length; i++) {
+        form[i].disabled = false;
+    };
 };
+
+function saveProject(n) {
+    var form, i, button;
+    n.innerText = "Edit Project";
+    n.setAttribute("onclick", "editProject(this);");
+    form = document.getElementById("project-details");
+    Intercooler.triggerRequest(form, function (data) {
+        updateProject(data);
+    });
+    for (i = 0; i < form.length; i++) {
+        form[i].disabled = true;
+    };
+    // button = document.querySelector("form div button");
+    // button.click()
+    // form.submit();
+}
 
 function editPhase(n) {
     var cell, row, i, cellText;
@@ -44,14 +67,6 @@ function savePhase(n) {
             'X-CSRFToken': Cookies.get("csrftoken")
         }
     };
-    // $.ajaxSetup({
-    //     headers: {
-    //         'X-CSRFToken': Cookies.get("csrftoken")
-    //     }
-    // });
-    // $.post(Url, data, function (data, status) {
-    //     console.log('data is ' + data + ' status is ' + status);
-    // });
     axios.post(Url, data, axiosConfig)
         .then(function (response) {
             updatePhase(response)
@@ -76,4 +91,15 @@ function updatePhase(n) {
     cell = row.children[i];
     // this will be the last cell
     cell.innerHTML = '<input type="image" src="/static/project/edit-5.svg" alt="Edit Phase" onclick="editPhase(this);">';
+}
+
+function updateProject(n) {
+    console.log(n)
+    var form = document.getElementById("project-details");
+    var data = JSON.parse(n);
+    for (const [key, value] of Object.entries(data)) {
+        console.log(key, value);
+    }
+    // TODO actually put the values into the form
+
 }

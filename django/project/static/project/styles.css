@@ -192,3 +192,35 @@ a:visited p{
 }
 
 /* https://stackoverflow.com/questions/35506196/render-scrollbar-on-flexbox-div-not-browser-window */
+
+form {
+    /* Center the form on the page */
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    width: 90%;
+    /* Form outline */
+    padding: 1em;
+    border: 1px solid #CCC;
+    border-radius: 1em;
+}
+  
+form div {
+margin-bottom: 1em;
+display: flex;
+align-items: stretch;
+flex-wrap: wrap;
+}
+
+form div label {
+    width: 200px;
+    margin-right: 1em;
+}
+
+form div input, form div textarea {
+    flex-grow: 1;
+}
+
+.hidden {
+    display: none;
+}
