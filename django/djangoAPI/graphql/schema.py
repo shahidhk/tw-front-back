@@ -11,6 +11,8 @@ from rest_framework import serializers
 from djangoAPI.models import *
 from djangoAPI.apiUtils import *
 from djangoAPI.graphql.asset_role_view import *
+from djangoAPI.graphql.projects import *
+from project.commons import *
 
 
 # classes for outputs
@@ -147,10 +149,16 @@ class UpdateReserView(graphene.Mutation):
 
 
 class Query(ObjectType):
-    dummy_query = graphene.List(ReconViewType)
+    user_projects = graphene.List(UsersProjectsType)
+    project_details = graphene.List(ProjectDetailsType, project_id=graphene.Int())
 
-    def resolve_dummy_query(self, info, **kwargs):
-        return ReconciliationView.objects.all()
+    def resolve_user_projects(self, info, **kwargs):
+        auth = AuthenticationUtil(info)
+        return user_projects(auth['user_id'])
+
+    def resolve_project_details(self, info, project_id):
+        auth = AuthenticationUtil(info)
+        return project_details('design', project_id)
 
 
 class Mutations(graphene.ObjectType):

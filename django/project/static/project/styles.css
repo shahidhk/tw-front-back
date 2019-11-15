@@ -1,68 +1,9 @@
-table.result {
-    counter-reset: rowNumber;
-    width: 100%;
-}
-
-table.result tr:not(:first-child) {
-    counter-increment: rowNumber;
-}
-
-table.tasks {
-    width: 98%;
-}
-
-tr.header {
-    font-size: 1.5em;
-    font-style: oblique;
-}
-
-tr.Q td:nth-child(4) {
-    background-color: lightblue;
-}
-
-tr.F td:nth-child(4) {
-    background-color: firebrick;
-}
-
-tr.U td:nth-child(4) {
-    background-color: red;
-}
-
-tr.D td:nth-child(4) {
-    background-color: lightgreen;
-}
-
-tr.W td:nth-child(4) {
-    background-color: gold;
-}
-
 td, th {
     border-style: solid;
     border-width: 1px;
     min-width: 5%;
 }
 
-table.result tr:not(:first-child) td:first-child::before {
-    content: counter(rowNumber);
-    min-width: 1em;
-    margin-right: 0.5em;
-}
-
-.errors {
-    background-color: tomato;
-}
-
-.warnings {
-    background-color: LightGoldenRodYellow;
-}
-
-.infos {
-    background-color: lightblue;
-}
-
-/* table.result td:nth-child(4) {
-    font-size: 50%;
-} */
 
 body {
     display: flex;
@@ -154,10 +95,6 @@ footer p {
     height: 46px;
 }
 
-.portrait {
-    height: 30%;
-}
-
 /* hyperlink css */
 
 a:link p {
@@ -206,15 +143,21 @@ form {
 }
   
 form div {
-margin-bottom: 1em;
-display: flex;
-align-items: stretch;
-flex-wrap: wrap;
+    margin-bottom: 1em;
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
 }
 
 form div label {
     width: 200px;
     margin-right: 1em;
+}
+
+form div.headings label {
+    width: unset;
+    flex-grow: 1;
+    margin-right: 0;
 }
 
 form div input, form div textarea {

@@ -11,7 +11,9 @@ from project.forms import *
 
 
 def project_home(request):
-    """Display all projects that are the user belongs to"""
+    """
+    Display all projects that are the user belongs to
+    """
     if not request.user.is_authenticated:
         return render(request, 'project-home.html')
     usr_id = request.user.id
@@ -56,14 +58,18 @@ def project_details(request, proj_type, proj_id):
             design_project=proj).order_by('planned_date_range'))
         proj_type = 'Design'
     elif proj_type == 'construction':
-        try:
-            ConstructionPhaseTbl.objects.get(pk=proj_id)
-        except Exception:
-            raise Http404('This Construction Project Does Not Exist')
-        else:
-            pass
+        proj = get_object_or_404(ConstructionPhaseTbl, pk=proj_id)
+        disp_proj_detail = DisplayProjectDetails(
+            bus_unit=proj.op_bus_unit.name,
+            design_contract_number=proj.contract_number,
+            project_scope_description=proj.scope_description,
+            start_date=proj.planned_date_range.lower,
+        )
+        phases = list(ConstructionStageTbl.objects.filter(
+            construction_phase=proj).order_by('planned_date_range'))
+        proj_type = 'Construction'
     else:
-        raise Http404(proj_type+': Project Type Does Not Exist')
+        raise Http404(proj_type + ': Project Type Does Not Exist')
     return render(request, 'project-detail.html', context={'proj': disp_proj_detail, 'phases': phases, 'type': proj_type, })
 
 

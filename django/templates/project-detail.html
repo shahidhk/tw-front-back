@@ -13,16 +13,15 @@
         <input type="text" id="bus_unit" name="bus_unit" value="{{proj.bus_unit}}" disabled=true />
     </div>
     <div>
-        <label for="design_contract_number">Design Contract Number:</label>
-        <input type="text" id="design_contract_number" name="design_contract_number"
-            value="{{proj.design_contract_number}}" disabled=true />
+        <label for="contract_number">{{type}} Contract Number:</label>
+        <input type="text" id="contract_number" name="contract_number" value="{{proj.contract_number}}" disabled=true />
     </div>
     <div>
-        <label for="project_manager">Design Project Manager:</label>
+        <label for="project_manager">{{type}} Project Manager:</label>
         <input type="text" id="project_manager" name="project_manager" value="{{proj.project_manager}}" disabled=true />
     </div>
     <div>
-        <label for="project_manager_email">Design Project Manager Email:</label>
+        <label for="project_manager_email">{{type}} Project Manager Email:</label>
         <input type="email" id="project_manager_email" name="project_manager_email"
             value="{{proj.project_manager_email}}" disabled=true />
     </div>
@@ -80,7 +79,7 @@
         <td><a href="google.com">{{forloop.counter}}</a></td>
         <td><a href="google.com" id="name">Placeholder: Name</a></td>
         <td><a href="google.com" id="number">Placeholder: Contract Number</a></td>
-        <td><a href="google.com" id="description">{{phase.design_stage_type.name}}</a></td>
+        <td><a href="google.com" id="description">{{phase.stage_type.name}}</a></td>
         <td><input type="image" src="{% static 'project/edit-5.svg' %}" alt="Edit Phase" onclick="editPhase(this);">
         </td>
     </tr>

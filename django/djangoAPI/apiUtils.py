@@ -10,15 +10,19 @@ def AuthenticationUtil(info):
         'valid': True,
         'approve': False,
         'group': None,
+        'user_id': None,
     }
     if info.context.META['HTTP_X_USERNAME'] == 'amber.brasher':
         data['group'] = 2
+        data['user_id'] = 3
     elif info.context.META['HTTP_X_USERNAME'] == 'tony.huang':
         data['approve'] = True
         data['group'] = 2
+        data['user_id'] = 2
     elif info.context.META['HTTP_X_USERNAME'] == 'jon.ma':
         data['approve'] = True
         data['group'] = 3
+        data['user_id'] = 4
     else:
         data['group'] = 4
     return data
