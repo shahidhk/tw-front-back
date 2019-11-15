@@ -47,8 +47,8 @@ def user_projects(usr_id):
     for design_proj_role in design_proj_roles:
         design_proj = DesignProjectTbl.objects.get(pk=design_proj_role.design_project_id)
         usr_role = DesignProjectHumanRoleTypeTbl.objects.get(pk=design_proj_role.human_role_type_id)
-        display_proj = UserProjects(
-            design_proj.id, design_proj.name, usr_role.name, 'design')
+        display_proj = UserProjects(design_proj.id, design_proj.id,
+                                    design_proj.name, usr_role.name, 'design')
         usr_projs.append(display_proj)
     constr_proj_roles = ConstructionPhaseHumanRoleTbl.objects.filter(
         human_role_type_id=usr_obj.role_id)
@@ -56,8 +56,8 @@ def user_projects(usr_id):
         constr_proj = ConstructionPhaseTbl.objects.get(pk=constr_proj_role.construction_phase_id)
         usr_role = ConstructionPhaseHumanRoleTypeTbl.objects.get(
             pk=constr_proj_role.human_role_type_id)
-        display_proj = UserProjects(
-            constr_proj.id, constr_proj.name, usr_role.name, 'construction')
+        display_proj = UserProjects(constr_proj.id, constr_proj.id,
+                                    constr_proj.name, usr_role.name, 'construction')
         usr_projs.append(display_proj)
     return usr_projs
 

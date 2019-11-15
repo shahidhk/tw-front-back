@@ -5,7 +5,7 @@ from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from djangoAPI.models import *
-from project.commons import *
+from project.commons import DisplayUserProjects, DisplayProjectDetails
 from project.forms import *
 # Create your views here.
 
