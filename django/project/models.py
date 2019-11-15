@@ -12,7 +12,7 @@ class UserProjects(models.Model):
     """
     Model for list of User Projects
     """
-    project_id = models.IntegerField(primary_key=True, null=False)
+    id = models.IntegerField(primary_key=True, null=False)
     project_number = models.CharField(max_length=100, null=False)
     project_name = models.CharField(max_length=200, null=False)
     user_role = models.CharField(max_length=50, null=False)
@@ -26,7 +26,7 @@ class ProjectDetails(models.Model):
     """
     Model for details about the project
     """
-    proj_id = models.IntegerField(primary_key=True, null=False)
+    id = models.IntegerField(primary_key=True, null=False)
     bus_unit = models.CharField(max_length=200, null=False, primary_key=True)
     design_contract_number = models.CharField(max_length=200, null=False)
     project_manager = models.CharField(max_length=200)

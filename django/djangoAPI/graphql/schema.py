@@ -150,15 +150,15 @@ class UpdateReserView(graphene.Mutation):
 
 class Query(ObjectType):
     user_projects = graphene.List(UsersProjectsType)
-    project_details = graphene.List(ProjectDetailsType, project_id=graphene.Int())
+    project_details = graphene.List(ProjectDetailsType, id=graphene.Int())
 
     def resolve_user_projects(self, info, **kwargs):
         auth = AuthenticationUtil(info)
         return user_projects(auth['user_id'])
 
-    def resolve_project_details(self, info, project_id):
+    def resolve_project_details(self, info, id):
         auth = AuthenticationUtil(info)
-        return project_details('design', project_id)
+        return project_details('design', id)
 
 
 class Mutations(graphene.ObjectType):
