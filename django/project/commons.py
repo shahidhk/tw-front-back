@@ -60,7 +60,7 @@ def project_details(proj_id):
     """
     proj = get_object_or_404(DesignProjectTbl, pk=proj_id)
     disp_proj_detail = ProjectDetails(
-        proj_id=proj_id,
+        id=proj_id,
         bus_unit=proj.op_bus_unit.name,
         design_contract_number=proj.contract_number,
         project_scope_description=proj.scope_description,

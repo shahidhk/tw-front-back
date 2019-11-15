@@ -27,14 +27,8 @@ class ProjectDetailsType(DjangoObjectType):
 
     def resolve_project_phases(self, info):
         result = []
-        if self.project_type == ProjectType.CONSTRUCTION:
-            objs = list(ConstructionStageTbl.objects.filter(
-                construction_phase=self.proj_id).order_by('planned_date_range'))
-        elif self.project_type == ProjectType.DESIGN:
-            objs = list(DesignStageTbl.objects.filter(
-                design_project=self.proj_id).order_by('planned_date_range'))
-        else:
-            objs = []
+        objs = list(DesignStageTbl.objects.filter(
+            design_project=self.id).order_by('planned_date_range'))
         for obj in objs:
             result.append(
                 ProjectPhases(
