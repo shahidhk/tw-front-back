@@ -16,7 +16,6 @@ class UserProjects(models.Model):
     project_number = models.CharField(max_length=100, null=False)
     project_name = models.CharField(max_length=200, null=False)
     user_role = models.CharField(max_length=50, null=False)
-    project_type = models.CharField(max_length=50, null=False, choices=ProjectType.PROJECT_TYPE)
 
     class Meta:
         abstract = True
@@ -37,7 +36,6 @@ class ProjectDetails(models.Model):
     asset_data_steward_email = models.EmailField()
     project_scope_description = models.TextField()
     start_date = models.DateField(null=False)
-    project_type = models.CharField(max_length=50, null=False, choices=ProjectType.PROJECT_TYPE)
 
     class Meta:
         abstract = True

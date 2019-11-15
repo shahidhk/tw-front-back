@@ -48,46 +48,22 @@ def user_projects(usr_id):
         design_proj = DesignProjectTbl.objects.get(pk=design_proj_role.design_project_id)
         usr_role = DesignProjectHumanRoleTypeTbl.objects.get(pk=design_proj_role.human_role_type_id)
         display_proj = UserProjects(design_proj.id, design_proj.id,
-                                    design_proj.name, usr_role.name, 'design')
-        usr_projs.append(display_proj)
-    constr_proj_roles = ConstructionPhaseHumanRoleTbl.objects.filter(
-        human_role_type_id=usr_obj.role_id)
-    for constr_proj_role in constr_proj_roles:
-        constr_proj = ConstructionPhaseTbl.objects.get(pk=constr_proj_role.construction_phase_id)
-        usr_role = ConstructionPhaseHumanRoleTypeTbl.objects.get(
-            pk=constr_proj_role.human_role_type_id)
-        display_proj = UserProjects(constr_proj.id, constr_proj.id,
-                                    constr_proj.name, usr_role.name, 'construction')
+                                    design_proj.name, usr_role.name)
         usr_projs.append(display_proj)
     return usr_projs
 
 
-def project_details(proj_type, proj_id):
+def project_details(proj_id):
     """
     Display the Details of a Project
-
     The Project can be Construction or Design
     """
-    if proj_type == 'design':
-        proj = get_object_or_404(DesignProjectTbl, pk=proj_id)
-        disp_proj_detail = ProjectDetails(
-            proj_id=proj_id,
-            project_type=ProjectType.DESIGN,
-            bus_unit=proj.op_bus_unit.name,
-            design_contract_number=proj.contract_number,
-            project_scope_description=proj.scope_description,
-            start_date=proj.planned_date_range.lower,
-        )
-    elif proj_type == 'construction':
-        proj = get_object_or_404(ConstructionPhaseTbl, pk=proj_id)
-        disp_proj_detail = ProjectDetails(
-            proj_id=proj_id,
-            project_type=ProjectType.CONSTRUCTION,
-            bus_unit=proj.op_bus_unit.name,
-            design_contract_number=proj.contract_number,
-            project_scope_description=proj.scope_description,
-            start_date=proj.planned_date_range.lower,
-        )
-    else:
-        raise Exception(proj_type + ': Project Type Does Not Exist')
+    proj = get_object_or_404(DesignProjectTbl, pk=proj_id)
+    disp_proj_detail = ProjectDetails(
+        proj_id=proj_id,
+        bus_unit=proj.op_bus_unit.name,
+        design_contract_number=proj.contract_number,
+        project_scope_description=proj.scope_description,
+        start_date=proj.planned_date_range.lower,
+    )
     return [disp_proj_detail]
