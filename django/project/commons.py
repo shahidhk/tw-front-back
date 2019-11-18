@@ -62,4 +62,10 @@ def project_details(proj_id):
     disp_proj_detail.bus_unit_name = proj.op_bus_unit.name
     disp_proj_detail.start_date = proj.planned_date_range.lower
     disp_proj_detail.end_date = proj.planned_date_range.upper
+    disp_proj_detail.project_manager = 'a person'
+    disp_proj_detail.project_manager_email = 'test@test.ca'
+    disp_proj_detail.key_bus_unit_contract = 'b person'
+    disp_proj_detail.key_bus_unit_contract_email = 'test@test.ca'
+    disp_proj_detail.asset_data_steward = 'c person'
+    disp_proj_detail.asset_data_steward_email = 'test@test.ca'
     return [disp_proj_detail]
