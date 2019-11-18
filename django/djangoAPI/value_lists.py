@@ -7,8 +7,7 @@ from django.apps import apps
 
 class BusinessUnit(models.Model):
     '''Business Units'''
-    # TODO change back to id, migrations are already done
-    id2 = models.CharField(primary_key=True, max_length=5)
+    id = models.CharField(primary_key=True, max_length=5)
     name = models.CharField(max_length=50)
 
     class Meta:
