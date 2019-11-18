@@ -57,7 +57,7 @@ def project_details(proj_id):
     Display the Details of a Project
     """
     proj = get_object_or_404(DesignProjectTbl, pk=proj_id)
-    disp_proj_detail = DisplayProjectDetails()
+    disp_proj_detail = ProjectDetails()
     disp_proj_detail.__dict__ = proj.__dict__.copy()
     disp_proj_detail.bus_unit_name = proj.op_bus_unit.name
     disp_proj_detail.start_date = proj.planned_date_range.lower
