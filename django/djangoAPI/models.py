@@ -24,6 +24,11 @@ class UserTbl(models.Model):
     class Meta:
         db_table = 'djangoAPI_UserTbl'
 
+    def get_full_name(self):
+        """
+        Returns full name of user as defined in auth_user
+        """
+        return self.auth_user.first_name + ' ' + self.auth_user.last_name
 # Project Tables
 
 

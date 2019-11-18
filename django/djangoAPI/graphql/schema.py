@@ -158,8 +158,6 @@ class Query(ObjectType):
 
     def resolve_project_details(self, info, where):
         auth = AuthenticationUtil(info)
-        temp = project_details(where.id._eq)
-        print('the real id is', temp[0].id)
         return project_details(where.id._eq)
 
 

@@ -4,7 +4,8 @@ import json
 import random
 import requests
 import tarfile
-import zipfile,shutil
+import zipfile
+import shutil
 from uuid import uuid4
 from datetime import date, timedelta
 
@@ -72,7 +73,7 @@ def db_fill2():
         obj = UserTbl.objects.create(
             pk=i + 1,
             auth_user_id=usr.pk,
-            role_id='a',
+            role_id=num_to_alpha(i+1),
             user_group_name_id=1,
         )
     for i in range(3):
@@ -137,6 +138,14 @@ def db_fill2():
                 permission_to_view=True,
                 permission_to_update=True
             )
+    for i in range(3):
+        for j in range(3):
+            UserProjectLinkTbl.objects.create(
+                project_id=j+2,
+                title_id='a',
+                user_id=i+2,
+            )
+
     asset_line = {}
     with open('avantis.csv', mode='r') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')

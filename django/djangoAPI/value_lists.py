@@ -121,6 +121,7 @@ class AccessProfileTbl(models.Model):
 
 class UserRole(models.Model):
     '''Enum of User Roles Avaliable'''
+    # TODO check if unused
     id = models.TextField(primary_key=True, max_length=5)
     role_title = models.CharField(max_length=100)
 
@@ -183,9 +184,10 @@ def init_value_lists():
             name='Design Stage Type ' + str(i),
         )
     for i in ['a', 'b', 'c', 'd', 'e', 'f']:
+        people = {'b': 'Project Manager', 'c': 'Key Business Unit Contact', 'd': 'Asset Data Steward'}
         DesignProjectHumanRoleTypeTbl.objects.create(
             pk=i,
-            name='Design Project Human Role Type ' + str(i),
+            name=people.get(i, 'Design Project Human Role Type ' + str(i)),
         )
     for i in ['a', 'b', 'c', 'd', 'e', 'f']:
         ConstructionPhaseHumanRoleTypeTbl.objects.create(
