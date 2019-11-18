@@ -27,14 +27,19 @@ class ProjectDetailsType(DjangoObjectType):
 
     def resolve_project_phases(self, info):
         result = []
-        objs = list(DesignStageTbl.objects.filter(
-            design_project=self.id).order_by('planned_date_range'))
+        objs = list(ConstructionPhaseTbl.objects.filter(
+            design_project=self.id))
         for obj in objs:
-            result.append(
-                ProjectPhases(
-                    name="placeholder name",
-                    contract_number="placeholder contract number",
-                    scope_description="place holder description",
-                )
-            )
+            new_obj = ProjectPhases()
+            new_obj.__dict__ = obj.__dict__.copy()
+            new_obj.start_date = obj.planned_date_range.lower
+            new_obj.end_date = obj.planned_date_range.upper
+            result.append(new_obj)
         return result
+
+        # name=obj.name,
+        # contract_number=obj.contract_number,
+        # scope_description=obj.scope_description,
+        # start_date=obj.planned_date_range.lower,
+        # end_date=obj.planned_date_range.upper,
+        # phase_number=obj.phase_number,

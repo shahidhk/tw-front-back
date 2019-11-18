@@ -37,7 +37,6 @@ class DisplayProjectDetails:
 def user_projects(usr_id):
     """
     Display all projects that are the user belongs to
-    Returns 
     """
     usr_obj = UserTbl.objects.get(pk=usr_id)
     usr_projs = []
@@ -56,14 +55,11 @@ def user_projects(usr_id):
 def project_details(proj_id):
     """
     Display the Details of a Project
-    The Project can be Construction or Design
     """
     proj = get_object_or_404(DesignProjectTbl, pk=proj_id)
-    disp_proj_detail = ProjectDetails(
-        id=proj_id,
-        bus_unit=proj.op_bus_unit.name,
-        design_contract_number=proj.contract_number,
-        project_scope_description=proj.scope_description,
-        start_date=proj.planned_date_range.lower,
-    )
+    disp_proj_detail = DisplayProjectDetails()
+    disp_proj_detail.__dict__ = proj.__dict__.copy()
+    disp_proj_detail.bus_unit_name = proj.op_bus_unit.name
+    disp_proj_detail.start_date = proj.planned_date_range.lower
+    disp_proj_detail.end_date = proj.planned_date_range.upper
     return [disp_proj_detail]

@@ -1,4 +1,5 @@
 from django.db import models
+from djangoAPI.models import ConstructionPhaseTbl, DesignProjectTbl
 # Dummy Models for serializers and graphene-django
 
 
@@ -21,33 +22,29 @@ class UserProjects(models.Model):
         abstract = True
 
 
-class ProjectDetails(models.Model):
+class ProjectDetails(DesignProjectTbl):
     """
     Model for details about the project
     """
-    id = models.IntegerField(primary_key=True, null=False)
-    bus_unit = models.CharField(max_length=200, null=False, primary_key=True)
-    design_contract_number = models.CharField(max_length=200, null=False)
+    bus_unit_name = models.CharField(max_length=200, null=False, primary_key=True)
     project_manager = models.CharField(max_length=200)
     project_manager_email = models.EmailField()
     key_bus_unit_contract = models.CharField(max_length=200)
     key_bus_unit_contract_email = models.EmailField()
     asset_data_steward = models.CharField(max_length=200)
     asset_data_steward_email = models.EmailField()
-    project_scope_description = models.TextField()
-    start_date = models.DateField(null=False)
+    start_date = models.DateField()
+    end_date = models.DateField()
 
     class Meta:
         abstract = True
 
 
-class ProjectPhases(models.Model):
+class ProjectPhases(ConstructionPhaseTbl):
     """
     """
-    name = models.CharField(max_length=200, null=False)
-    contract_number = models.CharField(max_length=50, null=True)
-    scope_description = models.TextField(null=False)
-    project = models.ForeignKey(ProjectDetails, models.DO_NOTHING, null=False)
+    start_date = models.DateField()
+    end_date = models.DateField()
 
     class Meta:
         abstract = True
