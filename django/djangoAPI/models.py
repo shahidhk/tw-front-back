@@ -157,7 +157,6 @@ class MasterRoleNumbersTbl(models.Model):
             return Result(success=True, obj=number)
 
 
-
 class ClonedAssetAndRoleInRegistryTbl(models.Model):
     '''From Avantis'''
     mtoi = models.AutoField(verbose_name="Avantis ID", primary_key=True)
@@ -226,7 +225,8 @@ class AccessProfileDefinitionTbl(models.Model):
     class Meta:
         db_table = 'djangoAPI_AccessProfileDefinitionTbl'
         constraints = [
-            models.UniqueConstraint(fields=['db_table', 'role'], name='one_permission_for_each_table_and_role_pair')
+            models.UniqueConstraint(fields=['db_table', 'role'],
+                                    name='one_permission_for_each_table_and_role_pair')
         ]
 
 

@@ -26,7 +26,7 @@ class ProjectDetails(DesignProjectTbl):
     """
     Model for details about the project
     """
-    bus_unit_name = models.CharField(max_length=200, null=False, primary_key=True)
+    bus_unit_name = models.CharField(max_length=200, null=False)
     project_manager = models.CharField(max_length=200)
     project_manager_email = models.EmailField()
     key_bus_unit_contract = models.CharField(max_length=200)

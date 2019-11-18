@@ -9,8 +9,14 @@ from project.models import UserProjects, ProjectDetails, ProjectPhases, ProjectT
 
 
 class ProjectPhasesType(DjangoObjectType):
+    id = graphene.Int()  # there is a weird bug where graphene does not return the id so we will just explicitly define it
+
     class Meta:
         model = ProjectPhases
+        exclude = ('planned_date_range',)
+
+    def resolve_id(self, info):
+        return self.id
 
 
 class UsersProjectsType(DjangoObjectType):
@@ -20,17 +26,21 @@ class UsersProjectsType(DjangoObjectType):
 
 class ProjectDetailsType(DjangoObjectType):
     project_phases = graphene.List(graphene.NonNull(ProjectPhasesType))
-    # project_phases = graphene.String()
+    id = graphene.Int()
 
     class Meta:
         model = ProjectDetails
+        exclude = ('planned_date_range',)
+
+    def resolve_id(self, info):
+        return self.id
 
     def resolve_project_phases(self, info):
         result = []
         objs = list(ConstructionPhaseTbl.objects.filter(
             design_project=self.id))
         for obj in objs:
-            new_obj = ProjectPhases()
+            new_obj = ProjectPhasesType()
             new_obj.__dict__ = obj.__dict__.copy()
             new_obj.start_date = obj.planned_date_range.lower
             new_obj.end_date = obj.planned_date_range.upper
