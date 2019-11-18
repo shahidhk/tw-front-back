@@ -158,7 +158,7 @@ class Query(ObjectType):
 
     def resolve_project_details(self, info, where):
         auth = AuthenticationUtil(info)
-        return project_details(where.id._eq)
+        return [project_details(where.id._eq)]
 
 
 class Mutations(graphene.ObjectType):

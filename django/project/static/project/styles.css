@@ -1,169 +1,180 @@
-td, th {
-    border-style: solid;
-    border-width: 1px;
-    min-width: 5%;
+td,
+th {
+  border-style: solid;
+  border-width: 1px;
+  min-width: 5%;
 }
 
-
 body {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    margin: 0px;
-    font-family: "Calibri Light", Helvetica, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0px;
+  font-family: "Calibri Light", Helvetica, sans-serif;
 }
 
 header {
-    flex: 0 0 auto;
-    height: 5em;
-    display: flex;
-    justify-content: space-between;
-    background-color: #165788;
-    overflow: auto;
+  flex: 0 0 auto;
+  height: 5em;
+  display: flex;
+  justify-content: space-between;
+  background-color: #165788;
+  overflow: auto;
 }
 
-header img, header h1, header div {
-    margin-left: 2%;
-    margin-right: 2%;
-    margin-top: 0.5%;
+header img,
+header h1,
+header div {
+  margin-left: 2%;
+  margin-right: 2%;
+  margin-top: 0.5%;
 }
 
 header div * {
-    margin: 0;
-    text-align: right;
+  margin: 0;
+  text-align: right;
 }
 
 header h1 {
-    color: white;
-    font-size: 3em;
+  color: white;
+  font-size: 3em;
 }
 
 header .login-div {
-    font-size: 1.5em;
-    color: white;
+  font-size: 1.5em;
+  color: white;
 }
 .content {
-    flex: 1 1 auto;
-    display: flex;
+  flex: 1 1 auto;
+  display: flex;
 }
 
 #sidebar {
-    flex: 0 0 auto;
-    vertical-align: top;
-    width: 15%;
-    height: 100%;
-    overflow: auto;
-    /* border-right: 2px;
+  flex: 0 0 auto;
+  vertical-align: top;
+  width: 15%;
+  height: 100%;
+  overflow: auto;
+  /* border-right: 2px;
     border-right-color: #165788;
     border-right-style: solid; */
-    background-color: #0E74B3;
+  background-color: #0e74b3;
 }
 
 .sidebar-nav {
-    font-size: 1.5em;
-    margin-left: 2%;
-    margin-right: 2%;
+  font-size: 1.5em;
+  margin-left: 2%;
+  margin-right: 2%;
 }
 
 #main-content {
-    flex: 1 1 auto;
-    margin-left: 2%;
-    margin-right: 2%;
-    height: calc(100vh - 7em);
-    overflow: auto;
+  flex: 1 1 auto;
+  margin-left: 2%;
+  margin-right: 2%;
+  height: calc(100vh - 7em);
+  overflow: auto;
 }
 
 footer {
-    flex: 0 0 auto;
-    height: 2em;
-    display: flex;
-    justify-content: space-between;
-    background-color: orange;
-    font-size: 1em;
-    overflow: auto;
+  flex: 0 0 auto;
+  height: 2em;
+  display: flex;
+  justify-content: space-between;
+  background-color: orange;
+  font-size: 1em;
+  overflow: auto;
 }
 
 footer p {
-    text-align: right;
-    margin-right: 0.5em;
-    margin-left: 0.5em;
-    margin-bottom: 0px;
-    margin-top: 0.5em;
+  text-align: right;
+  margin-right: 0.5em;
+  margin-left: 0.5em;
+  margin-bottom: 0px;
+  margin-top: 0.5em;
 }
 
 #logo {
-    height: 46px;
+  height: 46px;
 }
 
 /* hyperlink css */
 
 a:link p {
-    color: lightgrey;
+  color: lightgrey;
 }
 
 a p:hover {
-    background-color: #2F8CA0;
+  background-color: #2f8ca0;
 }
 
-a:visited p{
-    color: lightgrey;
+a:visited p {
+  color: lightgrey;
 }
 
-
-.sidebar-nav a, .login-div a {
-    text-decoration: none;
+.sidebar-nav a,
+.login-div a {
+  text-decoration: none;
 }
 
 .inline-block {
-    display: inline-block;
+  display: inline-block;
 }
 
 .project-header {
-    display: flex;
-    flex-direction: row;
+  display: flex;
+  flex-direction: row;
 }
 
 .project-header * {
-    margin: 2%;
-    margin-left: 0%;
+  margin: 2%;
+  margin-left: 0%;
 }
 
 /* https://stackoverflow.com/questions/35506196/render-scrollbar-on-flexbox-div-not-browser-window */
 
 form {
-    /* Center the form on the page */
-    display: flex;
-    flex-direction: column;
-    margin: 0 auto;
-    width: 90%;
-    /* Form outline */
-    padding: 1em;
-    border: 1px solid #CCC;
-    border-radius: 1em;
+  /* Center the form on the page */
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  width: 90%;
+  /* Form outline */
+  padding: 1em;
+  border: 1px solid #ccc;
+  border-radius: 1em;
 }
-  
+
 form div {
-    margin-bottom: 1em;
-    display: flex;
-    align-items: stretch;
-    flex-wrap: wrap;
+  margin-bottom: 1em;
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
 }
 
 form div label {
-    width: 200px;
-    margin-right: 1em;
+  width: 200px;
+  margin-right: 1em;
 }
 
 form div.headings label {
-    width: unset;
-    flex-grow: 1;
-    margin-right: 0;
+  width: unset;
+  flex-grow: 1;
+  margin-right: 0;
 }
 
-form div input, form div textarea {
-    flex-grow: 1;
+form div input,
+form div textarea {
+  flex-grow: 1;
 }
 
 .hidden {
-    display: none;
+  display: none;
+}
+
+tr.data:hover {
+  background: lightblue;
+}
+
+td a {
+  display: block;
 }

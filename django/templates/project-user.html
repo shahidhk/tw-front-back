@@ -4,23 +4,20 @@
 <h1>List of Projects</h1>
 
 {% if projects %}
-
-<div class="grid">
-    <form id="projects" ic-post-to="/api/user-projects/">
-        <div class="headings">
-            <label for="project_number">Project Number</label>
-            <label for="project_name">Project Name</label>
-            <label for="user_role">My Role</label>
-        </div>
-        {% for project in projects %}
-        <div class="data">
-            <input type="text" id="project_number" name="project_number" value={{project.project_number}} />
-            <input type="text" id="project_name" name="project_name" value={{project.project_name}} />
-            <input type="text" id="user_role" name="user_role" value={{project.user_role}} />
-        </div>
-        {% endfor %}
-    </form>
-</div>
+<table class="projects">
+    <tr class="header">
+        <td>Project Number</td>
+        <td>Project Name</td>
+        <td>My Role</td>
+    </tr>
+    {% for project in projects %}
+    <tr class="data">
+        <td><a href="{% url 'project-details' project.project_number %}">{{project.project_number}}</a></td>
+        <td><a href="{% url 'project-details' project.project_number %}">{{project.project_name}}</a></td>
+        <td><a href="{% url 'project-details' project.project_number %}">{{project.user_role}}</a></td>
+    </tr>
+    {% endfor %}
+</table>
 
 
 {% else %}

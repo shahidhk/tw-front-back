@@ -5,8 +5,8 @@ from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from djangoAPI.models import *
-from project.commons import DisplayUserProjects, DisplayProjectDetails
 from project.forms import *
+import project.commons
 # Create your views here.
 
 
@@ -17,60 +17,18 @@ def project_home(request):
     if not request.user.is_authenticated:
         return render(request, 'project-home.html')
     usr_id = request.user.id
-    usr_obj = UserTbl.objects.get(pk=usr_id)
-    usr_projs = []
-    # the role_id in *HumanRoleTypeTbl is the same for all tables so it can be used to find both design and construction projects human roles
-    design_proj_roles = DesignProjectHumanRoleTbl.objects.filter(
-        human_role_type_id=usr_obj.role_id)
-    for design_proj_role in design_proj_roles:
-        design_proj = DesignProjectTbl.objects.get(pk=design_proj_role.design_project_id)
-        usr_role = DesignProjectHumanRoleTypeTbl.objects.get(pk=design_proj_role.human_role_type_id)
-        display_proj = DisplayUserProjects(
-            design_proj.id, design_proj.name, usr_role.name, 'design')
-        usr_projs.append(display_proj)
-    constr_proj_roles = ConstructionPhaseHumanRoleTbl.objects.filter(
-        human_role_type_id=usr_obj.role_id)
-    for constr_proj_role in constr_proj_roles:
-        constr_proj = ConstructionPhaseTbl.objects.get(pk=constr_proj_role.construction_phase_id)
-        usr_role = ConstructionPhaseHumanRoleTypeTbl.objects.get(
-            pk=constr_proj_role.human_role_type_id)
-        display_proj = DisplayUserProjects(
-            constr_proj.id, constr_proj.name, usr_role.name, 'construction')
-        usr_projs.append(display_proj)
+    usr_projs = project.commons.user_projects(usr_id)
     return render(request, 'project-user.html', context={'projects': usr_projs, })
 
 
-def project_details(request, proj_type, proj_id):
+def project_details(request, proj_id):
     """
     Display the Details of a Project
-
-    The Project can be Construction or Design
     """
-    if proj_type == 'design':
-        proj = get_object_or_404(DesignProjectTbl, pk=proj_id)
-        disp_proj_detail = DisplayProjectDetails(
-            bus_unit=proj.op_bus_unit.name,
-            design_contract_number=proj.contract_number,
-            project_scope_description=proj.scope_description,
-            start_date=proj.planned_date_range.lower,
-        )
-        phases = list(DesignStageTbl.objects.filter(
-            design_project=proj).order_by('planned_date_range'))
-        proj_type = 'Design'
-    elif proj_type == 'construction':
-        proj = get_object_or_404(ConstructionPhaseTbl, pk=proj_id)
-        disp_proj_detail = DisplayProjectDetails(
-            bus_unit=proj.op_bus_unit.name,
-            design_contract_number=proj.contract_number,
-            project_scope_description=proj.scope_description,
-            start_date=proj.planned_date_range.lower,
-        )
-        phases = list(ConstructionStageTbl.objects.filter(
-            construction_phase=proj).order_by('planned_date_range'))
-        proj_type = 'Construction'
-    else:
-        raise Http404(proj_type + ': Project Type Does Not Exist')
-    return render(request, 'project-detail.html', context={'proj': disp_proj_detail, 'phases': phases, 'type': proj_type, })
+    details = project.commons.project_details(proj_id)
+    phases = project.commons.project_phases(proj_id)
+    print(vars(details))
+    return render(request, 'project-detail.html', context={'proj': details, 'phases': phases})
 
 
 def project_edit(request, obj_id=None):

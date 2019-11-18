@@ -1,37 +1,8 @@
 import datetime
-from dataclasses import dataclass, field
 from djangoAPI.models import *
 from project.models import *
 from djangoAPI.graphql.projects import *
 from django.shortcuts import render, get_object_or_404, get_list_or_404
-
-
-@dataclass(order=True)
-class DisplayUserProjects:
-    """
-    Simple Class for displaying which projects a user belongs to
-    """
-    project_number: str = ''
-    project_name: str = ''
-    user_role: str = ''
-    project_type: str = ''
-
-
-@dataclass(order=True)
-class DisplayProjectDetails:
-    """
-    Class for Passing Project Detailed information to template
-    """
-    bus_unit: str = ''
-    design_contract_number: str = ''
-    project_manager: str = ''
-    project_manager_email: str = ''
-    key_bus_unit_contract: str = ''
-    key_bus_unit_contract_email: str = ''
-    asset_data_steward: str = ''
-    asset_data_steward_email: str = ''
-    project_scope_description: str = ''
-    start_date: datetime.date = datetime.date.today()
 
 
 def user_projects(usr_id):
@@ -99,4 +70,20 @@ def project_details(proj_id):
                     break
         except Exception:
             pass
-    return [disp_proj_detail]
+    return disp_proj_detail
+
+
+def project_phases(project_id):
+    """
+    Returns all construction phases associated with a design project
+    """
+    result = []
+    objs = list(ConstructionPhaseTbl.objects.filter(
+        design_project=project_id))
+    for obj in objs:
+        new_obj = ProjectPhases()
+        new_obj.__dict__ = obj.__dict__.copy()
+        new_obj.start_date = obj.planned_date_range.lower
+        new_obj.end_date = obj.planned_date_range.upper
+        result.append(new_obj)
+    return result
