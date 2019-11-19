@@ -3,7 +3,7 @@ from django.db import models
 from graphene_django.types import DjangoObjectType
 
 from djangoAPI.models import *
-from project.models import UserProjects, ProjectDetails, ProjectPhases, ProjectType
+from project.models import UserProjects, ProjectDetails, ConstructionPhases, ProjectType
 
 # graphene classes using models
 
@@ -12,7 +12,7 @@ class ProjectPhasesType(DjangoObjectType):
     id = graphene.Int()  # there is a weird bug where graphene does not return the id so we will just explicitly define it
 
     class Meta:
-        model = ProjectPhases
+        model = ConstructionPhases
         exclude = ('planned_date_range',)
 
     def resolve_id(self, info):

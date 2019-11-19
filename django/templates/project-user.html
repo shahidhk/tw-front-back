@@ -1,26 +1,52 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <h1>List of Projects</h1>
 
-{% if projects %}
-<table class="projects">
-    <tr class="header">
-        <td>Project Number</td>
-        <td>Project Name</td>
-        <td>My Role</td>
-    </tr>
-    {% for project in projects %}
-    <tr class="data">
-        <td><a href="{% url 'project-details' project.project_number %}">{{project.project_number}}</a></td>
-        <td><a href="{% url 'project-details' project.project_number %}">{{project.project_name}}</a></td>
-        <td><a href="{% url 'project-details' project.project_number %}">{{project.user_role}}</a></td>
-    </tr>
-    {% endfor %}
-</table>
+<div id="table-holder">
+  {% include "blocks/list-of-projects.html" %}
+</div>
 
-
-{% else %}
-<p>You Currently Have no Projects.</p>
-{% endif %}
+<form
+  id="project-role"
+  ic-post-to="/api/update-role/"
+  style="visibility: hidden;"
+  ic-target="#table-holder"
+>
+  <h3 style="margin-top: 0%;">Editing Project Number:</h3>
+  <div class="hidden">
+    {% csrf_token %}
+  </div>
+  <div class="hidden">
+    <input type="hidden" name="id" value="" />
+  </div>
+  <div>
+    <label for="project_number">Project Number:</label>
+    <input
+      type="text"
+      id="project_number"
+      name="project_number"
+      value=""
+      readonly="readonly"
+    />
+  </div>
+  <div>
+    <label for="project_name">Project Name:</label>
+    <input
+      type="text"
+      id="project_name"
+      name="project_name"
+      value=""
+      readonly="readonly"
+    />
+  </div>
+  <div>
+    <label for="user_role">My Role:</label>
+    <input
+      type="text"
+      id="user_role"
+      name="user_role"
+      value="TODO fill this with a list of available roles"
+    />
+  </div>
+  <button class="btn">Save</button>
+</form>
 {% endblock %}

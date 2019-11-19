@@ -142,7 +142,7 @@ def MissingAssetUtil(asset_data, auth):
         with transaction.atomic():
             asset = PreDesignReconciledAssetRecordTbl()
             asset.designer_planned_action_type_tbl_id = 'c'
-            asset.entity_exists = False
+            asset.entity_exists = True
             asset.initial_project_asset_role_id = None
             asset.missing_from_registry = True
             asset.asset_serial_number = asset_data['asset_serial_number']

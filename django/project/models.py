@@ -18,8 +18,9 @@ class UserProjects(models.Model):
     project_name = models.CharField(max_length=200, null=False)
     user_role = models.CharField(max_length=50, null=False)
 
-    class Meta:
-        abstract = True
+    # DRF uses database tables to run validations so these tables need to acutally exist
+    # class Meta:
+    #     abstract = True
 
 
 class ProjectDetails(DesignProjectTbl):
@@ -36,15 +37,15 @@ class ProjectDetails(DesignProjectTbl):
     start_date = models.DateField()
     end_date = models.DateField()
 
-    class Meta:
-        abstract = True
+    # class Meta:
+    #     abstract = True
 
 
-class ProjectPhases(ConstructionPhaseTbl):
+class ConstructionPhases(ConstructionPhaseTbl):
     """
     """
     start_date = models.DateField()
     end_date = models.DateField()
 
-    class Meta:
-        abstract = True
+    # class Meta:
+    #     abstract = True

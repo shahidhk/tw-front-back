@@ -81,9 +81,22 @@ def project_phases(project_id):
     objs = list(ConstructionPhaseTbl.objects.filter(
         design_project=project_id))
     for obj in objs:
-        new_obj = ProjectPhases()
+        new_obj = ConstructionPhases()
         new_obj.__dict__ = obj.__dict__.copy()
         new_obj.start_date = obj.planned_date_range.lower
         new_obj.end_date = obj.planned_date_range.upper
         result.append(new_obj)
     return result
+
+
+def construction_phase(phase_id):
+    """
+    Return one construction phase by id
+    """
+    obj = ConstructionPhaseTbl.objects.get(pk=phase_id)
+    new_obj = ConstructionPhases()
+    new_obj.__dict__ = obj.__dict__.copy()
+    new_obj.start_date = obj.planned_date_range.lower
+    new_obj.end_date = obj.planned_date_range.upper
+    print(new_obj.start_date)
+    return new_obj

@@ -178,3 +178,7 @@ tr.data:hover {
 td a {
   display: block;
 }
+
+.data:hover {
+  cursor: pointer;
+}

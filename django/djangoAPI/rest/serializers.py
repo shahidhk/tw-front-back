@@ -1,15 +1,15 @@
 from rest_framework import serializers
 from django.http import JsonResponse, HttpResponse
+from project.models import UserProjects, ConstructionPhases, ProjectDetails
 
 
-class ProjectPhaseSerial(serializers.Serializer):
+class ConstructionPhaseSerial(serializers.ModelSerializer):
     """
     Serializer for phasing construction or design project phase information
     """
-    phase_id = serializers.CharField(required=True)
-    name = serializers.CharField(required=True)
-    number = serializers.CharField(required=True)
-    description = serializers.CharField(required=True)
+    class Meta:
+        model = ConstructionPhases
+        fields = '__all__'
 
     def create(self, validated_data):
         """
@@ -30,19 +30,10 @@ class ProjectSerial(serializers.Serializer):
     """
     Serializer for ..
     """
-    bus_unit = serializers.CharField(required=True)
-    design_contract_number = serializers.CharField(required=True)
-    project_manager = serializers.CharField(required=True)
-    project_manager_email = serializers.EmailField(required=True)
-    asset_data_steward = serializers.CharField(required=True)
-    asset_data_steward_email = serializers.EmailField(required=True)
-    key_bus_unit_contract = serializers.CharField(required=True)
-    key_bus_unit_contract_email = serializers.EmailField(required=True)
-    project_scope_description = serializers.CharField(required=True)
-    start_date = serializers.DateField(required=True)
-    project_type = serializers.CharField(required=True)
+    class Meta:
+        model = ProjectDetails
+        fields = '__all__'
 
-    
     def create(self, validated_data):
         """
         Creates a new project phase
@@ -57,41 +48,18 @@ class ProjectSerial(serializers.Serializer):
         """
         return validated_data
 
-class RoleID(serializers.Serializer):
-    role_id = serializers.IntegerField()
 
+class ProjectRoleSerial(serializers.ModelSerializer):
+    class Meta:
+        model = UserProjects
+        fields = '__all__'
 
-class DoesNotExistSerial(serializers.Serializer):
-    role_id = serializers.IntegerField()
-    entity_exists = serializers.BooleanField()
+    def create(self, validated_data):
+        """
+        TODO
+        """
+        return validated_data
 
-
-class AssetID(serializers.Serializer):
-    asset_id = serializers.IntegerField()
-
-
-class MissingRoleSerial(serializers.Serializer):
-    role_number = serializers.CharField()
-    role_name = serializers.CharField()
-    parent_id = serializers.IntegerField()
-    role_criticality = serializers.IntegerField()
-    role_priority = serializers.IntegerField()
-    role_spatial_site_id = serializers.IntegerField()
-
-
-class MissingAssetSerial(serializers.Serializer):
-    asset_serial_number = serializers.CharField()
-
-
-class AssetRoleID(serializers.Serializer):
-    role_id = serializers.IntegerField(allow_null=True)
-    asset_id = serializers.IntegerField()
-
-
-class BoolSerializer(serializers.Serializer):
-    result = serializers.BooleanField()
-
-
-class RoleParentID(serializers.Serializer):
-    role_id = serializers.IntegerField()
-    parent_id = serializers.IntegerField()
+    def save(self, **kwargs):
+        print(kwargs)
+        return None

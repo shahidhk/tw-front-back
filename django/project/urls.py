@@ -7,6 +7,7 @@ urlpatterns = [
     path('details/<int:proj_id>/', views.project_details, name='project-details'),
     path('edit-project/', views.project_edit, name='project-edit'),
     path('edit-project/<int:obj_id>', views.project_edit, name='project-update'),
+    path('test', views.test_page, name='testpage'),
     path('edit-generic', views.DesignProjectCreate.as_view()),
     # path('', TemplateView.as_view(template_name='project-home.html'), name='project-home'),
 ]

@@ -1,0 +1,40 @@
+{% load static %} {% if projects %}
+<table id="user-projects" class="projects">
+  <tr class="header">
+    <td>Project Number</td>
+    <td>Project Name</td>
+    <td>My Role</td>
+    <td>Edit Role</td>
+  </tr>
+  {% for project in projects %}
+  <tr class="data">
+    <td>
+      <a href="{% url 'project-details' project.project_number %}"
+        >{{project.project_number}}</a
+      >
+    </td>
+    <td>
+      <a href="{% url 'project-details' project.project_number %}"
+        >{{project.project_name}}</a
+      >
+    </td>
+    <td>
+      <a href="{% url 'project-details' project.project_number %}"
+        >{{project.user_role}}</a
+      >
+    </td>
+    <td>
+      <input
+        type="image"
+        src="{% static 'project/edit-5.svg' %}"
+        alt="Edit My Role"
+        onclick="editRole(this);"
+      />
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% else %}
+<p>You Currently Have no Projects.</p>
+{% endif %}

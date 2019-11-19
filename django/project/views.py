@@ -27,7 +27,6 @@ def project_details(request, proj_id):
     """
     details = project.commons.project_details(proj_id)
     phases = project.commons.project_phases(proj_id)
-    print(vars(details))
     return render(request, 'project-detail.html', context={'proj': details, 'phases': phases})
 
 
@@ -55,6 +54,13 @@ def project_edit(request, obj_id=None):
     }
 
     return render(request, 'generic-form.html', context)
+
+
+def test_page(request):
+    usr_id = request.user.id
+    usr_projs = project.commons.user_projects(usr_id)
+    context = {'projects': usr_projs, }
+    return render(request, 'test.html', context)
 
 
 class DesignProjectCreate(CreateView):

@@ -1,0 +1,40 @@
+{% load static %}
+<table class="phases" id="project-phases" style="margin-bottom: 2em;">
+  <tr class="header">
+    <td>Phase Number</td>
+    <td>Phase Name</td>
+    <td>Phase Contract Number</td>
+    <td>Phase Scope Description</td>
+    <td>
+      <input
+        type="image"
+        src="{% static 'project/plus-6.svg' %}"
+        alt="Add Phase"
+        class="button"
+        onclick="addRow(this);"
+      />
+    </td>
+  </tr>
+  {% for phase in phases %}
+  <tr
+    class="data"
+    id="phase-{{phase.id}}"
+    onclick="constructionPhaseDetails(this);"
+    ic-get-from="/api/construction-detailed/{{phase.id}}/"
+    ic-target="#form-holder"
+  >
+    <td>{{phase.id}}</td>
+    <td id="name">{{phase.name}}</td>
+    <td id="number">{{phase.contract_number}}</td>
+    <td id="description">{{phase.scope_description}}</td>
+    <td>
+      <input
+        type="image"
+        src="{% static 'project/edit-5.svg' %}"
+        alt="Edit Phase"
+        onclick="editPhase(this);"
+      />
+    </td>
+  </tr>
+  {% endfor %}
+</table>
