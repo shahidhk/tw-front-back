@@ -150,13 +150,16 @@ class UpdateReserView(graphene.Mutation):
 
 class Query(ObjectType):
     user_projects = graphene.List(UsersProjectsType)
-    project_details = graphene.List(ProjectDetailsType, where=IDEQ(required=False)) # default is false btw
+    project_details = graphene.List(ProjectDetailsType, where=IDEQ(
+        required=False))  # default is false btw
 
     def resolve_user_projects(self, info, **kwargs):
         auth = AuthenticationUtil(info)
         return user_projects(auth['user_id'])
 
-    def resolve_project_details(self, info, where):
+    def resolve_project_details(self, info, where=None):
+        if not where:
+            return [ProjectDetails()]
         auth = AuthenticationUtil(info)
         return [project_details(where.id._eq)]
 
