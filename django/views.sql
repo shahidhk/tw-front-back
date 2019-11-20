@@ -289,6 +289,8 @@ CREATE OR REPLACE FUNCTION update_parent_changed() RETURNS TRIGGER AS $$
                 if new_parent_mtoi <> orig_parent_mtoi then
                     status = true;
                 end if;
+            elsif OLD.parent_id_id = NEW.parent_id_id then -- if the parent didnt change just use the old one
+                select parent_changed from public."djangoAPI_PreDesignReconciledRoleRecordTbl" as rr where rr.projectassetrolerecordtbl_ptr_id = new.id into status;
             END IF;
             update public."djangoAPI_PreDesignReconciledRoleRecordTbl" as rr set parent_changed = status where rr.projectassetrolerecordtbl_ptr_id = new.id;
         end if;
