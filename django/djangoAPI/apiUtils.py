@@ -410,10 +410,11 @@ def RoleParentUtil(data, auth):
             return {'result': 1,
                     'errors': 'E40: This action will create a circular reference: ' + role.role_name + ' is in hierarchy of ' + parent.role_name
                     }
-        if not parent.predesignreconciledrolerecordtbl.entity_exists:
-            return {'result': 1,
-                    'errors': 'E33: You are assigning an role to a parent that is marked as Non Existant'
-                    }
+        if parent.pk > 10: # doesnt make sense to check existence if we are trying to assign to states
+            if not parent.predesignreconciledrolerecordtbl.entity_exists:
+                return {'result': 1,
+                        'errors': 'E33: You are assigning an role to a parent that is marked as Non Existant'
+                        }
     try:
         role.parent_id_id = data['parent_id']
         data['entity_exists'] = True

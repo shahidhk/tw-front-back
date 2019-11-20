@@ -148,7 +148,7 @@ select
     r.project_id,
     r.role_exists,
     r.role_missing_from_registry,
-    subpath(r.full_path, 1) as full_path,
+    subpath(r.full_path, -1) as full_path,
     r.parent_changed,
     r.asset_id,
     r.asset_serial_number,
