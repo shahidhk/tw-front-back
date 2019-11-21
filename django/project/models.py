@@ -1,5 +1,5 @@
 from django.db import models
-from djangoAPI.models import ConstructionPhaseTbl, DesignProjectTbl
+from djangoAPI.models import ConstructionPhaseTbl, DesignProjectTbl, DesignProjectHumanRoleTypeTbl
 # Dummy Models for serializers and graphene-django
 
 
@@ -16,7 +16,7 @@ class UserProjects(models.Model):
     id = models.IntegerField(primary_key=True, null=False)
     project_number = models.CharField(max_length=100, null=False)
     project_name = models.CharField(max_length=200, null=False)
-    user_role = models.CharField(max_length=50, null=False)
+    user_role = models.ForeignKey(DesignProjectHumanRoleTypeTbl, models.DO_NOTHING, null=False)
 
     # DRF uses database tables to run validations so these tables need to acutally exist
     # class Meta:
@@ -27,7 +27,8 @@ class ProjectDetails(DesignProjectTbl):
     """
     Model for details about the project
     """
-    bus_unit_name = models.CharField(max_length=200, null=False)
+    # design_project = models.OneToOneField(DesignProjectTbl, models.DO_NOTHING)
+    bus_unit_name = models.CharField(max_length=200, null=True, blank=True)
     project_manager = models.CharField(max_length=200)
     project_manager_email = models.EmailField()
     key_bus_unit_contract = models.CharField(max_length=200)
@@ -46,6 +47,5 @@ class ConstructionPhases(ConstructionPhaseTbl):
     """
     start_date = models.DateField()
     end_date = models.DateField()
-
     # class Meta:
     #     abstract = True

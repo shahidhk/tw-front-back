@@ -20,15 +20,18 @@
     </td>
     <td>
       <a href="{% url 'project-details' project.project_number %}"
-        >{{project.user_role}}</a
+        >{{project.user_role.name}}</a
       >
     </td>
-    <td>
+    <td
+      ic-get-from="/api/project-role/{{project.id}}/"
+      ic-target="#form-holder"
+      onclick="unHideForm(this);"
+    >
       <input
         type="image"
         src="{% static 'project/edit-5.svg' %}"
         alt="Edit My Role"
-        onclick="editRole(this);"
       />
     </td>
   </tr>

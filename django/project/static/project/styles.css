@@ -69,8 +69,6 @@ header .login-div {
 
 #main-content {
   flex: 1 1 auto;
-  margin-left: 2%;
-  margin-right: 2%;
   height: calc(100vh - 7em);
   overflow: auto;
 }
@@ -136,7 +134,7 @@ form {
   /* Center the form on the page */
   display: flex;
   flex-direction: column;
-  margin: 0 auto;
+  margin: 2em auto;
   width: 90%;
   /* Form outline */
   padding: 1em;

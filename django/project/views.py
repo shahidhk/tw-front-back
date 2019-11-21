@@ -18,7 +18,7 @@ def project_home(request):
         return render(request, 'project-home.html')
     usr_id = request.user.id
     usr_projs = project.commons.user_projects(usr_id)
-    return render(request, 'project-user.html', context={'projects': usr_projs, })
+    return render(request, 'project-user.html', context={'projects': usr_projs})
 
 
 def project_details(request, proj_id):
@@ -27,7 +27,8 @@ def project_details(request, proj_id):
     """
     details = project.commons.project_details(proj_id)
     phases = project.commons.project_phases(proj_id)
-    return render(request, 'project-detail.html', context={'proj': details, 'phases': phases})
+    BUSINESS_UNITS = BusinessUnit.objects.all()
+    return render(request, 'project-detail.html', context={'proj': details, 'phases': phases, 'units': BUSINESS_UNITS, })
 
 
 def project_edit(request, obj_id=None):

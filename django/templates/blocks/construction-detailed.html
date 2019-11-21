@@ -1,89 +1,51 @@
-<form id="phases-form" ic-post-to="/api/save-phase/" ic-target="#table-holder">
-  <h3 style="margin-top: 0%;">Project Construction Phase Details:</h3>
+{% load static %}
+<form id="phases-form" ic-post-to="/api/save-phase/{{phase.id}}/" ic-target="#table-holder">
+  <div id="form-header" style="display: flex; justify-content: space-between;">
+    <h2 style="margin-top: 0%;">Project Construction Phase Details:</h2>
+    <div id="form-buttons">
+      <img id="hide-button" src=" {% static 'project/eye-8.svg' %}" alt="Hide Construction Details"
+        style="width:2em;height:2em;margin-right:2em;cursor:pointer;" onclick="hidePhase(this);">
+      <img id="edit-button" src=" {% static 'project/edit-5.svg' %}" alt="Edit Construction Phase"
+        style="width:2em;height:2em;margin-right:2em;cursor:pointer;" onclick="editPhase(this);">
+      <img id="save-button" src="{% static 'project/save-2.svg' %}" alt="Save Construction Phase"
+        style="width:2em;height:2em;cursor:pointer;" onclick="savePhase(this);">
+    </div>
+  </div>
   <div class="hidden">
     {% csrf_token %}
   </div>
-  <div class="hidden">
-    <input type="hidden" name="id" value="" />
-  </div>
   <div>
     <label for="name">Project Name:</label>
-    <input
-      type="text"
-      id="name"
-      name="name"
-      value="{{phase.name}}"
-      readonly="readonly"
-    />
+    <input type="text" id="name" name="name" value="{{phase.name}}" disabled="true" />
   </div>
   <div>
     <label for="phase_number">Phase Number:</label>
-    <input
-      type="text"
-      id="phase_number"
-      name="phase_number"
-      value="{{phase.phase_number}}"
-      readonly="readonly"
-    />
+    <input type="text" id="phase_number" name="phase_number" value="{{phase.phase_number}}" disabled="true" />
   </div>
   <div>
     <label for="contract_number">Contract Number:</label>
-    <input
-      type="text"
-      id="contract_number"
-      name="contract_number"
-      value="{{phase.contract_number}}"
-      readonly="readonly"
-    />
+    <input type="text" id="contract_number" name="contract_number" value="{{phase.contract_number}}" disabled="true" />
   </div>
   <div>
     <label for="budget">Budget:</label>
-    <input
-      type="text"
-      id="budget"
-      name="budget"
-      value="{{phase.budget}}"
-      readonly="readonly"
-    />
+    <input type="text" id="budget" name="budget" value="{{phase.budget}}" disabled="true" />
   </div>
   <div>
     <label for="scope_description">Scope Description:</label>
-    <input
-      type="text"
-      id="scope_description"
-      name="scope_description"
-      value="{{phase.scope_description}}"
-      readonly="readonly"
-    />
+    <input type="text" id="scope_description" name="scope_description" value="{{phase.scope_description}}"
+      disabled="true" />
   </div>
   <div>
-    <label for="constructor_organization_name"
-      >Constructor Organization Name:</label
-    >
-    <input
-      type="text"
-      id="constructor_organization_name"
-      name="constructor_organization_name"
-      value="{{phase.constructor_organization_name}}"
-      readonly="readonly"
-    />
+    <label for="constructor_organization_name">Constructor Organization Name:</label>
+    <input type="text" id="constructor_organization_name" name="constructor_organization_name"
+      value="{{phase.constructor_organization_name}}" disabled="true" />
   </div>
   <div>
     <label for="start_date">Start Date:</label>
-    <input
-      type="date"
-      id="start_date"
-      name="start_date"
-      value="{{phase.start_date|date:'Y-m-d'}}"
-    />
+    <input type="date" id="start_date" name="start_date" value="{{phase.start_date|date:'Y-m-d'}}" disabled="true" />
   </div>
   <div>
     <label for="end_date">End Date:</label>
-    <input
-      type="date"
-      id="end_date"
-      name="end_date"
-      value="{{phase.end_date|date:'Y-m-d'}}"
-    />
+    <input type="date" id="end_date" name="end_date" value="{{phase.end_date|date:'Y-m-d'}}" disabled="true" />
   </div>
 </form>
