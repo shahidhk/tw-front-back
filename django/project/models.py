@@ -27,12 +27,11 @@ class ProjectDetails(DesignProjectTbl):
     """
     Model for details about the project
     """
-    # design_project = models.OneToOneField(DesignProjectTbl, models.DO_NOTHING)
-    bus_unit_name = models.CharField(max_length=200, null=True, blank=True)
+    business_unit_name = models.CharField(max_length=200, null=True, blank=True)
     project_manager = models.CharField(max_length=200)
     project_manager_email = models.EmailField()
-    key_bus_unit_contract = models.CharField(max_length=200)
-    key_bus_unit_contract_email = models.EmailField()
+    key_bus_unit_contact = models.CharField(max_length=200)
+    key_bus_unit_contact_email = models.EmailField()
     asset_data_steward = models.CharField(max_length=200)
     asset_data_steward_email = models.EmailField()
     start_date = models.DateField()

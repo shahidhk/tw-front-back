@@ -150,3 +150,5 @@ LOGGING = {
         },
     },
 }
+
+TEST_RUNNER = 'snapshottest.django.TestRunner'

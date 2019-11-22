@@ -152,6 +152,7 @@ class Query(ObjectType):
     user_projects = graphene.List(UsersProjectsType)
     project_details = graphene.List(ProjectDetailsType, where=IDEQ(
         required=False))  # default is false btw
+    get_type_name = graphene.Field(TableType, name=graphene.String(required=True))
 
     def resolve_user_projects(self, info, **kwargs):
         auth = AuthenticationUtil(info)
