@@ -36,26 +36,20 @@ class QueryTypeCache(models.Model):
             headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
         )
         for field in response.json()['data']['__schema']['queryType']['fields']:
+            if not field['type']['ofType']:
+                continue
+            elif field['type']['ofType']['kind'] == 'OBJECT':
+                query_type = field['type']['ofType']['name']
+                print(query_type)
+            elif field['type']['ofType']['kind'] == 'LIST':
+                query_type = field['type']['ofType']['ofType']['ofType']['name']
+                print(query_type)
+            else:
+                print('undefined type for %s' % (field['name']))
             temp = QueryTypeCache.objects.update_or_create(
                 name=field['name'],
-                query_type=field['type'],
+                query_type=query_type,
             )
             if field['name'] == name:
                 result = temp
         return result[0]
-
-# "ofType": {
-# "kind": "OBJECT",
-# "name": "ProjectDetailsType",
-# "ofType": null
-# }
-#  OR
-# "ofType": {
-# "kind": "LIST",
-# "name": null,
-# "ofType": {
-#     "ofType": {
-#     "name": "reconciliation_view"
-#     }
-# }
-# }
