@@ -20,8 +20,13 @@ class ProjectPhasesType(DjangoObjectType):
 
 
 class UsersProjectsType(DjangoObjectType):
+    user_role = graphene.String()
+
     class Meta:
         model = UserProjects
+
+    def resolve_user_role(self, info):
+        return self.user_role.name
 
 
 class ProjectDetailsType(DjangoObjectType):

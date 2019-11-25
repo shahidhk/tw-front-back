@@ -40,10 +40,8 @@ class QueryTypeCache(models.Model):
                 continue
             elif field['type']['ofType']['kind'] == 'OBJECT':
                 query_type = field['type']['ofType']['name']
-                print(query_type)
             elif field['type']['ofType']['kind'] == 'LIST':
                 query_type = field['type']['ofType']['ofType']['ofType']['name']
-                print(query_type)
             else:
                 print('undefined type for %s' % (field['name']))
             temp = QueryTypeCache.objects.update_or_create(
