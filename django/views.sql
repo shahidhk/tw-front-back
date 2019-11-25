@@ -355,6 +355,8 @@ left join (
 where
 	entity_exists = true
 !!!
+-- https://stackoverflow.com/questions/23257059/postgresql-exclude-records-crossing-other-table-values
+-- probably should do this to exclude removed roles
 create or replace
 view intermediate_change_view_assets as
 select

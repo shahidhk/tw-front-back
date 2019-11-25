@@ -272,7 +272,7 @@ def update_hasura_schema():
     """
     subdomain = os.getenv('BRANCH', '')
     tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets',
-              'garbage_can_unassigned_assets', 'garbage_can_reconciliation_view']
+              'garbage_can_unassigned_assets', 'garbage_can_reconciliation_view', 'change_view']
     for table in tables:
         response = requests.post(
             'https://hasura.' + subdomain + '.duckdns.org/v1/query',
