@@ -328,3 +328,84 @@ $$ LANGUAGE plpgsql;
 create trigger role_changed_tgr
     before insert or update on public."djangoAPI_PreDesignReconciledAssetRecordTbl"
     for each row execute procedure update_role_changed();
+!!!
+create or replace
+view intermediate_change_view_roles as
+select
+	id,
+	role_name,
+	updatable_role_number_id as role_number,
+	approved,
+	parent_id_id as parent,
+	project_tbl_id as project_id,
+	ltree_path as full_path,
+	parent_changed,
+	coalesce(new_role, false) as new_role
+from
+	((public."djangoAPI_ProjectAssetRoleRecordTbl" as BaseRole
+left join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as PreRole on
+	BaseRole.id = PreRole.projectassetrolerecordtbl_ptr_id) as BasePreRole
+left join (
+	select
+		new_role,
+		projectassetrolerecordtbl_ptr_id as link
+	from
+		public."djangoAPI_NewProjectAssetRoleTbl") as NewRole on
+	BasePreRole.id = NewRole.link) as Roles
+where
+	entity_exists = true
+!!!
+create or replace
+view intermediate_change_view_assets as
+select
+	id as asset_id,
+	asset_serial_number,
+	role_changed,
+	coalesce(parent_for_new, parent_after_move, initial_project_asset_role_id_id) as role_link,
+	coalesce(move_installation_stage_id, new_installation_stage_id) as installation_stage_id,
+	move_uninstallation_stage_id as uninstallation_stage_id
+from
+	((public."djangoAPI_ProjectAssetRecordTbl" as BaseAsset
+left join public."djangoAPI_PreDesignReconciledAssetRecordTbl" as PreAsset on
+	BaseAsset.id = PreAsset.projectassetrecordtbl_ptr_id) as BasePreAsset
+left join (
+	select
+		final_project_asset_role_id_id as parent_after_move,
+		predesignreconciledassetrecordtbl_ptr_id as move_link,
+		installation_stage_id as move_installation_stage_id,
+		uninstallation_stage_id as move_uninstallation_stage_id
+	from
+		public."djangoAPI_ExistingAssetMovedByProjectTbl") as MovedAsset on
+	BasePreAsset.id = MovedAsset.move_link) as BasePreMovedAsset
+left join (
+	select
+		final_project_asset_role_id_id as parent_for_new,
+		projectassetrecordtbl_ptr_id as new_link,
+		installation_stage_id as new_installation_stage_id
+	from
+		public."djangoAPI_NewAssetDeliveredByProjectTbl") as NewAsset on
+	BasePreMovedAsset.id = NewAsset.new_link
+!!!
+create or replace
+view change_view as
+select
+	id,
+	role_name,
+	role_number,
+	approved,
+	parent,
+	project_id,
+	subpath(full_path,1) as full_path,
+	parent_changed,
+	new_role,
+	asset_id,
+	asset_serial_number,
+	role_changed,
+	installation_stage_id,
+	uninstallation_stage_id
+from
+	intermediate_change_view_roles as Roles
+left join intermediate_change_view_assets as Assets on
+	Roles.id = assets.role_link
+where
+	full_path <@ '1'::ltree;
