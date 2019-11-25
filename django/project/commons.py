@@ -34,8 +34,8 @@ def project_details(proj_id):
     # put in placeholder data for contacts in case nothing is found
     disp_proj_detail.project_manager = 'Does Not Exist'
     disp_proj_detail.project_manager_email = 'example@example.ca'
-    disp_proj_detail.key_bus_unit_contract = 'Does Not Exist'
-    disp_proj_detail.key_bus_unit_contract_email = 'example@example.ca'
+    disp_proj_detail.key_business_unit_contact = 'Does Not Exist'
+    disp_proj_detail.key_business_unit_contact_email = 'example@example.ca'
     disp_proj_detail.asset_data_steward = 'Does Not Exist'
     disp_proj_detail.asset_data_steward_email = 'example@example.ca'
     persons = get_list_or_404(UserTbl, role_id='b')
@@ -55,8 +55,8 @@ def project_details(proj_id):
             links = UserProjectLinkTbl.objects.filter(user_id=person.pk)
             for link in links:
                 if link.project_id == proj.id:
-                    disp_proj_detail.key_bus_unit_contract = person.get_full_name()
-                    disp_proj_detail.key_bus_unit_contract_email = person.auth_user.email
+                    disp_proj_detail.key_business_unit_contact = person.get_full_name()
+                    disp_proj_detail.key_business_unit_contact_email = person.auth_user.email
                     break
         except Exception:
             pass
