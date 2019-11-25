@@ -164,6 +164,13 @@ class Query(ObjectType):
         auth = AuthenticationUtil(info)
         return [project_details(where.id._eq)]
 
+    def resolve_get_type_name(self, info, name='', **kwargs):
+        try:
+            cache = QueryTypeCache.objects.get(name=name)
+        except QueryTypeCache.DoesNotExist:
+            cache = QueryTypeCache.update(name=name)
+        return cache
+
 
 class Mutations(graphene.ObjectType):
     insert_reconciliation_view = InsertReconciliationView.Field()

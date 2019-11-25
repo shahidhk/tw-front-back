@@ -1,5 +1,6 @@
 import graphene
-
+import requests
+from django.db import models
 # classes for inputs
 
 
@@ -13,7 +14,36 @@ class IDEQ(graphene.InputObjectType):
 
 class TableType(graphene.ObjectType):
     name = graphene.String()
-    ofType = graphene.String()
+    query_type = graphene.String()
+
+
+class QueryTypeCache(models.Model):
+    """
+    Model to cache the type of queries
+    """
+    name = models.CharField(max_length=100, unique=True)
+    query_type = models.TextField()
+
+    @staticmethod
+    def update(name):
+        """
+        if entry does not exist update the db
+        """
+        query = "{ __schema { queryType { name description fields { name type { kind name ofType { name kind ofType { ofType { name } } } } } } } } "
+        response = requests.post(
+            'https://hasura.tw-webapp-next.duckdns.org/v1/graphql',
+            json={'query': query},
+            headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
+        )
+        for field in response.json()['data']['__schema']['queryType']['fields']:
+            temp = QueryTypeCache.objects.update_or_create(
+                name=field['name'],
+                query_type=field['type'],
+            )
+            if field['name'] == name:
+                result = temp
+        return result[0]
+
 # "ofType": {
 # "kind": "OBJECT",
 # "name": "ProjectDetailsType",

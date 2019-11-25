@@ -3,11 +3,7 @@ Initializes the Database with test data and then interface tests are executed to
 
 TODO Check inputs of invalid data (from business rule sense)
 """
-import json
 from snapshottest import TestCase
-from django.test import RequestFactory
-from graphene_django.utils.testing import GraphQLTestCase
-from django.contrib.auth.models import AnonymousUser, User
 from graphene.test import Client
 from djangoAPI.initialize import (clean_up_incrementers,
                                   fill_database_test_data, parse_avantis_data,
