@@ -32,7 +32,9 @@ def AuthenticationUtil(info):
         raise Exception('The User Specified Cannot be Found: ' +
                         info.context.META['HTTP_X_USERNAME'])
     else:
-        if int(info.context.META['HTTP_X_PROJECT']) in user['group']:
+        if info.context.META['HTTP_X_PROJECT'] == '':
+            user['group'] = None
+        elif int(info.context.META['HTTP_X_PROJECT']) in user['group']:
             user['group'] = int(info.context.META['HTTP_X_PROJECT'])
         else:
             raise Exception('User Does Not belong to project_id:' +
