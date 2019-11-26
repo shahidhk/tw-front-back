@@ -17,7 +17,13 @@ class ReconViewType(DjangoObjectType):
         model = ReconciliationView
 
 
+class ChangeViewType(DjangoObjectType):
+    class Meta:
+        model = ChangeView
+
 # input classes
+
+
 class ReconViewSerial(serializers.ModelSerializer):
     class Meta:
         model = ReconciliationView
@@ -117,7 +123,7 @@ class DeleteReconView(graphene.Mutation):
             data = remove_reconciliation(data, auth)
             if data['result'] == 0:
                 data = ReconciliationView.fixed_ltree(pk=data['errors'])
-                return UpdateReconView(returning=(data if data else result))
+                return DeleteReconView(returning=(data if data else result))
             raise GraphQLError(data['errors'])
 
 
@@ -142,3 +148,24 @@ class UpdateOrphanView(graphene.Mutation):
                 data = ReconciliationView.fixed_ltree(pk=data['errors'])
                 return UpdateOrphanView(returning=data)
             raise GraphQLError(data['errors'])
+
+
+class DeleteChangeView(graphene.Mutation):
+    class Arguments:
+        where = IDEQ(required=True)
+    returning = graphene.List(ChangeViewType)
+
+    @staticmethod
+    def mutate(root, info, where=None, _set=None):
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            data = {'role_id': where.id._eq, 'entity_exists': False, }
+            result = ChangeView.fixed_ltree(pk=where.id._eq)
+            data = remove_change(data, auth)
+            if data['result'] == 0:
+                data = ChangeView.fixed_ltree(pk=data['errors'])
+                return DeleteChangeView(returning=(data if data else result))
+            raise GraphQLError(data['errors'])
+

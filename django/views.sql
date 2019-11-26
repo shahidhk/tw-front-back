@@ -365,7 +365,8 @@ select
 	role_changed,
 	coalesce(parent_for_new, parent_after_move, initial_project_asset_role_id_id) as role_link,
 	coalesce(move_installation_stage_id, new_installation_stage_id) as installation_stage_id,
-	move_uninstallation_stage_id as uninstallation_stage_id
+	move_uninstallation_stage_id as uninstallation_stage_id,
+	(not NewAsset.new_link is null) as new_asset
 from
 	((public."djangoAPI_ProjectAssetRecordTbl" as BaseAsset
 left join public."djangoAPI_PreDesignReconciledAssetRecordTbl" as PreAsset on
@@ -404,7 +405,8 @@ select
 	asset_serial_number,
 	role_changed,
 	installation_stage_id,
-	uninstallation_stage_id
+	uninstallation_stage_id,
+    new_asset
 from
 	intermediate_change_view_roles as Roles
 left join intermediate_change_view_assets as Assets on

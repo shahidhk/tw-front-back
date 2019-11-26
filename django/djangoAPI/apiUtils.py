@@ -237,14 +237,13 @@ def remove_reconciliation(data, auth):
     Deletes User Created Role & Asset
     """
     role_id = data['role_id']
-    entity_exists = data['entity_exists']
     try:
         entity = ReconciliationView.objects.get(pk=role_id)
     except Exception as e:
         return {'result': 1,
                 'errors': 'E:B:' + Result(message='This entity does not exist', exception=e, error_code=-1).readable_message(),
                 }
-    result = entity.remove_entity(auth['group'], entity_exists)
+    result = entity.remove_entity(auth['group'], data['entity_exists'])
     if result.success:
         return {'result': 0,
                 'errors': result.obj_id,
@@ -252,6 +251,29 @@ def remove_reconciliation(data, auth):
     else:
         return {'result': 1,
                 'errors': 'E:B:' + result.readable_message(),
+                }
+
+
+def remove_change(data, auth):
+    """
+    Removes newly created Assets & Roles
+    Calls remove_reconciliation for existing asset or role
+    """
+    role_id = data['role_id']
+    try:
+        entity = ChangeView.objects.get(pk=role_id)
+    except Exception as e:
+        return {'result': 1,
+                'errors': 'E:D:' + Result(message='This entity does not exist', exception=e, error_code=-1).readable_message(),
+                }
+    result = entity.remove_entity(auth['group'])
+    if result.success:
+        return {'result': 0,
+                'errors': result.obj_id,
+                }
+    else:
+        return {'result': 1,
+                'errors': 'E:D:' + result.readable_message(),
                 }
 
 

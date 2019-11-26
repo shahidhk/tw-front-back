@@ -1,10 +1,10 @@
-from django.contrib.postgres import fields
-from django.db import models
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
-from djangoAPI.value_lists import *
-from djangoAPI.utils import *
+from django.contrib.postgres import fields
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 
+from djangoAPI.utils import *
+from djangoAPI.value_lists import *
 
 # Field.null default = False
 # Field.blank default = False
@@ -277,7 +277,7 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledRoleRecordTbl'
 
-    def remove_reconciliation(self, project_id, entity_exists):
+    def remove_entity(self, project_id, entity_exists):
         """
         marks existing roles as does not exist
         deletes user added roles
@@ -303,9 +303,22 @@ class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
     class Meta:
         db_table = 'djangoAPI_NewProjectAssetRoleTbl'
 
+    def remove_entity(self, project_id, entity_exists):
+        """
+        deletes new roles
+        """
+        if self.project_tbl_id != project_id:
+            return Result(error_code=19, message='Role Reserved by Another Project')
+        if not self.approved:
+            return Result(error_code=20, message='Role Reservation not Approved')
+        try:
+            self.delete()
+        except Exception as e:
+            return Result(success=False, error_code=21, message='Failed to Delete Role', exception=e)
+        return Result(success=True, obj_id=self.pk)
+
+
 # Asset Tables
-
-
 class ProjectAssetRecordTbl(models.Model):
     '''Master Table of All Assets'''
     project_tbl = models.ForeignKey(
@@ -342,7 +355,7 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledAssetRecordTbl'
 
-    def remove_reconciliation(self, project_id, entity_exists):
+    def remove_entity(self, project_id, entity_exists):
         """
         Marks existing asset as non-existant
         removes user created asset 
@@ -392,6 +405,18 @@ class NewAssetDeliveredByProjectTbl(ProjectAssetRecordTbl):
     class Meta:
         db_table = 'djangoAPI_NewAssetDeliveredByProjectTbl'
 
+    def remove_entity(self, project_id, exists):
+        """
+        Removes self
+        """
+        if self.project_tbl_id != project_id:
+            return Result(success=False, error_code=14, message='Asset Reserved by Another Project')
+        try:
+            self.delete()
+        except Exception as e:
+            return Result(success=False, error_code=15, message='Failed to Delete Asset', exception=e)
+        return Result(success=True, obj_id=self.pk)
+
 
 # Views
 class ReconciliationView(models.Model):
@@ -438,7 +463,7 @@ class ReconciliationView(models.Model):
         except ObjectDoesNotExist as e:
             pass
         else:
-            result = asset.remove_reconciliation(project_id, exists)
+            result = asset.remove_entity(project_id, exists)
             if not result.success:
                 return result
         try:
@@ -454,7 +479,7 @@ class ReconciliationView(models.Model):
                         child.save()
                 except Exception as e:
                     return Result(success=False, error_code=7, message='Failed to Orphan Children of role', exception=e)
-        return role.remove_reconciliation(project_id, exists)
+        return role.remove_entity(project_id, exists)
 
 
 class UnassignedAssetsView(models.Model):
@@ -521,3 +546,82 @@ class ReservationView(models.Model):
             return Result(success=False, message='Cannot change reservation', exception=e, error_code=11)
         else:
             return Result(success=True, obj_id=key)
+
+
+class ChangeView(models.Model):
+    """
+    Read only model using data from change_view
+    """
+    id = models.IntegerField(primary_key=True)
+    role_number = models.TextField(null=True)
+    role_name = models.TextField(null=True)
+    approved = models.BooleanField(null=True)
+    parent = models.IntegerField(null=True)
+    project_id = models.IntegerField(null=True)
+    new_role = models.BooleanField(null=True)
+    full_path = models.TextField(null=True)
+    parent_changed = models.BooleanField(null=True)
+    asset_id = models.IntegerField(null=True)
+    asset_serial_number = models.TextField(null=True)
+    role_changed = models.BooleanField(null=True)
+    installation_stage_id = models.TextField(null=True)
+    uninstallation_stage_id = models.TextField(null=True)
+    new_asset = models.BooleanField(null=True)
+
+    class Meta:
+        managed = False
+        db_table = "change_view"
+
+    @staticmethod
+    def fixed_ltree(pk):
+        '''retrives list of objects with fixed ltree'''
+        lst = list(ChangeView.objects.filter(pk=pk))
+        for l in lst:
+            i = l.full_path.index('.')
+            l.full_path = l.full_path[i+1:]
+        return lst
+
+    def remove_entity(self, project_id, exists=False):
+        """
+        Calls removal functions depending on if they are prexisting or new
+        can only remove
+        """
+        new_role = self.new_role
+        new_asset = self.new_asset
+        role_id = self.pk
+        if new_asset:
+            try:
+                asset = NewAssetDeliveredByProjectTbl.objects.get(
+                    final_project_asset_role_id_id=role_id)
+            except ObjectDoesNotExist as e:
+                pass
+        else:
+            try:
+                asset = PreDesignReconciledAssetRecordTbl.objects.get(
+                    initial_project_asset_role_id_id=role_id)
+            except ObjectDoesNotExist as e:
+                pass
+        result = asset.remove_entity(project_id, exists)
+        if not result.success:
+            return result
+
+        if new_role:
+            try:
+                role = NewProjectAssetRoleTbl.objects.get(pk=role_id)
+            except ObjectDoesNotExist as e:
+                return Result(success=False, error_code=16, message='Role Cannot be found')
+        else:
+            try:
+                role = PreDesignReconciledRoleRecordTbl.objects.get(pk=role_id)
+            except ObjectDoesNotExist as e:
+                return Result(success=False, error_code=17, message='Role Cannot be found')
+        if not exists:  # removing
+            child_roles = list(ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
+            if child_roles:
+                try:
+                    for child in child_roles:
+                        child.parent_id_id = 2
+                        child.save()
+                except Exception as e:
+                    return Result(success=False, error_code=18, message='Failed to Orphan Children of role', exception=e)
+        return role.remove_entity(project_id, exists)
