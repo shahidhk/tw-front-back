@@ -6,26 +6,38 @@ import json
 def AuthenticationUtil(info):
     '''Authenticates the User'''
     # consider changing to a class to replace dictionary
-    data = {
-        'valid': True,
-        'approve': False,
-        'group': None,
-        'user_id': None,
+    USER_PERMISSIONS = {
+        'amber.brasher': {
+            'valid': True,
+            'group': [2, 3, ],
+            'user_id': 3,
+            'approve': False,
+        },
+        'tony.huang': {
+            'valid': True,
+            'group': [2, 3, ],
+            'user_id': 2,
+            'approve': True,
+        },
+        'jon.ma': {
+            'valid': True,
+            'group': [4, ],
+            'user_id': 4,
+            'approve': True,
+        },
     }
-    if info.context.META['HTTP_X_USERNAME'] == 'amber.brasher':
-        data['group'] = 2
-        data['user_id'] = 3
-    elif info.context.META['HTTP_X_USERNAME'] == 'tony.huang':
-        data['approve'] = True
-        data['group'] = 2
-        data['user_id'] = 2
-    elif info.context.META['HTTP_X_USERNAME'] == 'jon.ma':
-        data['approve'] = True
-        data['group'] = 3
-        data['user_id'] = 4
+    try:
+        user = USER_PERMISSIONS[info.context.META['HTTP_X_USERNAME']]
+    except KeyError:
+        raise Exception('The User Specified Cannot be Found: ' +
+                        info.context.META['HTTP_X_USERNAME'])
     else:
-        data['group'] = 4
-    return data
+        if int(info.context.META['HTTP_X_PROJECT']) in user['group']:
+            user['group'] = int(info.context.META['HTTP_X_PROJECT'])
+        else:
+            raise Exception('User Does Not belong to project_id:' +
+                            info.context.META['HTTP_X_PROJECT'])
+    return user
 
 
 def ExplorationUtil(result):
@@ -410,7 +422,7 @@ def RoleParentUtil(data, auth):
             return {'result': 1,
                     'errors': 'E40: This action will create a circular reference: ' + role.role_name + ' is in hierarchy of ' + parent.role_name
                     }
-        if parent.pk > 10: # doesnt make sense to check existence if we are trying to assign to states
+        if parent.pk > 10:  # doesnt make sense to check existence if we are trying to assign to states
             if not parent.predesignreconciledrolerecordtbl.entity_exists:
                 return {'result': 1,
                         'errors': 'E33: You are assigning an role to a parent that is marked as Non Existant'
