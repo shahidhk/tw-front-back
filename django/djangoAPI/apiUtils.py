@@ -560,10 +560,10 @@ def assign_asset_to_role_change(data, auth):
         asset = list(PreDesignReconciledAssetRecordTbl.objects.filter(
             initial_project_asset_role_id_id=data['role_id']))
         if len(asset) == 0:
-            asset = list(NewAssetDeliveredByProject.objects.filter(
+            asset = list(NewAssetDeliveredByProjectTbl.objects.filter(
                 final_project_asset_role_id_id=data['role_id']))
         if len(asset) == 0:
-            asset = list(ExistingAssetMovedByProject.objects.filter(
+            asset = list(ExistingAssetMovedByProjectTbl.objects.filter(
                 final_project_asset_role_id_id=data['role_id']))
         if len(asset) != 0:
             return {'result': 1,
@@ -574,35 +574,43 @@ def assign_asset_to_role_change(data, auth):
             return {'result': 1,
                     'errors': 'E:A:' + Result(message='Role reserved by another project', error_code=-6).readable_message(),
                     }
-        elif role.predesignreconciledrolerecordtbl:
-            if not role.predesignreconciledrolerecordtbl.entity_exists:
-                return {'result': 1,
-                        'errors': 'E:A:' + Result(message='You are assigning an asset to a role that is marked as Non Existant', error_code=-7).readable_message(),
-                        }
         elif not role.approved:
             return {'result': 1,
                     'errors': 'E:A:' + Result(message='The reservation for this entity has not been approved', error_code=-8).readable_message(),
                     }
+        try:
+            if not role.predesignreconciledrolerecordtbl.entity_exists:
+                return {'result': 1,
+                        'errors': 'E:A:' + Result(message='You are assigning an asset to a role that is marked as Non Existant', error_code=-7).readable_message(),
+                        }
+        except Exception:
+            pass
 
     asset = ProjectAssetRecordTbl.objects.get(pk=data['asset_id'])
     if asset.project_tbl_id != auth['group']:
         return {'result': 1,
                 'errors': 'E:A:' + Result(message='Asset reserved by another project', error_code=-9).readable_message(),
                 }
-    if asset.predesignreconciledassetrecordtbl:
-        moved = ExistingAssetMovedByProjectTbl(
-            predesignreconciledassetrecordtbl_ptr=asset.predesignreconciledassetrecordtbl,
-            final_project_asset_role_id_id=role.pk,
-            installation_stage_id=1,
-            uninstallation_stage_id=1,
-        )
-        moved.save_base(raw=True)
-        # remove new entry if reverted to original parent
-    elif asset.newassetdeliveredbyprojecttbl:
-        asset.newassetdeliveredbyprojecttbl.final_project_asset_role_id_id = role.pk
-        asset.save()
-        asset.newassetdeliveredbyprojecttbl.save() #TODO not sure which one is necessary
-        return {'result': 0,
-                'errors': data['role_id'] if data['role_id'] else 1,
-                }
+    try:
+        if asset.predesignreconciledassetrecordtbl:
+            moved = ExistingAssetMovedByProjectTbl(
+                predesignreconciledassetrecordtbl_ptr=asset.predesignreconciledassetrecordtbl,
+                final_project_asset_role_id_id=role.pk,
+                installation_stage_id=1,
+                uninstallation_stage_id=1,
+            )
+            moved.save_base(raw=True)
+            # remove new entry if reverted to original parent
+    except Exception:
+        pass
+    try:
+        if asset.newassetdeliveredbyprojecttbl:
+            asset.newassetdeliveredbyprojecttbl.final_project_asset_role_id_id = role.pk
+            asset.save()
+            asset.newassetdeliveredbyprojecttbl.save() #TODO not sure which one is necessary
+    except Exception:
+        pass
+    return {'result': 0,
+            'errors': data['role_id'] if data['role_id'] else 1,
+            }
         
