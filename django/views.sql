@@ -340,7 +340,7 @@ select
 	parent_id_id as parent,
 	project_tbl_id as project_id,
 	ltree_path as full_path,
-	parent_changed,
+	coalesce(parent_changed, false) as parent_changed,
 	coalesce(new_role, false) as new_role
 from
 	((public."djangoAPI_ProjectAssetRoleRecordTbl" as BaseRole
@@ -363,7 +363,7 @@ view intermediate_change_view_assets as
 select
 	id as asset_id,
 	asset_serial_number,
-	role_changed,
+	coalesce(role_changed, false) as role_changed,
 	coalesce(parent_for_new, parent_after_move, initial_project_asset_role_id_id) as role_link,
 	coalesce(move_installation_stage_id, new_installation_stage_id) as installation_stage_id,
 	move_uninstallation_stage_id as uninstallation_stage_id,
