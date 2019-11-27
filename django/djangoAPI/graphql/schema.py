@@ -95,7 +95,7 @@ class UpdateUnassView(graphene.Mutation):
             result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))  # be optimistic
             # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
             # since we need to return a list with the object we deleted we can get the object before we delete it
-            data = AssignAssetToRoleUtil(data, auth)
+            data = AssignAssetToRoleReconciliation(data, auth)
             if data['result'] == 0:
                 return InsertUnassView(returning=result)
             raise GraphQLError(data['errors'])
@@ -189,7 +189,9 @@ class Mutations(graphene.ObjectType):
     insert_garbage_can_unassigned_assets = InsertUnassView.Field()
     update_garbage_can_unassigned_assets = UpdateUnassView.Field()
     delete_garbage_can_unassigned_assets = DeleteUnassView.Field()
-
+    insert_change_view = InsertChangeView.Field()
+    update_change_view = UpdateChangeView.Field()
     delete_change_view = DeleteChangeView.Field()
+
 
 schema = graphene.Schema(query=Query, mutation=Mutations, auto_camelcase=False)

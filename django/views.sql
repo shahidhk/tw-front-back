@@ -335,6 +335,7 @@ select
 	id,
 	role_name,
 	updatable_role_number_id as role_number,
+    -- TODO join the master role number table
 	approved,
 	parent_id_id as parent,
 	project_tbl_id as project_id,
@@ -353,7 +354,7 @@ left join (
 		public."djangoAPI_NewProjectAssetRoleTbl") as NewRole on
 	BasePreRole.id = NewRole.link) as Roles
 where
-	entity_exists = true
+	entity_exists = true or new_role = true;
 !!!
 -- https://stackoverflow.com/questions/23257059/postgresql-exclude-records-crossing-other-table-values
 -- probably should do this to exclude removed roles

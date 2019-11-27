@@ -325,6 +325,28 @@ class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
             return Result(success=False, error_code=21, message='Failed to Delete Role', exception=e)
         return Result(success=True, obj_id=self.pk)
 
+    @staticmethod
+    def add(data, project_id):
+        """
+        """
+        role_number = MasterRoleNumbersTbl.objects.get(role_number=data['role_number'])
+        role = NewProjectAssetRoleTbl(
+            parent_id_id=data['parent'],
+            updatable_role_number=role_number,
+            role_name=data['role_name'],
+            role_spatial_site_id_id=1,#TODO
+            role_criticality_id='a',
+            role_priority_id='a',
+            project_tbl_id=project_id,
+            approved=True,
+            new_role=True,
+        )
+        try:
+            role.save()
+        except Exception as e:
+            return Result(success=False, error_code=24, message='Failed to Create New Role', exception=e)
+        return Result(success=True, obj_id=role.pk, obj=role)
+
 
 # Asset Tables
 class ProjectAssetRecordTbl(models.Model):
@@ -441,6 +463,21 @@ class NewAssetDeliveredByProjectTbl(ProjectAssetRecordTbl):
             return Result(success=False, error_code=15, message='Failed to Delete Asset', exception=e)
         return Result(success=True, obj_id=self.pk)
 
+    @staticmethod
+    def add(data, project_id, role_id):
+        """
+        """
+        asset = NewAssetDeliveredByProjectTbl(
+            project_tbl_id=project_id,
+            asset_serial_number=data['asset_serial_number'],
+            final_project_asset_role_id_id=role_id,
+            installation_stage_id=1, #TODO
+        )
+        try:
+            asset.save()
+        except Exception as e:
+            return Result(success=False, error_code=26, message='Failed to Create New Asset', exception=e)
+        return Result(success=True, obj_id=asset.pk, obj=asset)
 
 # Views
 class ReconciliationView(models.Model):
@@ -649,3 +686,33 @@ class ChangeView(models.Model):
                 except Exception as e:
                     return Result(success=False, error_code=18, message='Failed to Orphan Children of role', exception=e)
         return role.remove_change(project_id, exists)
+
+    @staticmethod
+    def add_entity(data, add_type, auth):
+        """
+        Data is a dictionary of inputs
+
+        add_type:
+        1 - Add both new asset and role
+        2 - add role with no asset (for associating with an existing asset)
+        3 - add asset to a role (for associating to an existing role)
+        """
+        if add_type == 3: # retrive the role if we are using an existing role
+            try:
+                role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
+            except ObjectDoesNotExist:
+                return Result(success=False, error_code=25, message='Role Cannot be found')
+        else: # or create new role for other cases
+            role = NewProjectAssetRoleTbl.add(data, auth['group'])
+            if role.success:
+                role = role.obj
+            else:
+                return role
+        if add_type == 2: # if only want new role we are done here
+            pass
+        else: # need to create new asset
+            asset = NewAssetDeliveredByProjectTbl.add(data, auth['group'], role.pk)
+            if not asset.success:
+                return asset
+        return Result(success=True, obj_id=role.pk)
+

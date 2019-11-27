@@ -172,7 +172,7 @@ def MissingAssetUtil(asset_data, auth):
             }
 
 
-def AssignAssetToRoleUtil(data, auth):
+def AssignAssetToRoleReconciliation(data, auth):
     '''
     Assigns an Asset to a Role, Assign to null role for unassigned assets
     Expects Dictionary with asset_id, role_id
@@ -189,7 +189,6 @@ def AssignAssetToRoleUtil(data, auth):
                     'errors': 'E6: An Asset is currently assigned to the role: ' + str(asset[0].pk)
                     }
         role = ProjectAssetRoleRecordTbl.objects.get(pk=data['role_id'])
-        print(vars(role))
         if role.project_tbl_id != auth['group']:
             return {'result': 1,
                     'errors': 'E7: Role reserved by another project'
@@ -390,7 +389,7 @@ def RetireAssetUtil(asset, auth):
                 existing_asset.save()
                 retired_asset = ExistingAssetDisposedByProjectTbl(
                     predesignreconciledassetrecordtbl_ptr=existing_asset,
-                    uninstallation_stage_id=1, #TODO
+                    uninstallation_stage_id=1,  # TODO
                 )
                 retired_asset.save_base(raw=True)
                 # raw base save is required since the parent object has already been created
@@ -446,7 +445,7 @@ def RoleParentUtil(data, auth):
             return {'result': 1,
                     'errors': 'E40: This action will create a circular reference: ' + role.role_name + ' is in hierarchy of ' + parent.role_name
                     }
-        if parent.pk > 10:  # doesnt make sense to check existence if we are trying to assign to states
+        if parent.predesignreconciledrolerecordtbl:  # if the role is prexisting make sure its not marked as non existant
             if not parent.predesignreconciledrolerecordtbl.entity_exists:
                 return {'result': 1,
                         'errors': 'E33: You are assigning an role to a parent that is marked as Non Existant'
@@ -532,3 +531,78 @@ def ApproveReservationUtil(data, auth):
                 return {'result': 0,
                         'errors': data['id'],
                         }
+
+
+def add_changed_view(data, change_type, auth):
+    """
+    """
+    if change_type != 3:
+        role_number_obj = MasterRoleNumbersTbl.check_available(data['role_number'], auth['group'])
+        if not role_number_obj.success:
+            return {'result': 1,
+                    'errors': 'E:E:' + role_number_obj.readable_message(),
+                    }
+    result = ChangeView.add_entity(data, change_type, auth)
+    if result.success:
+        return {'result': 0,
+                'errors': result.obj_id,
+                }
+    return {
+        'result': 1,
+        'errors': 'E:E:' + result.readable_message(),
+    }
+        
+
+def assign_asset_to_role_change(data, auth):
+    if data['role_id'] is None or data['role_id'] == 0:
+        data['role_id'] = None
+    else:
+        asset = list(PreDesignReconciledAssetRecordTbl.objects.filter(
+            initial_project_asset_role_id_id=data['role_id']))
+        if len(asset) == 0:
+            asset = list(NewAssetDeliveredByProject.objects.filter(
+                final_project_asset_role_id_id=data['role_id']))
+        if len(asset) == 0:
+            asset = list(ExistingAssetMovedByProject.objects.filter(
+                final_project_asset_role_id_id=data['role_id']))
+        if len(asset) != 0:
+            return {'result': 1,
+                    'errors': 'E:A:' + Result(message='Another Asset is currently assigned to this role: '  + str(asset[0].asset_serial_number), error_code=-5).readable_message(),
+                    }
+        role = ProjectAssetRoleRecordTbl.objects.get(pk=data['role_id'])
+        if role.project_tbl_id != auth['group']:
+            return {'result': 1,
+                    'errors': 'E:A:' + Result(message='Role reserved by another project', error_code=-6).readable_message(),
+                    }
+        elif role.predesignreconciledrolerecordtbl:
+            if not role.predesignreconciledrolerecordtbl.entity_exists:
+                return {'result': 1,
+                        'errors': 'E:A:' + Result(message='You are assigning an asset to a role that is marked as Non Existant', error_code=-7).readable_message(),
+                        }
+        elif not role.approved:
+            return {'result': 1,
+                    'errors': 'E:A:' + Result(message='The reservation for this entity has not been approved', error_code=-8).readable_message(),
+                    }
+
+    asset = ProjectAssetRecordTbl.objects.get(pk=data['asset_id'])
+    if asset.project_tbl_id != auth['group']:
+        return {'result': 1,
+                'errors': 'E:A:' + Result(message='Asset reserved by another project', error_code=-9).readable_message(),
+                }
+    if asset.predesignreconciledassetrecordtbl:
+        moved = ExistingAssetMovedByProjectTbl(
+            predesignreconciledassetrecordtbl_ptr=asset.predesignreconciledassetrecordtbl,
+            final_project_asset_role_id_id=role.pk,
+            installation_stage_id=1,
+            uninstallation_stage_id=1,
+        )
+        moved.save_base(raw=True)
+        # remove new entry if reverted to original parent
+    elif asset.newassetdeliveredbyprojecttbl:
+        asset.newassetdeliveredbyprojecttbl.final_project_asset_role_id_id = role.pk
+        asset.save()
+        asset.newassetdeliveredbyprojecttbl.save() #TODO not sure which one is necessary
+        return {'result': 0,
+                'errors': data['role_id'] if data['role_id'] else 1,
+                }
+        

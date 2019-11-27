@@ -35,6 +35,17 @@ class ReconciliationViewSet(convert_serializer_to_input_type(ReconViewSerial)):
     role_id = graphene.Int()
 
 
+class ChangeViewSerial(serializers.ModelSerializer):
+    # client will need to specify the id (role_id) if only creating a new asset
+    class Meta:
+        model = ChangeView
+        exclude = ('id',)
+
+
+class ChangeViewSet(convert_serializer_to_input_type(ChangeViewSerial)):
+    id = graphene.Int()
+
+
 # mutations
 class InsertReconciliationView(graphene.Mutation):
     class Arguments:
@@ -96,7 +107,7 @@ class UpdateReconView(graphene.Mutation):
                 data = {'role_id': where.id._eq,
                         'asset_id': _set.asset_id,
                         }
-                data = AssignAssetToRoleUtil(data, auth)
+                data = AssignAssetToRoleReconciliation(data, auth)
             else:
                 raise GraphQLError('Unimplemented')
             # Check the result of called function and return row on success
@@ -150,6 +161,75 @@ class UpdateOrphanView(graphene.Mutation):
             raise GraphQLError(data['errors'])
 
 
+class InsertChangeView(graphene.Mutation):
+    class Arguments:
+        objects = ChangeViewSet(required=True)
+
+    returning = graphene.List(ChangeViewType)
+
+    @staticmethod
+    def mutate(root, info, objects=None):
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            data = objects.__dict__
+            data.update({
+                'role_spatial_site_id': 1,  # objects.role_spatial_site_id
+                'role_priority': 'a',  # objects.role_priority
+                'role_criticality': 'a',  # objects.role_criticality
+                'parent_id': objects.parent,
+            })
+            if data.get('id'):
+                change_type = 3
+            elif data.get('asset_serial_number'):
+                change_type = 1
+            else:
+                change_type = 2
+            new_entity = add_changed_view(data, change_type, auth)
+            if new_entity['result'] == 0:
+                new_entity = ChangeView.objects.filter(
+                    pk=new_entity['errors'])
+                return InsertChangeView(returning=new_entity)
+            raise GraphQLError(new_entity['errors'])
+
+
+class UpdateChangeView(graphene.Mutation):
+    class Arguments:
+        where = IDEQ(required=True)
+        _set = ChangeViewSet(required=True)
+
+    returning = graphene.List(ChangeViewType)
+
+    @staticmethod
+    def mutate(root, info, where=None, _set=None):
+        with transaction.atomic():
+            # call different functions depending on what is changed
+            # TODO allow changing multiple columns at the same time
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            elif not _set.parent is None:
+                data = {'role_id': where.id._eq,
+                        'parent_id': _set.parent,
+                        }
+                data = RoleParentUtil(data, auth)
+            elif not _set.asset_id is None:
+                # this one is kinda weird, assigns an asset to the role,
+                # if moving asset to unassigned assets, the role_id is 0 / None
+                data = {'role_id': where.id._eq,
+                        'asset_id': _set.asset_id,
+                        }
+                data = assign_asset_to_role_change(data, auth)
+            else:
+                raise GraphQLError('Unimplemented')
+            # Check the result of called function and return row on success
+            if data['result'] == 0:
+                data = ChangeView.fixed_ltree(pk=data['errors'])
+                return UpdateChangeView(returning=data)
+            raise GraphQLError(data['errors'])
+
+
 class DeleteChangeView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
@@ -168,4 +248,3 @@ class DeleteChangeView(graphene.Mutation):
                 data = ChangeView.fixed_ltree(pk=data['errors'])
                 return DeleteChangeView(returning=(data if data else result))
             raise GraphQLError(data['errors'])
-
