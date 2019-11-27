@@ -277,7 +277,7 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledRoleRecordTbl'
 
-    def remove_entity(self, project_id, entity_exists):
+    def remove_reconciliation(self, project_id, entity_exists):
         """
         marks existing roles as does not exist
         deletes user added roles
@@ -296,6 +296,14 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
             return Result(success=False, error_code=3, message='Failed to Change Role Information', exception=e)
         return Result(success=True, obj_id=self.pk)
 
+    def remove_change(self, project_id, entity_exists):
+        """
+        Passes parameters to remove_reconciliation
+
+        While the removing an existing asset in the change view requires db
+        actions removing an existing role does not
+        """
+        return self.remove_reconciliation(project_id, entity_exists)
 
 class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
     new_role = models.BooleanField()
@@ -303,7 +311,7 @@ class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
     class Meta:
         db_table = 'djangoAPI_NewProjectAssetRoleTbl'
 
-    def remove_entity(self, project_id, entity_exists):
+    def remove_change(self, project_id, entity_exists):
         """
         deletes new roles
         """
@@ -355,7 +363,7 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledAssetRecordTbl'
 
-    def remove_entity(self, project_id, entity_exists):
+    def remove_reconciliation(self, project_id, entity_exists):
         """
         Marks existing asset as non-existant
         removes user created asset 
@@ -370,6 +378,22 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
                 self.save()
         except Exception as e:
             return Result(success=False, error_code=5, message='Failed to Change Asset Information', exception=e)
+        return Result(success=True, obj_id=self.pk)
+
+    def remove_change(self, project_id, entity_exists):
+        """
+        Adds entry in ExistingAssetDisposedByProject
+        """
+        if self.project_tbl_id != project_id:
+            return Result(success=False, error_code=22, message='Asset Reserved by Another Project')
+        try:
+            retired_asset = ExistingAssetDisposedByProjectTbl(
+                predesignreconciledassetrecordtbl_ptr=self,
+                uninstallation_stage_id=1, #TODO
+            )
+            retired_asset.save_base(raw=True)
+        except Exception as e:
+            return Result(success=False, error_code=23, message='Failed to Change Asset Information', exception=e)
         return Result(success=True, obj_id=self.pk)
 
 
@@ -405,7 +429,7 @@ class NewAssetDeliveredByProjectTbl(ProjectAssetRecordTbl):
     class Meta:
         db_table = 'djangoAPI_NewAssetDeliveredByProjectTbl'
 
-    def remove_entity(self, project_id, exists):
+    def remove_change(self, project_id, exists):
         """
         Removes self
         """
@@ -463,7 +487,7 @@ class ReconciliationView(models.Model):
         except ObjectDoesNotExist as e:
             pass
         else:
-            result = asset.remove_entity(project_id, exists)
+            result = asset.remove_reconciliation(project_id, exists)
             if not result.success:
                 return result
         try:
@@ -479,7 +503,7 @@ class ReconciliationView(models.Model):
                         child.save()
                 except Exception as e:
                     return Result(success=False, error_code=7, message='Failed to Orphan Children of role', exception=e)
-        return role.remove_entity(project_id, exists)
+        return role.remove_reconciliation(project_id, exists)
 
 
 class UnassignedAssetsView(models.Model):
@@ -601,7 +625,7 @@ class ChangeView(models.Model):
                     initial_project_asset_role_id_id=role_id)
             except ObjectDoesNotExist as e:
                 pass
-        result = asset.remove_entity(project_id, exists)
+        result = asset.remove_change(project_id, exists)
         if not result.success:
             return result
 
@@ -624,4 +648,4 @@ class ChangeView(models.Model):
                         child.save()
                 except Exception as e:
                     return Result(success=False, error_code=18, message='Failed to Orphan Children of role', exception=e)
-        return role.remove_entity(project_id, exists)
+        return role.remove_change(project_id, exists)

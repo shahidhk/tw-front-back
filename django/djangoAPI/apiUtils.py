@@ -390,7 +390,7 @@ def RetireAssetUtil(asset, auth):
                 existing_asset.save()
                 retired_asset = ExistingAssetDisposedByProjectTbl(
                     predesignreconciledassetrecordtbl_ptr=existing_asset,
-                    uninstallation_stage_id=0,
+                    uninstallation_stage_id=1, #TODO
                 )
                 retired_asset.save_base(raw=True)
                 # raw base save is required since the parent object has already been created
