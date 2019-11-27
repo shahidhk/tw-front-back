@@ -404,10 +404,10 @@ select
 	new_role,
 	asset_id,
 	asset_serial_number,
-	role_changed,
+	coalesce(role_changed, false) as role_changed
 	installation_stage_id,
 	uninstallation_stage_id,
-    new_asset
+    coalesce(new_asset, false) as new_asset
 from
 	intermediate_change_view_roles as Roles
 left join intermediate_change_view_assets as Assets on
