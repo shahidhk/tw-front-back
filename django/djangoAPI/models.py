@@ -158,8 +158,7 @@ class MasterRoleNumbersTbl(models.Model):
                 return Result(error_code=12, message='Role Number already reserved by another project')
             if list(ProjectAssetRoleRecordTbl.objects.filter(updatable_role_number_id=number.pk)):
                 return Result(error_code=13, message='Role Number is already in use')
-        finally:
-            return Result(success=True, obj=number)
+        return Result(success=True, obj=number)
 
 
 class ClonedAssetAndRoleInRegistryTbl(models.Model):
