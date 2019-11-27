@@ -649,21 +649,23 @@ class ChangeView(models.Model):
         new_role = self.new_role
         new_asset = self.new_asset
         role_id = self.pk
+
         if new_asset:
             try:
                 asset = NewAssetDeliveredByProjectTbl.objects.get(
                     final_project_asset_role_id_id=role_id)
             except ObjectDoesNotExist as e:
-                pass
+                asset = None
         else:
             try:
                 asset = PreDesignReconciledAssetRecordTbl.objects.get(
                     initial_project_asset_role_id_id=role_id)
             except ObjectDoesNotExist as e:
-                pass
-        result = asset.remove_change(project_id, exists)
-        if not result.success:
-            return result
+                asset = None
+        if asset:
+            result = asset.remove_change(project_id, exists)
+            if not result.success:
+                return result
 
         if new_role:
             try:
