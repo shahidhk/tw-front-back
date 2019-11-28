@@ -86,3 +86,33 @@ def update_webapp(request):
         os.remove('./webapp/release.zip.tgz')
         os.remove('./webapp/release.zip')
         return HttpResponse('finished downloading latest release')
+
+
+def get_webapp(request):
+    tag = request.GET.get('tag')
+    access_token = os.getenv('GITHUB_TOKEN', '7884e5f1f3d276fbc68a41dffb2d6149bde849e6')
+    response = requests.get(
+        'https://api.github.com/repos/abrasher/tw-webapp/releases/tags/'+tag+'?access_token='+access_token,
+    )
+    try:
+        new_url = response.json()['assets'][0]['url']
+    except Exception:
+        return HttpResponse(str(response.json()) + ' : '+response.url)
+    else:
+        print(new_url)
+        response = requests.get(
+            new_url+'?access_token='+access_token,
+            headers={'Accept': 'application/octet-stream'},
+        )
+        open('./webapp/release.zip.tgz', 'wb').write(response.content)
+        if os.path.exists('./webapp/dist'):
+            shutil.rmtree('./webapp/dist/')
+        tgz = tarfile.open('./webapp/release.zip.tgz')
+        tgz.extractall('./webapp')
+        tgz.close()
+        tgz = zipfile.ZipFile('./webapp/release.zip')
+        tgz.extractall('./webapp')
+        tgz.close()
+        os.remove('./webapp/release.zip.tgz')
+        os.remove('./webapp/release.zip')
+        return HttpResponse('finished downloading latest release')

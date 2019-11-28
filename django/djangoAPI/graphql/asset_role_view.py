@@ -90,12 +90,13 @@ class UpdateReconView(graphene.Mutation):
             auth = AuthenticationUtil(info)
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-            if not _set.role_exists is None:
-                # marks role and asset as does not exist / deletes user created
-                data = {'role_id': where.id._eq,
-                        'entity_exists': _set.role_exists,
-                        }
-                data = remove_reconciliation(data, auth)
+            # if not _set.role_exists is None:
+            #     # Does not make sense for this mutation, use delete
+            #     # marks role and asset as does not exist / deletes user created
+            #     data = {'role_id': where.id._eq,
+            #             'entity_exists': _set.role_exists,
+            #             }
+            #     data = remove_reconciliation(data, auth)
             elif not _set.parent is None:
                 data = {'role_id': where.id._eq,
                         'parent_id': _set.parent,
@@ -131,7 +132,7 @@ class DeleteReconView(graphene.Mutation):
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
             data = {'role_id': where.id._eq, 'entity_exists': False, }
             result = ReconciliationView.fixed_ltree(pk=where.id._eq)
-            data = remove_reconciliation(data, auth)
+            data = remove_asset_role(ReconciliationView, data, auth)
             if data['result'] == 0:
                 data = ReconciliationView.fixed_ltree(pk=data['errors'])
                 return DeleteReconView(returning=(data if data else result))
@@ -180,11 +181,11 @@ class InsertChangeView(graphene.Mutation):
                 'role_criticality': 'a',  # objects.role_criticality
                 'parent_id': objects.parent,
             })
-            if data.get('id'):
+            if data.get('id'):  # add asset only
                 change_type = 3
-            elif data.get('asset_serial_number'):
+            elif data.get('asset_serial_number'):  # add role + asset
                 change_type = 1
-            else:
+            else:  # add role only
                 change_type = 2
             new_entity = add_changed_view(data, change_type, auth)
             if new_entity['result'] == 0:
@@ -243,7 +244,7 @@ class DeleteChangeView(graphene.Mutation):
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
             data = {'role_id': where.id._eq, 'entity_exists': False, }
             result = ChangeView.fixed_ltree(pk=where.id._eq)
-            data = remove_change(data, auth)
+            data = remove_asset_role(ChangeView, data, auth)
             if data['result'] == 0:
                 data = ChangeView.fixed_ltree(pk=data['errors'])
                 return DeleteChangeView(returning=(data if data else result))

@@ -504,7 +504,9 @@ class ReconciliationView(models.Model):
 
     @staticmethod
     def fixed_ltree(pk):
-        '''retrives list of objects with fixed ltree'''
+        """
+        retrives list of objects but removes the state from the ltree
+        """
         lst = list(ReconciliationView.objects.filter(pk=pk))
         for l in lst:
             i = l.full_path.index('.')
@@ -631,6 +633,7 @@ class ChangeView(models.Model):
     class Meta:
         managed = False
         db_table = "change_view"
+        # TODO include orphaned change view
 
     @staticmethod
     def fixed_ltree(pk):

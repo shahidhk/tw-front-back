@@ -276,6 +276,28 @@ def remove_change(data, auth):
                 }
 
 
+def remove_asset_role(view_class, role_id, auth):
+    """
+    Unassign all children and move entity to removed view
+    Can be used on Reconciliation, Change and both Orphan Views
+    """
+    try:
+        entity = view_class.objects.get(pk=role_id)
+    except Exception as e:
+        return {'result': 1,
+                'errors': 'E:F:' + Result(message='This entity does not exist', exception=e, error_code=-1).readable_message(),
+                }
+    result = entity.remove_entity(auth['group'])
+    if result.success:
+        return {'result': 0,
+                'errors': result.obj_id,
+                }
+    else:
+        return {'result': 1,
+                'errors': 'E:F:' + result.readable_message(),
+                }
+
+
 def DoesNotExistUtil(data, auth):
     '''
     Deprecated
@@ -445,11 +467,13 @@ def RoleParentUtil(data, auth):
             return {'result': 1,
                     'errors': 'E40: This action will create a circular reference: ' + role.role_name + ' is in hierarchy of ' + parent.role_name
                     }
-        if parent.predesignreconciledrolerecordtbl:  # if the role is prexisting make sure its not marked as non existant
+        try:  # if the role is prexisting make sure its not marked as non existant
             if not parent.predesignreconciledrolerecordtbl.entity_exists:
                 return {'result': 1,
                         'errors': 'E33: You are assigning an role to a parent that is marked as Non Existant'
                         }
+        except Exception:
+            pass
     try:
         role.parent_id_id = data['parent_id']
         data['entity_exists'] = True
