@@ -252,30 +252,6 @@ def remove_reconciliation(data, auth):
                 'errors': 'E:B:' + result.readable_message(),
                 }
 
-
-def remove_change(data, auth):
-    """
-    Removes newly created Assets & Roles
-    Calls remove_reconciliation for existing asset or role
-    """
-    role_id = data['role_id']
-    try:
-        entity = ChangeView.objects.get(pk=role_id)
-    except Exception as e:
-        return {'result': 1,
-                'errors': 'E:D:' + Result(message='This entity does not exist', exception=e, error_code=-1).readable_message(),
-                }
-    result = entity.remove_entity(auth['group'])
-    if result.success:
-        return {'result': 0,
-                'errors': result.obj_id,
-                }
-    else:
-        return {'result': 1,
-                'errors': 'E:D:' + result.readable_message(),
-                }
-
-
 def remove_asset_role(view_class, role_id, auth):
     """
     Unassign all children and move entity to removed view
@@ -297,6 +273,54 @@ def remove_asset_role(view_class, role_id, auth):
                 'errors': 'E:F:' + result.readable_message(),
                 }
 
+
+def unremove_asset(asset_id, auth):
+    try:
+        asset = ProjectAssetRecordTbl.objects.get(pk=asset_id)
+    except ObjectDoesNotExist:
+        return {'result': 1,
+                'errors': 'E:H:' + Result(message='This Asset does not exist', error_code=-11).readable_message(),
+                }
+    else:
+        asset.unremove(auth)
+
+
+def unremove_role(role_id, auth):
+    """
+    Unremoves the role and asset if attached
+    """
+    try:
+        role = ProjectAssetRoleRecordTbl.objects.get(pk=role_id)
+    except ObjectDoesNotExist:
+        return {'result': 1,
+                'errors': 'E:G:' + Result(message='This Role does not exist', error_code=-10).readable_message(),
+                }
+    else:
+        role.unremove(auth)
+    asset = get_asset_by_role_id(role_id)
+    if asset: # if an asset gets returned
+        unremove_asset(asset.pk, auth)
+
+def get_asset_by_role_id(role_id):
+    try:
+        asset = NewAssetDeliveredByProjectTbl.objects.get(final_project_asset_role_id_id=role_id)
+    except ObjectDoesNotExist:
+        pass
+    else:
+        return asset
+    try:
+        asset = ExistingAssetMovedByProjectTbl.objects.get(final_project_asset_role_id_id=role_id)
+    except ObjectDoesNotExist:
+        pass
+    else:
+        return asset
+    try:
+        asset = PreDesignReconciledAssetRecordTbl.objects.get(initial_project_asset_role_id_id=role_id)
+    except ObjectDoesNotExist:
+        pass
+    else:
+        return asset
+    return None
 
 def DoesNotExistUtil(data, auth):
     '''
@@ -475,9 +499,8 @@ def RoleParentUtil(data, auth):
         except Exception:
             pass
     try:
+        unremove_role(role.pk, auth)
         role.parent_id_id = data['parent_id']
-        data['entity_exists'] = True
-        remove_reconciliation(data, auth)
         role.save()
     except Exception as e:
         return {'result': 1,

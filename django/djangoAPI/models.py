@@ -263,6 +263,22 @@ class ProjectAssetRoleRecordTbl(models.Model):
         managed = False
         db_table = 'djangoAPI_ProjectAssetRoleRecordTbl'
 
+    def unremove(self, auth):
+        if self.project_tbl_id != auth['group']:
+            return Result(error_code=1, message='Role Reserved by Another Project')
+        if not self.approved:
+            return Result(error_code=2, message='Role Reservation not Approved')
+        try:
+            self.predesignreconciledrolerecordtbl.entity_exists = True
+            self.save()
+        except Exception:
+            pass
+        try:
+            self.predesignreconciledrolerecordtbl.existingroledisposedbyproject.delete(keep_parents=True)
+        except Exception:
+            pass
+        return Result(success=True) # we can probably assume it worked
+
 
 class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
     cloned_role_registry_tbl = models.ForeignKey(
@@ -295,14 +311,30 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
             return Result(success=False, error_code=3, message='Failed to Change Role Information', exception=e)
         return Result(success=True, obj_id=self.pk)
 
-    def remove_change(self, project_id, entity_exists):
+    def remove_change(self, project_id):
         """
-        Passes parameters to remove_reconciliation
+        Adds entry in ExistingRoleDisposedByProject
+        """
+        if self.project_tbl_id != project_id:
+            return Result(error_code=27, message='Role Reserved by Another Project')
+        if not self.approved:
+            return Result(error_code=28, message='Role Reservation not Approved')
+        try:
+            retired_role = ExistingRoleDisposedByProject(
+                predesignreconciledrolerecordtbl_ptr=self,
+                disposed=True,
+            )
+            retired_role.save_base(raw=True)
+        except Exception as e:
+            return Result(success=False, error_code=29, message='Failed to Change Role Information', exception=e)
+        return Result(success=True, obj_id=self.pk)
 
-        While the removing an existing asset in the change view requires db
-        actions removing an existing role does not
-        """
-        return self.remove_reconciliation(project_id, entity_exists)
+class ExistingRoleDisposedByProject(PreDesignReconciledRoleRecordTbl):
+    disposed = models.BooleanField(null=True, blank=True)
+    # pretty much a placeholder field
+
+    class Meta:
+        db_table = 'djangoAPI_ExistingRoleDisposedByProject'
 
 class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
     new_role = models.BooleanField()
@@ -310,7 +342,7 @@ class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
     class Meta:
         db_table = 'djangoAPI_NewProjectAssetRoleTbl'
 
-    def remove_change(self, project_id, entity_exists):
+    def remove_change(self, project_id):
         """
         deletes new roles
         """
@@ -358,6 +390,21 @@ class ProjectAssetRecordTbl(models.Model):
     class Meta:
         db_table = 'djangoAPI_ProjectAssetRecordTbl'
 
+    def unremove(self, auth):
+        if self.project_tbl_id != auth['group']:
+            return Result(error_code=1, message='Role Reserved by Another Project')
+        if not self.approved:
+            return Result(error_code=2, message='Role Reservation not Approved')
+        try:
+            self.predesignreconciledassetrecordtbl.entity_exists = True
+            self.save()
+        except Exception:
+            pass
+        try:
+            self.predesignreconciledassetrecordtbl.existingassetdisposedbyproject.delete(keep_parents=True)
+        except Exception:
+            pass
+        return Result(success=True) # we can probably assume it worked
 
 class AssetClassificationTbl(models.Model):
     '''List of all Classifications given to an asset'''
@@ -401,7 +448,7 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
             return Result(success=False, error_code=5, message='Failed to Change Asset Information', exception=e)
         return Result(success=True, obj_id=self.pk)
 
-    def remove_change(self, project_id, entity_exists):
+    def remove_change(self, project_id):
         """
         Adds entry in ExistingAssetDisposedByProject
         """
@@ -450,7 +497,7 @@ class NewAssetDeliveredByProjectTbl(ProjectAssetRecordTbl):
     class Meta:
         db_table = 'djangoAPI_NewAssetDeliveredByProjectTbl'
 
-    def remove_change(self, project_id, exists):
+    def remove_change(self, project_id):
         """
         Removes self
         """
@@ -666,7 +713,7 @@ class ChangeView(models.Model):
             except ObjectDoesNotExist as e:
                 asset = None
         if asset:
-            result = asset.remove_change(project_id, exists)
+            result = asset.remove_change(project_id)
             if not result.success:
                 return result
 
@@ -689,7 +736,7 @@ class ChangeView(models.Model):
                         child.save()
                 except Exception as e:
                     return Result(success=False, error_code=18, message='Failed to Orphan Children of role', exception=e)
-        return role.remove_change(project_id, exists)
+        return role.remove_change(project_id)
 
     @staticmethod
     def add_entity(data, add_type, auth):
