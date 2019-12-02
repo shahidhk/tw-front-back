@@ -393,8 +393,6 @@ class ProjectAssetRecordTbl(models.Model):
     def unremove(self, auth):
         if self.project_tbl_id != auth['group']:
             return Result(error_code=1, message='Role Reserved by Another Project')
-        if not self.approved:
-            return Result(error_code=2, message='Role Reservation not Approved')
         try:
             self.predesignreconciledassetrecordtbl.entity_exists = True
             self.save()
