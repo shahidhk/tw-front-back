@@ -292,7 +292,7 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledRoleRecordTbl'
 
-    def remove_reconciliation(self, project_id, entity_exists):
+    def remove_reconciliation(self, project_id):
         """
         marks existing roles as does not exist
         deletes user added roles
@@ -302,10 +302,10 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
         if not self.approved:
             return Result(error_code=2, message='Role Reservation not Approved')
         try:
-            if self.missing_from_registry and not entity_exists:
+            if self.missing_from_registry:
                 self.delete()
             else:
-                self.entity_exists = entity_exists
+                self.entity_exists = False
                 self.save()
         except Exception as e:
             return Result(success=False, error_code=3, message='Failed to Change Role Information', exception=e)
@@ -429,7 +429,7 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledAssetRecordTbl'
 
-    def remove_reconciliation(self, project_id, entity_exists):
+    def remove_reconciliation(self, project_id):
         """
         Marks existing asset as non-existant
         removes user created asset 
@@ -437,10 +437,10 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
         if self.project_tbl_id != project_id:
             return Result(success=False, error_code=4, message='Asset Reserved by Another Project')
         try:
-            if self.missing_from_registry and not entity_exists:
+            if self.missing_from_registry:
                 self.delete()
             else:
-                self.entity_exists = entity_exists
+                self.entity_exists = False
                 self.save()
         except Exception as e:
             return Result(success=False, error_code=5, message='Failed to Change Asset Information', exception=e)
@@ -529,34 +529,27 @@ class ReconciliationView(models.Model):
     id = models.IntegerField(primary_key=True)
     role_number = models.TextField(null=True)
     role_name = models.TextField(null=True)
-    # TODO try setting this to a FK to get a relation
     parent = models.IntegerField(null=True)
     project_id = models.IntegerField(null=True)
     role_exists = models.BooleanField(null=True)
     role_missing_from_registry = models.BooleanField(null=True)
     full_path = models.TextField(null=True)
     parent_changed = models.BooleanField(null=True)
+    approved = models.BooleanField(null=True)
+    role_new = models.BooleanField(null=True)
+    role_disposed = models.BooleanField(null=True)
     asset_id = models.IntegerField(null=True)
     asset_serial_number = models.TextField(null=True)
-    asset_exists = models.BooleanField(null=True)
-    asset_missing_from_registry = models.BooleanField(null=True)
+    designer_planned_action_type_tbl_id = models.TextField(null=True)
     role_changed = models.BooleanField(null=True)
-    approved = models.BooleanField(null=True)
+    role_link = models.IntegerField(null=True)
+    asset_new = models.BooleanField(null=True)
+    asset_exists = models.BooleanField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)    
 
     class Meta:
         managed = False
-        db_table = "reconciliation_view_temp"
-
-    @staticmethod
-    def fixed_ltree(pk):
-        """
-        retrives list of objects but removes the state from the ltree
-        """
-        lst = list(ReconciliationView.objects.filter(pk=pk))
-        for l in lst:
-            i = l.full_path.index('.')
-            l.full_path = l.full_path[i+1:]
-        return lst
+        db_table = "reconciliation_view"
 
     def remove_entity(self, project_id, exists):
         """
@@ -678,18 +671,8 @@ class ChangeView(models.Model):
     class Meta:
         managed = False
         db_table = "change_view"
-        # TODO include orphaned change view
 
-    @staticmethod
-    def fixed_ltree(pk):
-        '''retrives list of objects with fixed ltree'''
-        lst = list(ChangeView.objects.filter(pk=pk))
-        for l in lst:
-            i = l.full_path.index('.')
-            l.full_path = l.full_path[i+1:]
-        return lst
-
-    def remove_entity(self, project_id, exists=False):
+    def remove_entity(self, project_id):
         """
         Calls removal functions depending on if they are prexisting or new
         can only remove
@@ -725,15 +708,14 @@ class ChangeView(models.Model):
                 role = PreDesignReconciledRoleRecordTbl.objects.get(pk=role_id)
             except ObjectDoesNotExist as e:
                 return Result(success=False, error_code=17, message='Role Cannot be found')
-        if not exists:  # removing
-            child_roles = list(ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
-            if child_roles:
-                try:
-                    for child in child_roles:
-                        child.parent_id_id = 2
-                        child.save()
-                except Exception as e:
-                    return Result(success=False, error_code=18, message='Failed to Orphan Children of role', exception=e)
+        child_roles = list(ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
+        if child_roles:
+            try:
+                for child in child_roles:
+                    child.parent_id_id = 2
+                    child.save()
+            except Exception as e:
+                return Result(success=False, error_code=18, message='Failed to Orphan Children of role', exception=e)
         return role.remove_change(project_id)
 
     @staticmethod
@@ -763,5 +745,42 @@ class ChangeView(models.Model):
             asset = NewAssetDeliveredByProjectTbl.add(data, auth['group'], role.pk)
             if not asset.success:
                 return asset
-        return Result(success=True, obj_id=role.pk)
+        return Result(success=True, obj_id=role.pk, obj=role)
 
+class JoinedRoleAssetView(models.Model):
+    '''Read only model using data from reconciliation_view'''
+    id = models.IntegerField(primary_key=True)
+    role_number = models.TextField(null=True)
+    role_name = models.TextField(null=True)
+    parent = models.IntegerField(null=True)
+    project_id = models.IntegerField(null=True)
+    role_exists = models.BooleanField(null=True)
+    role_missing_from_registry = models.BooleanField(null=True)
+    full_path = models.TextField(null=True)
+    parent_changed = models.BooleanField(null=True)
+    approved = models.BooleanField(null=True)
+    role_new = models.BooleanField(null=True)
+    role_disposed = models.BooleanField(null=True)
+    asset_id = models.IntegerField(null=True)
+    asset_serial_number = models.TextField(null=True)
+    designer_planned_action_type_tbl_id = models.TextField(null=True)
+    role_changed = models.BooleanField(null=True)
+    role_link = models.IntegerField(null=True)
+    asset_new = models.BooleanField(null=True)
+    asset_exists = models.BooleanField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)    
+
+    class Meta:
+        managed = False
+        db_table = "joined_role_asset"
+
+    @staticmethod
+    def fixed_ltree(pk):
+        """
+        retrives list of objects but removes the state from the ltree
+        """
+        lst = list(JoinedRoleAssetView.objects.filter(pk=pk))
+        for item in lst:
+            i = item.full_path.index('.')
+            item.full_path = item.full_path[i+1:]
+        return lst

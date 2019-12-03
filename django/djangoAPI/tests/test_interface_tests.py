@@ -29,6 +29,8 @@ def initialization():
 
 class APITestCase(TestCase):
 
+    initialization()
+
     def test_1_reserve_assets(self):
         """
         Some required information for making requests to graphql and rest
@@ -39,7 +41,7 @@ class APITestCase(TestCase):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_reservation_view(_set: { reserved: true}, where: {id: {_eq: %d}}) {%s
                 }}''' % (reserve, RESERVATION_RETURN),
-                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang'})))
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_2_approve_assets(self):
         client = Client(schema)
@@ -47,7 +49,8 @@ class APITestCase(TestCase):
         for reserve in reserve_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_reservation_view(_set: { approved: true}, where: {id: {_eq: %d}}) {%s
-                }}''' % (reserve, RESERVATION_RETURN), context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang'})))
+                }}''' % (reserve, RESERVATION_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_3_add_new_roles(self):
         client = Client(schema)
@@ -55,7 +58,8 @@ class APITestCase(TestCase):
         for add in add_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 insert_reconciliation_view(objects: { role_number: "%s", role_name: "%s", parent: %d}) {%s
-                }}''' % (add, add+' name', 34, RECONCILIATION_RETURN), context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang'})))
+                }}''' % (add, add+' name', 34, RECONCILIATION_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_4_change_parent(self):
         client = Client(schema)
@@ -63,7 +67,8 @@ class APITestCase(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_reconciliation_view(_set: { parent: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (34, change, RECONCILIATION_RETURN), context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang'})))
+                }}''' % (34, change, RECONCILIATION_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_4_revert_parent(self):
         client = Client(schema)
@@ -71,7 +76,8 @@ class APITestCase(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_reconciliation_view(_set: {parent: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (44, change, RECONCILIATION_RETURN), context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang'})))
+                }}''' % (44, change, RECONCILIATION_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_5_unassign_assets(self):
         client = Client(schema)
@@ -79,7 +85,8 @@ class APITestCase(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_reconciliation_view(_set: { asset_id: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (change, 0, RECONCILIATION_RETURN), context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang'})))
+                }}''' % (change, 0, RECONCILIATION_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_6_reassign_assets(self):
         client = Client(schema)
@@ -87,4 +94,5 @@ class APITestCase(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_unassigned_assets(_set: { role_id: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (change[0], change[1], UNASSIGNED_RETURN), context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang'})))
+                }}''' % (change[0], change[1], UNASSIGNED_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))

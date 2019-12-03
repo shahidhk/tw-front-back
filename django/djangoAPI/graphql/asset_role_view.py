@@ -59,23 +59,27 @@ class InsertReconciliationView(graphene.Mutation):
             auth = AuthenticationUtil(info)
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-            role_data = {
-                'role_number': objects.role_number,
+            data = objects.__dict__
+            data.update({
                 'role_spatial_site_id': 1,  # objects.role_spatial_site_id
                 'role_priority': 'a',  # objects.role_priority
-                'role_name': objects.role_name,
                 'role_criticality': 'a',  # objects.role_criticality
                 'parent_id': objects.parent,
-            }
-            new_entity = add_missing_role(role_data, auth)
-            if new_entity['result'] == 0:
-                new_entity = ReconciliationView.objects.filter(
-                    pk=new_entity['errors'])
+            })
+            if data.get('id'):  # add asset only
+                change_type = 3
+            elif data.get('asset_serial_number'):  # add role + asset
+                change_type = 1
+            else:  # add role only
+                change_type = 2
+            new_entity = add_missing_role_asset(data, change_type, auth)
+            if new_entity.success:
+                new_entity = ReconciliationView.objects.filter(pk=new_entity.obj_id)
                 return InsertReconciliationView(returning=new_entity)
-            raise GraphQLError(new_entity['errors'])
+            raise GraphQLError(new_entity.readable_message())
 
 
-class UpdateReconView(graphene.Mutation):
+class UpdateReconciliationView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
         _set = ReconciliationViewSet(required=True)
@@ -90,35 +94,30 @@ class UpdateReconView(graphene.Mutation):
             auth = AuthenticationUtil(info)
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-            # if not _set.role_exists is None:
-            #     # Does not make sense for this mutation, use delete
-            #     # marks role and asset as does not exist / deletes user created
-            #     data = {'role_id': where.id._eq,
-            #             'entity_exists': _set.role_exists,
-            #             }
-            #     data = remove_reconciliation(data, auth)
             elif not _set.parent is None:
                 data = {'role_id': where.id._eq,
                         'parent_id': _set.parent,
                         }
-                data = RoleParentUtil(data, auth)
+                data = change_role_parent(data, auth)
             elif not _set.asset_id is None:
-                # this one is kinda weird, assigns an asset to the role,
+                # assigns an asset to the role,
                 # if moving asset to unassigned assets, the role_id is 0 / None
                 data = {'role_id': where.id._eq,
                         'asset_id': _set.asset_id,
                         }
-                data = AssignAssetToRoleReconciliation(data, auth)
+                data = assign_asset_to_role_reconciliation(data, auth)
             else:
                 raise GraphQLError('Unimplemented')
-            # Check the result of called function and return row on success
-            if data['result'] == 0:
-                data = ReconciliationView.fixed_ltree(pk=data['errors'])
-                return UpdateReconView(returning=data)
-            raise GraphQLError(data['errors'])
+            if data.success:
+                data = ReconciliationView.objects.filter(pk=data.obj_id)
+                return UpdateReconciliationView(returning=data)
+            raise GraphQLError(data.readable_message())
 
 
-class DeleteReconView(graphene.Mutation):
+class DeleteReconciliationView(graphene.Mutation):
+    """
+    Also used by reconciliation orphan view
+    """
     class Arguments:
         where = IDEQ(required=True)
 
@@ -131,12 +130,11 @@ class DeleteReconView(graphene.Mutation):
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
             data = {'role_id': where.id._eq, 'entity_exists': False, }
-            result = ReconciliationView.fixed_ltree(pk=where.id._eq)
-            data = remove_asset_role(ReconciliationView, data, auth)
-            if data['result'] == 0:
-                data = ReconciliationView.fixed_ltree(pk=data['errors'])
-                return DeleteReconView(returning=(data if data else result))
-            raise GraphQLError(data['errors'])
+            result = ReconciliationView.objects.filter(pk=where.id._eq)
+            data = remove_reconciliation(data, auth)
+            if data.success:
+                return DeleteReconciliationView(returning=result)
+            raise GraphQLError(data.readable_message())
 
 
 class UpdateOrphanView(graphene.Mutation):
@@ -155,11 +153,11 @@ class UpdateOrphanView(graphene.Mutation):
             if not _set.parent is None:
                 # Used to assign orphaned child to a new parent, drags from orphan_view to reconciliation view
                 data = {'role_id': where.id._eq, 'parent_id': _set.parent}
-                data = RoleParentUtil(data, auth)
-            if data['result'] == 0:
-                data = ReconciliationView.fixed_ltree(pk=data['errors'])
+                data = change_role_parent(data, auth)
+            if data.success:
+                data = ReconciliationView.objects.filter(pk=data.obj_id)
                 return UpdateOrphanView(returning=data)
-            raise GraphQLError(data['errors'])
+            raise GraphQLError(data.readable_message())
 
 
 class InsertChangeView(graphene.Mutation):
@@ -187,12 +185,11 @@ class InsertChangeView(graphene.Mutation):
                 change_type = 1
             else:  # add role only
                 change_type = 2
-            new_entity = add_changed_view(data, change_type, auth)
-            if new_entity['result'] == 0:
-                new_entity = ChangeView.objects.filter(
-                    pk=new_entity['errors'])
-                return InsertChangeView(returning=new_entity)
-            raise GraphQLError(new_entity['errors'])
+            data = add_new_role_asset(data, change_type, auth)
+            if data.success:
+                data = ChangeView.objects.filter(pk=data.obj_id)
+                return InsertChangeView(returning=data)
+            raise GraphQLError(data.readable_message())
 
 
 class UpdateChangeView(graphene.Mutation):
@@ -214,21 +211,21 @@ class UpdateChangeView(graphene.Mutation):
                 data = {'role_id': where.id._eq,
                         'parent_id': _set.parent,
                         }
-                data = RoleParentUtil(data, auth)
+                data = change_role_parent(data, auth)
             elif not _set.asset_id is None:
-                # this one is kinda weird, assigns an asset to the role,
+                # assigns an asset to the role,
                 # if moving asset to unassigned assets, the role_id is 0 / None
+                # TODO if role_id is None, this returns nothing - which is bad
                 data = {'role_id': where.id._eq,
                         'asset_id': _set.asset_id,
                         }
                 data = assign_asset_to_role_change(data, auth)
             else:
                 raise GraphQLError('Unimplemented')
-            # Check the result of called function and return row on success
-            if data['result'] == 0:
-                data = ChangeView.fixed_ltree(pk=data['errors'])
-                return UpdateChangeView(returning=data)
-            raise GraphQLError(data['errors'])
+            if data.success:
+                data = ChangeView.objects.filter(pk=data.obj_id)
+                return UpdateReconciliationView(returning=data)
+            raise GraphQLError(data.readable_message())
 
 
 class DeleteChangeView(graphene.Mutation):
@@ -243,9 +240,9 @@ class DeleteChangeView(graphene.Mutation):
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
             data = {'role_id': where.id._eq, 'entity_exists': False, }
-            result = ChangeView.fixed_ltree(pk=where.id._eq)
-            data = remove_asset_role(ChangeView, data, auth)
-            if data['result'] == 0:
-                data = ChangeView.fixed_ltree(pk=data['errors'])
+            result = ChangeView.objects.filter(pk=where.id._eq)
+            data = remove_change(data, auth)
+            if data.success:
+                data = ChangeView.objects.filter(pk=data.obj_id)
                 return DeleteChangeView(returning=(data if data else result))
-            raise GraphQLError(data['errors'])
+            raise GraphQLError(data.readable_message())

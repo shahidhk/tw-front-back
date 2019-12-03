@@ -95,7 +95,7 @@ class UpdateUnassView(graphene.Mutation):
             result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))  # be optimistic
             # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
             # since we need to return a list with the object we deleted we can get the object before we delete it
-            data = AssignAssetToRoleReconciliation(data, auth)
+            data = assign_asset_to_role_reconciliation(data, auth)
             if data['result'] == 0:
                 return InsertUnassView(returning=result)
             raise GraphQLError(data['errors'])
@@ -174,18 +174,18 @@ class Query(ObjectType):
 
 class Mutations(graphene.ObjectType):
     insert_reconciliation_view = InsertReconciliationView.Field()
-    update_reconciliation_view = UpdateReconView.Field()
-    delete_reconciliation_view = DeleteReconView.Field()
+    update_reconciliation_view = UpdateReconciliationView.Field()
+    delete_reconciliation_view = DeleteReconciliationView.Field()
     insert_unassigned_assets = InsertUnassView.Field()
     update_unassigned_assets = UpdateUnassView.Field()
     delete_unassigned_assets = DeleteUnassView.Field()
     update_reservation_view = UpdateReserView.Field()
     insert_orphan_view = InsertReconciliationView.Field()
-    update_orphan_view = UpdateReconView.Field()
-    delete_orphan_view = DeleteReconView.Field()
+    update_orphan_view = UpdateReconciliationView.Field()
+    delete_orphan_view = DeleteReconciliationView.Field()
     insert_garbage_can_reconciliation_view = InsertReconciliationView.Field()
-    update_garbage_can_reconciliation_view = UpdateReconView.Field()
-    delete_garbage_can_reconciliation_view = DeleteReconView.Field()
+    update_garbage_can_reconciliation_view = UpdateReconciliationView.Field()
+    delete_garbage_can_reconciliation_view = DeleteReconciliationView.Field()
     insert_garbage_can_unassigned_assets = InsertUnassView.Field()
     update_garbage_can_unassigned_assets = UpdateUnassView.Field()
     delete_garbage_can_unassigned_assets = DeleteUnassView.Field()

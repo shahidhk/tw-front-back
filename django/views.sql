@@ -1,6 +1,5 @@
 -- To impliment ltree
 -- https://coderwall.com/p/whf3-a/hierarchical-data-in-postgres
-
 CREATE EXTENSION ltree;
 !!!
 ALTER TABLE public."djangoAPI_ProjectAssetRoleRecordTbl" DROP COLUMN ltree_path;
@@ -85,136 +84,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER avantis_additions_tgr
     BEFORE INSERT OR UPDATE ON public."djangoAPI_ClonedAssetAndRoleInRegistryTbl"
     FOR EACH ROW EXECUTE PROCEDURE update_avantis_additions();
-!!!
-create or replace
-view reconciliation_view_temp as
-select
-    r.id,
-    r.role_number as role_number,
-    r.role_name as role_name,
-    r.parent_id_id as parent,
-    r.project_tbl_id as project_id,
-    r.entity_exists as role_exists,
-    r.missing_from_registry as role_missing_from_registry,
-    r.ltree_path as full_path,
-    r.parent_changed as parent_changed,
-    a.id as asset_id,
-    a.asset_serial_number as asset_serial_number,
-    coalesce(a.entity_exists, false) as asset_exists,
-    coalesce(a.missing_from_registry, false) as asset_missing_from_registry,
-    coalesce(a.role_changed, false) as role_changed,
-    r.approved as approved
-from
-    ((public."djangoAPI_ProjectAssetRoleRecordTbl" as br1
-left join (select id as idrn, role_number from public."djangoAPI_MasterRoleNumbersTbl") as rn on
-    br1.updatable_role_number_id = rn.idrn) as br
-right join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as pr on
-    (br.id = pr.projectassetrolerecordtbl_ptr_id)) as r
-left join (public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
-left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
-    (pa.projectassetrecordtbl_ptr_id = ba.id)) as a on
-    (r.id = a.initial_project_asset_role_id_id);
-!!!
-create or replace
-view reconciliation_view as
-select
-    r.id,
-    r.role_number,
-    r.role_name,
-    r.parent,
-    r.project_id,
-    r.role_exists,
-    r.role_missing_from_registry,
-    subpath(r.full_path, 1) as full_path,
-    r.parent_changed,
-    r.asset_id,
-    r.asset_serial_number,
-    r.asset_exists,
-    r.asset_missing_from_registry,
-    r.role_changed,
-    r.approved
-from
-    reconciliation_view_temp as r
-where
-    r.full_path <@ '1'::ltree and r.role_exists = true;
-!!!
-create or replace
-view garbage_can_reconciliation_view as
-select
-    r.id,
-    r.role_number,
-    r.role_name,
-    r.parent,
-    r.project_id,
-    r.role_exists,
-    r.role_missing_from_registry,
-    subpath(r.full_path, -1) as full_path,
-    r.parent_changed,
-    r.asset_id,
-    r.asset_serial_number,
-    r.asset_exists,
-    r.asset_missing_from_registry,
-    r.role_changed,
-    r.approved
-from
-    reconciliation_view_temp as r
-where
-    r.full_path <@ '1'::ltree and r.role_exists = false;
-!!!
-create or replace
-view orphan_view as
-select
-    r.id,
-    r.role_number,
-    r.role_name,
-    r.parent,
-    r.project_id,
-    r.role_exists,
-    r.role_missing_from_registry,
-    subpath(r.full_path, 1) as full_path,
-    r.parent_changed,
-    r.asset_id,
-    r.asset_serial_number,
-    r.asset_exists,
-    r.asset_missing_from_registry,
-    r.role_changed
-from
-    reconciliation_view_temp as r
-where
-    r.full_path <@ '2'::ltree and r.role_exists = true;
-!!!
-create or replace
-view unassigned_assets as
-select
-    ba.id as id,
-    ba.asset_serial_number as asset_serial_number,
-    pa.missing_from_registry as asset_missing_from_registry,
-    ba.project_tbl_id as project_id
-from
-    public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
-left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
-    pa.projectassetrecordtbl_ptr_id = ba.id
-where
-    pa.initial_project_asset_role_id_id is null
-    and pa.designer_planned_action_type_tbl_id <> 'b'
-    and pa.entity_exists = true;
-!!!
-create or replace
-view garbage_can_unassigned_assets as
-select
-    ba.id as id,
-    ba.asset_serial_number as asset_serial_number,
-    pa.missing_from_registry as asset_missing_from_registry,
-    ba.project_tbl_id as project_id
-from
-    public."djangoAPI_PreDesignReconciledAssetRecordTbl" as pa
-left join public."djangoAPI_ProjectAssetRecordTbl" as ba on
-    pa.projectassetrecordtbl_ptr_id = ba.id
-where
-    pa.initial_project_asset_role_id_id is null
-    and pa.designer_planned_action_type_tbl_id = 'b';
-    --and pa.entity_exists = false;
-    --assets are moved to the existingassetdisposedbyprojecttbl
 !!!
 create or replace
 view reservation_view as
@@ -328,46 +197,23 @@ $$ LANGUAGE plpgsql;
 create trigger role_changed_tgr
     before insert or update on public."djangoAPI_PreDesignReconciledAssetRecordTbl"
     for each row execute procedure update_role_changed();
-!!!
-create or replace
-view intermediate_change_view_roles as
-select
-	id,
-	role_name,
-	updatable_role_number_id as role_number,
-    -- TODO join the master role number table
-	approved,
-	parent_id_id as parent,
-	project_tbl_id as project_id,
-	ltree_path as full_path,
-	coalesce(parent_changed, false) as parent_changed,
-	coalesce(new_role, false) as new_role
-from
-	((public."djangoAPI_ProjectAssetRoleRecordTbl" as BaseRole
-left join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as PreRole on
-	BaseRole.id = PreRole.projectassetrolerecordtbl_ptr_id) as BasePreRole
-left join (
-	select
-		new_role,
-		projectassetrolerecordtbl_ptr_id as link
-	from
-		public."djangoAPI_NewProjectAssetRoleTbl") as NewRole on
-	BasePreRole.id = NewRole.link) as Roles
-where
-	entity_exists = true or new_role = true;
-!!!
 -- https://stackoverflow.com/questions/23257059/postgresql-exclude-records-crossing-other-table-values
 -- probably should do this to exclude removed roles
+!!!
 create or replace
-view intermediate_change_view_assets as
+view base_asset_view as
 select
 	id as asset_id,
 	asset_serial_number,
+	project_tbl_id as project_id,
+	designer_planned_action_type_tbl_id,
 	coalesce(role_changed, false) as role_changed,
 	coalesce(parent_for_new, parent_after_move, initial_project_asset_role_id_id) as role_link,
 	coalesce(move_installation_stage_id, new_installation_stage_id) as installation_stage_id,
 	move_uninstallation_stage_id as uninstallation_stage_id,
-	(not NewAsset.new_link is null) as new_asset
+	entity_exists as asset_exists,
+	(not NewAsset.new_link is null) as asset_new,
+    coalesce(missing_from_registry, false) as asset_missing_from_registry
 from
 	((public."djangoAPI_ProjectAssetRecordTbl" as BaseAsset
 left join public."djangoAPI_PreDesignReconciledAssetRecordTbl" as PreAsset on
@@ -391,26 +237,328 @@ left join (
 	BasePreMovedAsset.id = NewAsset.new_link
 !!!
 create or replace
+view reconciliation_unassigned_asset_view as
+select
+	asset_id as id,
+	asset_serial_number,
+	project_id,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	base_asset_view
+where
+	role_link is null
+    and designer_planned_action_type_tbl_id <> 'b'
+	and asset_new = false
+	and asset_exists = true;
+!!!
+create or replace
+view garbage_can_asset_view as
+select
+	asset_id as id,
+	asset_serial_number,
+	project_id,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	base_asset_view
+where
+	role_link is null
+    and designer_planned_action_type_tbl_id <> 'b'
+	and asset_new = false
+	and asset_exists = false;
+!!!
+create or replace
+view change_unassigned_asset_view as
+select
+	asset_id as id,
+	asset_serial_number,
+	project_id,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	base_asset_view
+where
+	role_link is null
+    and designer_planned_action_type_tbl_id <> 'b'
+	and asset_exists = true;
+!!!
+create or replace
+view dumpster_asset_view as
+select
+	asset_id as id,
+	asset_serial_number,
+	project_id,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	base_asset_view
+where
+	role_link is null
+    and designer_planned_action_type_tbl_id = 'b'
+	and asset_exists = true;
+!!!
+create or replace
+view base_role_view as
+select
+	id,
+	role_name,
+	role_number as role_number,
+	parent_id_id as parent,
+	project_tbl_id as project_id,
+	coalesce(entity_exists, true) as role_exists,
+	coalesce(missing_from_registry, false) as role_missing_from_registry,
+	ltree_path as full_path,
+	coalesce(parent_changed, false) as parent_changed,
+	approved,
+	coalesce(new_role, false) as role_new,
+	coalesce(disposed, false) as role_disposed
+from
+	(((public."djangoAPI_ProjectAssetRoleRecordTbl" as BaseRole
+left join public."djangoAPI_PreDesignReconciledRoleRecordTbl" as PreRole on
+	BaseRole.id = PreRole.projectassetrolerecordtbl_ptr_id) as BasePreRole
+left join (
+	select
+		new_role,
+		projectassetrolerecordtbl_ptr_id as link
+	from
+		public."djangoAPI_NewProjectAssetRoleTbl") as NewRole on
+	BasePreRole.id = NewRole.link) as Roles
+left join (select id as idrn, role_number from public."djangoAPI_MasterRoleNumbersTbl") as RoleNum on
+Roles.updatable_role_number_id = RoleNum.idrn) as RolesWNames
+left join public."djangoAPI_ExistingRoleDisposedByProject" as DisposeRole on
+	RolesWNames.id = DisposeRole.predesignreconciledrolerecordtbl_ptr_id
+!!!
+create or replace
+view joined_role_asset as
+select
+	id,
+	role_name,
+	role_number,
+	parent,
+	base_role_view.project_id,
+	role_exists,
+	role_missing_from_registry,
+	full_path,
+	parent_changed,
+	approved,
+	role_new,
+	role_disposed,
+	asset_id,
+	asset_serial_number,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	coalesce(asset_exists, true) as asset_exists,
+	coalesce(asset_new, false) as asset_new,
+    coalesce(asset_missing_from_registry, false) as asset_missing_from_registry
+from
+	(base_role_view
+left join base_asset_view on
+	base_role_view.id = base_asset_view.role_link)
+!!!
+create or replace
+view reconciliation_view as
+select
+	id,
+	role_name,
+	role_number,
+	parent,
+	project_id,
+	role_exists,
+	role_missing_from_registry,
+	subpath(full_path, 1) as full_path,
+	parent_changed,
+	approved,
+	role_new,
+	role_disposed,
+	asset_id,
+	asset_serial_number,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	joined_role_asset
+where
+full_path <@ '1'::ltree and role_exists = true and role_disposed = false and role_new = false;
+!!!
+create or replace
+view reconciliation_orphan_view as
+select
+	id,
+	role_name,
+	role_number,
+	parent,
+	project_id,
+	role_exists,
+	role_missing_from_registry,
+	subpath(full_path, 1) as full_path,
+	parent_changed,
+	approved,
+	role_new,
+	role_disposed,
+	asset_id,
+	asset_serial_number,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	joined_role_asset
+where
+full_path <@ '2'::ltree and role_exists = true and role_disposed = false and role_new = false;
+!!!
+create or replace
+view garbage_can_reconciliation_view as
+select
+	id,
+	role_name,
+	role_number,
+	parent,
+	project_id,
+	role_exists,
+	role_missing_from_registry,
+	subpath(full_path, 1) as full_path,
+	parent_changed,
+	approved,
+	role_new,
+	role_disposed,
+	asset_id,
+	asset_serial_number,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	joined_role_asset
+where
+full_path <@ '1'::ltree and role_exists = false and role_disposed = false and role_new = false;
+!!!
+create or replace
 view change_view as
 select
 	id,
 	role_name,
 	role_number,
-	approved,
 	parent,
 	project_id,
-	subpath(full_path,1) as full_path,
+	role_exists,
+	role_missing_from_registry,
+	subpath(full_path, 1) as full_path,
 	parent_changed,
-	new_role,
+	approved,
+	role_new,
+	role_disposed,
 	asset_id,
 	asset_serial_number,
-	coalesce(role_changed, false) as role_changed
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
 	installation_stage_id,
 	uninstallation_stage_id,
-    coalesce(new_asset, false) as new_asset
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
 from
-	intermediate_change_view_roles as Roles
-left join intermediate_change_view_assets as Assets on
-	Roles.id = assets.role_link
+	joined_role_asset
 where
-	full_path <@ '1'::ltree;
+full_path <@ '1'::ltree and role_exists = true and role_disposed = false;
+!!!
+create or replace
+view change_orphan_view as
+select
+	id,
+	role_name,
+	role_number,
+	parent,
+	project_id,
+	role_exists,
+	role_missing_from_registry,
+	subpath(full_path, 1) as full_path,
+	parent_changed,
+	approved,
+	role_new,
+	role_disposed,
+	asset_id,
+	asset_serial_number,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	joined_role_asset
+where
+full_path <@ '2'::ltree and role_exists = true and role_disposed = false;
+!!!
+create or replace
+view dumpster_change_view as
+select
+	id,
+	role_name,
+	role_number,
+	parent,
+	project_id,
+	role_exists,
+	role_missing_from_registry,
+	subpath(full_path, 1) as full_path,
+	parent_changed,
+	approved,
+	role_new,
+	role_disposed,
+	asset_id,
+	asset_serial_number,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	joined_role_asset
+where
+full_path <@ '2'::ltree and role_exists = true and role_disposed = true;
