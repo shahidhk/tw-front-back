@@ -2,17 +2,21 @@ import graphene
 from django.db import transaction
 from graphene_django.rest_framework.serializer_converter import \
     convert_serializer_to_input_type
-from graphene_django.types import DjangoObjectType, ObjectType
+from graphene_django.types import DjangoObjectType
 from graphql import GraphQLError
 from rest_framework import serializers
 
-from djangoAPI.apiUtils import *
-from djangoAPI.graphql.commons import *
-from djangoAPI.models import *
+from djangoAPI.apiUtils import (add_missing_role_asset, add_new_role_asset,
+                                assign_asset_to_role_change,
+                                assign_asset_to_role_reconciliation,
+                                change_role_parent, remove_change,
+                                remove_reconciliation, AuthenticationUtil)
+from djangoAPI.graphql.commons import IDEQ
+from djangoAPI.models import ReconciliationView, ChangeView
 
 
 # output classes
-class ReconViewType(DjangoObjectType):
+class ReconciliationViewType(DjangoObjectType):
     class Meta:
         model = ReconciliationView
 
@@ -24,14 +28,14 @@ class ChangeViewType(DjangoObjectType):
 # input classes
 
 
-class ReconViewSerial(serializers.ModelSerializer):
+class ReconciliationViewSerial(serializers.ModelSerializer):
     class Meta:
         model = ReconciliationView
         # the id is excluded since the client will never be able to specify the primary key, it will be returned once the entry is generated on the db
         exclude = ('id',)
 
 
-class ReconciliationViewSet(convert_serializer_to_input_type(ReconViewSerial)):
+class ReconciliationViewSet(convert_serializer_to_input_type(ReconciliationViewSerial)):
     role_id = graphene.Int()
 
 
@@ -51,7 +55,7 @@ class InsertReconciliationView(graphene.Mutation):
     class Arguments:
         objects = ReconciliationViewSet(required=True)
 
-    returning = graphene.List(ReconViewType)
+    returning = graphene.List(ReconciliationViewType)
 
     @staticmethod
     def mutate(root, info, objects=None):
@@ -84,7 +88,7 @@ class UpdateReconciliationView(graphene.Mutation):
         where = IDEQ(required=True)
         _set = ReconciliationViewSet(required=True)
 
-    returning = graphene.List(ReconViewType)
+    returning = graphene.List(ReconciliationViewType)
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
@@ -121,7 +125,7 @@ class DeleteReconciliationView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
 
-    returning = graphene.List(ReconViewType)
+    returning = graphene.List(ReconciliationViewType)
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):
@@ -142,7 +146,7 @@ class UpdateOrphanView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
         _set = ReconciliationViewSet(required=True)
-    returning = graphene.List(ReconViewType)
+    returning = graphene.List(ReconciliationViewType)
 
     @staticmethod
     def mutate(root, info, where=None, _set=None):

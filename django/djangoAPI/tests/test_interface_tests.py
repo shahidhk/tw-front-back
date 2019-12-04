@@ -27,13 +27,18 @@ def initialization():
     clean_up_incrementers()
 
 
-class APITestCase(TestCase):
-
+class SystemTests(TestCase):
+    """
+    All tests required for the system
+    Since a blank database is required for the test the initialization function must be used
+    Most tests ensures standard usability, edge case testing will be added on as they are discovered
+    """
     initialization()
 
     def test_1_reserve_assets(self):
         """
-        Some required information for making requests to graphql and rest
+        Reserve some assets
+        User: Tony, Group: 2, View: Reservation, Type: Standard Use Test
         """
         client = Client(schema)
         reserve_list = [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
@@ -44,6 +49,10 @@ class APITestCase(TestCase):
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_2_approve_assets(self):
+        """
+        Approve previously reserved assets
+        User: Tony, Group: 2, View: Reservation, Type: Standard Use Test
+        """
         client = Client(schema)
         reserve_list = [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
         for reserve in reserve_list:
@@ -52,16 +61,24 @@ class APITestCase(TestCase):
                 }}''' % (reserve, RESERVATION_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_3_add_new_roles(self):
+    def test_3_add_new_roles_w_asset(self):
+        """
+        Add roles with assets
+        User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
+        """
         client = Client(schema)
-        add_list = ['asset_1', 'asset_2', 'asset_3']
+        add_list = ['role_asset_1', 'role_asset_2', 'role_asset_3']
         for add in add_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
-                insert_reconciliation_view(objects: { role_number: "%s", role_name: "%s", parent: %d}) {%s
-                }}''' % (add, add+' name', 34, RECONCILIATION_RETURN),
+                insert_reconciliation_view(objects: { role_number: "%s", role_name: "%s", parent: %d, asset_serial_number: "%s-serial-number"}) {%s
+                }}''' % (add, add+' name', 34, add, RECONCILIATION_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_4_change_parent(self):
+        """
+        Change parents of roles
+        User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
+        """
         client = Client(schema)
         change_list = [41, 42, 43, 44, 45, 46]
         for change in change_list:
@@ -71,6 +88,10 @@ class APITestCase(TestCase):
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_4_revert_parent(self):
+        """
+        Change parents of roles back (test parent_changed)
+        User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
+        """
         client = Client(schema)
         change_list = [45, 46]
         for change in change_list:
@@ -80,6 +101,10 @@ class APITestCase(TestCase):
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_5_unassign_assets(self):
+        """
+        Remove some assets from their roles
+        User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
+        """
         client = Client(schema)
         change_list = [37, 38, 39, 40]
         for change in change_list:
@@ -89,10 +114,76 @@ class APITestCase(TestCase):
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_6_reassign_assets(self):
+        """
+        Switch up the assets role
+        User: Tony, Group: 2, View: reconciliation_unassigned_asset, Type: Standard Use Test
+        """
         client = Client(schema)
-        change_list = [[47, 38], [48, 37], [61, 39]]
+        change_list = [[47, 38], [48, 37]]
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_unassigned_assets(_set: { role_id: %d}, where: {id: {_eq: %d}}) {%s
                 }}''' % (change[0], change[1], UNASSIGNED_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
+
+    def test_7_add_role_only(self):
+        """
+        Add roles without assets
+        User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
+        """
+        client = Client(schema)
+        add_list = ['role_only_1', 'role_only_2', 'role_only_3']
+        for add in add_list:
+            self.assertMatchSnapshot(client.execute('''mutation MyMutation {
+                insert_reconciliation_view(objects: { role_number: "%s", role_name: "%s", parent: %d}) {%s
+                }}''' % (add, add+' name', 34, RECONCILIATION_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
+
+    def test_8_add_asset_to_role(self):
+        """
+        Add new assets to roles
+        User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
+        """
+        client = Client(schema)
+        add_list = ['asset_only_1', 'asset_only_2', 'asset_only_3']
+        role_list = [49, 64, 65]
+        for i, add in enumerate(add_list):
+            self.assertMatchSnapshot(client.execute('''mutation MyMutation {
+                insert_reconciliation_view(objects: { asset_serial_number: "%s", id: "%s"}) {%s
+                }}''' % (add, role_list[i], RECONCILIATION_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
+
+    def test_9_non_existant_entities(self):
+        """
+        Marks some assets as none existant (will also orphan some children)
+        User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
+        """
+        client = Client(schema)
+        change_list = [34, 13, 16, 36]
+        for item in change_list:
+            self.assertMatchSnapshot(client.execute('''mutation MyMutation {
+                delete_reconciliation_view(where: { id: {_eq: %d}}) {%s
+                }}''' % (item, RECONCILIATION_RETURN),
+                context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
+
+    def test_10_orphan_census(self):
+        """
+        Query the reconciliation_orphan_view to ensure orphans have been properly created
+        User: Tony, Group: 2, View: reconciliation_orphan_view, Type: Confirmation Test
+        """
+        # TODO all queries currently go through hasura so it does not exist
+        pass
+
+    def test_11_bring_back_non_existant_entities(self):
+        """
+        Brings entities marked as non existant back to reconciliation view
+        User: Tony, Group: 2, View: update_reconciliation_orphan_view, Type: Standard Use Test
+        """
+        # TODO this specific mutation does not exist
+        client = Client(schema)
+        change_list = [34, 13, 16, 36]
+        for change in change_list:
+            self.assertMatchSnapshot(client.execute('''mutation MyMutation {
+                update_reconciliation_orphan_view(_set: { parent: %d}, where: {id: {_eq: %d}}) {%s
+                }}''' % (33, change, RECONCILIATION_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
