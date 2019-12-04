@@ -767,81 +767,78 @@ snapshots['APITestCase::test_3_add_new_roles 1'] = {
     'data': {
         'insert_reconciliation_view': {
             'returning': [
-                None
-            ]
-        }
-    },
-    'errors': [
-        {
-            'locations': [
                 {
-                    'column': 140,
-                    'line': 2
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': None,
+                    'asset_missing_from_registry': False,
+                    'asset_serial_number': None,
+                    'full_path': '11.34.61',
+                    'id': 61,
+                    'parent': 34,
+                    'parent_changed': False,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_exists': True,
+                    'role_missing_from_registry': True,
+                    'role_name': 'asset_1 name',
+                    'role_number': 'asset_1'
                 }
-            ],
-            'message': 'Cannot return null for non-nullable field ReconViewType.asset_exists.',
-            'path': [
-                'insert_reconciliation_view',
-                'returning',
-                0,
-                'asset_exists'
             ]
         }
-    ]
+    }
 }
 
 snapshots['APITestCase::test_3_add_new_roles 2'] = {
     'data': {
         'insert_reconciliation_view': {
             'returning': [
-                None
-            ]
-        }
-    },
-    'errors': [
-        {
-            'locations': [
                 {
-                    'column': 140,
-                    'line': 2
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': None,
+                    'asset_missing_from_registry': False,
+                    'asset_serial_number': None,
+                    'full_path': '11.34.62',
+                    'id': 62,
+                    'parent': 34,
+                    'parent_changed': False,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_exists': True,
+                    'role_missing_from_registry': True,
+                    'role_name': 'asset_2 name',
+                    'role_number': 'asset_2'
                 }
-            ],
-            'message': 'Cannot return null for non-nullable field ReconViewType.asset_exists.',
-            'path': [
-                'insert_reconciliation_view',
-                'returning',
-                0,
-                'asset_exists'
             ]
         }
-    ]
+    }
 }
 
 snapshots['APITestCase::test_3_add_new_roles 3'] = {
     'data': {
         'insert_reconciliation_view': {
             'returning': [
-                None
-            ]
-        }
-    },
-    'errors': [
-        {
-            'locations': [
                 {
-                    'column': 140,
-                    'line': 2
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': None,
+                    'asset_missing_from_registry': False,
+                    'asset_serial_number': None,
+                    'full_path': '11.34.63',
+                    'id': 63,
+                    'parent': 34,
+                    'parent_changed': False,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_exists': True,
+                    'role_missing_from_registry': True,
+                    'role_name': 'asset_3 name',
+                    'role_number': 'asset_3'
                 }
-            ],
-            'message': 'Cannot return null for non-nullable field ReconViewType.asset_exists.',
-            'path': [
-                'insert_reconciliation_view',
-                'returning',
-                0,
-                'asset_exists'
             ]
         }
-    ]
+    }
 }
 
 snapshots['APITestCase::test_4_change_parent 1'] = {
@@ -1054,126 +1051,81 @@ snapshots['APITestCase::test_4_revert_parent 2'] = {
 
 snapshots['APITestCase::test_5_unassign_assets 1'] = {
     'data': {
-        'update_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '406:Operation Failed:',
-            'path': [
-                'update_reconciliation_view'
+        'update_reconciliation_view': {
+            'returning': [
             ]
         }
-    ]
+    }
 }
 
 snapshots['APITestCase::test_5_unassign_assets 2'] = {
     'data': {
-        'update_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '406:Operation Failed:',
-            'path': [
-                'update_reconciliation_view'
+        'update_reconciliation_view': {
+            'returning': [
             ]
         }
-    ]
+    }
 }
 
 snapshots['APITestCase::test_5_unassign_assets 3'] = {
     'data': {
-        'update_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '406:Operation Failed:',
-            'path': [
-                'update_reconciliation_view'
+        'update_reconciliation_view': {
+            'returning': [
             ]
         }
-    ]
+    }
 }
 
 snapshots['APITestCase::test_5_unassign_assets 4'] = {
     'data': {
-        'update_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '406:Operation Failed:',
-            'path': [
-                'update_reconciliation_view'
+        'update_reconciliation_view': {
+            'returning': [
             ]
         }
-    ]
+    }
 }
 
 snapshots['APITestCase::test_6_reassign_assets 1'] = {
     'data': {
-        'update_unassigned_assets': None
-    },
-    'errors': [
-        {
-            'locations': [
+        'update_unassigned_assets': {
+            'returning': [
                 {
-                    'column': 17,
-                    'line': 2
+                    'asset_missing_from_registry': False,
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-37',
+                    'id': 38,
+                    'project_id': 2
                 }
-            ],
-            'message': '''relation "unassigned_assets" does not exist
-LINE 1: ..._registry", "unassigned_assets"."project_id" FROM "unassigne...
-                                                             ^
-''',
-            'path': [
-                'update_unassigned_assets'
             ]
         }
-    ]
+    }
 }
 
 snapshots['APITestCase::test_6_reassign_assets 2'] = {
     'data': {
-        'update_unassigned_assets': None
-    },
-    'errors': [
-        {
-            'locations': [
+        'update_unassigned_assets': {
+            'returning': [
                 {
-                    'column': 17,
-                    'line': 2
+                    'asset_missing_from_registry': False,
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-36',
+                    'id': 37,
+                    'project_id': 2
                 }
-            ],
-            'message': '''relation "unassigned_assets" does not exist
-LINE 1: ..._registry", "unassigned_assets"."project_id" FROM "unassigne...
-                                                             ^
-''',
-            'path': [
-                'update_unassigned_assets'
             ]
         }
-    ]
+    }
+}
+
+snapshots['APITestCase::test_6_reassign_assets 3'] = {
+    'data': {
+        'update_unassigned_assets': {
+            'returning': [
+                {
+                    'asset_missing_from_registry': False,
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-38',
+                    'id': 39,
+                    'project_id': 2
+                }
+            ]
+        }
+    }
 }

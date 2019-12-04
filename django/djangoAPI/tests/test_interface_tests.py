@@ -90,7 +90,7 @@ class APITestCase(TestCase):
 
     def test_6_reassign_assets(self):
         client = Client(schema)
-        change_list = [[37, 38], [38, 37]]
+        change_list = [[47, 38], [48, 37], [61, 39]]
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_unassigned_assets(_set: { role_id: %d}, where: {id: {_eq: %d}}) {%s

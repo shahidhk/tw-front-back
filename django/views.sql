@@ -371,7 +371,7 @@ select
 	asset_id,
 	asset_serial_number,
 	designer_planned_action_type_tbl_id,
-	role_changed,
+	coalesce(role_changed, false) as role_changed,
 	role_link,
 	installation_stage_id,
 	uninstallation_stage_id,
@@ -411,7 +411,7 @@ select
 from
 	joined_role_asset
 where
-full_path <@ '1'::ltree and role_exists = true and role_disposed = false and role_new = false;
+full_path <@ '1'::ltree and role_exists = true and role_disposed = false and role_new = false and full_path <> '1'::ltree;
 !!!
 create or replace
 view reconciliation_orphan_view as
@@ -441,7 +441,7 @@ select
 from
 	joined_role_asset
 where
-full_path <@ '2'::ltree and role_exists = true and role_disposed = false and role_new = false;
+full_path <@ '2'::ltree and role_exists = true and role_disposed = false and role_new = false and full_path <> '2'::ltree;
 !!!
 create or replace
 view garbage_can_reconciliation_view as
@@ -471,7 +471,7 @@ select
 from
 	joined_role_asset
 where
-full_path <@ '1'::ltree and role_exists = false and role_disposed = false and role_new = false;
+full_path <@ '1'::ltree and role_exists = false and role_disposed = false and role_new = false and full_path <> '1'::ltree;
 !!!
 create or replace
 view change_view as
@@ -501,7 +501,7 @@ select
 from
 	joined_role_asset
 where
-full_path <@ '1'::ltree and role_exists = true and role_disposed = false;
+full_path <@ '1'::ltree and role_exists = true and role_disposed = false and full_path <> '1'::ltree;
 !!!
 create or replace
 view change_orphan_view as
@@ -531,7 +531,7 @@ select
 from
 	joined_role_asset
 where
-full_path <@ '2'::ltree and role_exists = true and role_disposed = false;
+full_path <@ '2'::ltree and role_exists = true and role_disposed = false and full_path <> '2'::ltree;
 !!!
 create or replace
 view dumpster_change_view as
@@ -561,4 +561,25 @@ select
 from
 	joined_role_asset
 where
-full_path <@ '2'::ltree and role_exists = true and role_disposed = true;
+full_path <@ '2'::ltree and role_exists = true and role_disposed = true and full_path <> '2'::ltree;
+!!!
+create or replace
+view general_unassigned_asset_view as
+select
+	asset_id as id,
+	asset_serial_number,
+	project_id,
+	designer_planned_action_type_tbl_id,
+	role_changed,
+	role_link,
+	installation_stage_id,
+	uninstallation_stage_id,
+	asset_exists,
+	asset_new,
+    asset_missing_from_registry
+from
+	base_asset_view
+where
+	role_link is null
+    and designer_planned_action_type_tbl_id <> 'b'
+	and asset_exists = true;

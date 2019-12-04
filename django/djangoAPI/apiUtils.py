@@ -70,6 +70,7 @@ def add_missing_role_asset(role_data, change_type, auth):
                     designer_planned_action_type_tbl_id='c',
                     parent_changed=False,
                     project_tbl_id=auth['group'],
+                    approved=True,
                 )
             except ObjectDoesNotExist as e:
                 return Result(message='Parent Does Not Exist: ' + str(role_data['parent_id']), error_code=100)
@@ -181,7 +182,7 @@ def assign_asset_to_role_reconciliation(data, auth):
     Expects Dictionary with asset_id, role_id
     Raises exception if another role is in that assets location
     '''
-
+    role = None
     if data['role_id'] is None or data['role_id'] == 0:
         data['role_id'] = None
     else:
@@ -213,7 +214,7 @@ def assign_asset_to_role_reconciliation(data, auth):
         asset.save()
         return Result(success=True, obj=role if role else None, obj_id=data['role_id'] if data['role_id'] else None)
     except Exception as e:
-        return Result(message='Operation Failed', error_code=406)
+        return Result(message='Operation Failed', exception=e, error_code=406)
 
 
 def remove_reconciliation(data, auth):

@@ -96,9 +96,9 @@ class UpdateUnassView(graphene.Mutation):
             # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
             # since we need to return a list with the object we deleted we can get the object before we delete it
             data = assign_asset_to_role_reconciliation(data, auth)
-            if data['result'] == 0:
+            if data.success:
                 return InsertUnassView(returning=result)
-            raise GraphQLError(data['errors'])
+            raise GraphQLError(data.readable_message())
 
 
 class DeleteUnassView(graphene.Mutation):

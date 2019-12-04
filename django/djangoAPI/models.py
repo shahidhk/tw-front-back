@@ -592,7 +592,8 @@ class UnassignedAssetsView(models.Model):
 
     class Meta:
         managed = False
-        db_table = "unassigned_assets"
+        db_table = "general_unassigned_asset_view"
+        # both unassigned assets come from this view, so this will guarantee that we get something back
 
 
 class ReservationView(models.Model):
