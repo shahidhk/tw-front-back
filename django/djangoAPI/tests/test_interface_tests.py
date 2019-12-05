@@ -122,7 +122,7 @@ class SystemTests(TestCase):
         change_list = [[47, 38], [48, 37]]
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
-                update_unassigned_assets(_set: { role_id: %d}, where: {id: {_eq: %d}}) {%s
+                update_reconciliation_unassigned_assets(_set: { role_id: %d}, where: {id: {_eq: %d}}) {%s
                 }}''' % (change[0], change[1], UNASSIGNED_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
@@ -231,7 +231,7 @@ class SystemTests(TestCase):
         User: Tony, Group: 2, View: reconciliation_unassigned_view, Type: Standard Use Test
         """
         client = Client(schema)
-        add_list = [???, ???, ???]  # TODO newly created and existing
+        add_list = [69, 420, 69]  # TODO newly created and existing
         for i, add in enumerate(add_list):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 delete_reconciliation_unassigned_view(objects: { id: "%s" }) {%s
@@ -244,10 +244,10 @@ class SystemTests(TestCase):
         """
         client = Client(schema)
         add_list = [[47, 38], [48, 37]]  # TODO newly created and existing
-        for i, add in enumerate(add_list):
+        for add in add_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_garbage_can_asset_view(_set: { role_id: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (add, UNASSIGNED_RETURN),
+                }}''' % (add[0], add[1], UNASSIGNED_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_17_create_changed_role_w_asset(self):
@@ -297,7 +297,7 @@ class SystemTests(TestCase):
         change_list = [37, 38, 39, 40]
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
-                update_reconciliation_view(_set: { asset_id: %d}, where: {id: {_eq: %d}}) {%s
+                update_change_view(_set: { asset_id: %d}, where: {id: {_eq: %d}}) {%s
                 }}''' % (change, 0, RECONCILIATION_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
@@ -310,7 +310,7 @@ class SystemTests(TestCase):
         change_list = [[47, 38], [48, 37]]  # TODO
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
-                update_change_unassigned_assets(_set: { role_id: %d}, where: {id: {_eq: %d}}) {%s
+                update_change_unassigned_asset_view(_set: { role_id: %d}, where: {id: {_eq: %d}}) {%s
                 }}''' % (change[0], change[1], UNASSIGNED_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
@@ -419,7 +419,7 @@ class SystemTests(TestCase):
         User: Tony, Group: 2, View: change_unassigned_asset_view, Type: Standard Use Test
         """
         client = Client(schema)
-        add_list = [???, ???, ???]  # TODO newly created and existing
+        add_list = [69, 420, 69]  # TODO newly created and existing
         for i, add in enumerate(add_list):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 delete_change_unassigned_asset_view(objects: { id: "%s" }) {%s
@@ -432,8 +432,8 @@ class SystemTests(TestCase):
         """
         client = Client(schema)
         add_list = [[47, 38], [48, 37]]  # TODO newly created and existing
-        for i, add in enumerate(add_list):
+        for add in add_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_dumpster_asset_view(_set: { role_id: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (add, UNASSIGNED_RETURN),
+                }}''' % (add[0], add[1], UNASSIGNED_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
