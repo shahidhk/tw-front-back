@@ -34,7 +34,7 @@ class UnassignedAssetViewSet(convert_serializer_to_input_type(UnassignedAssetVie
 # mutation
 
 
-class InsertUnassignedAssetView(graphene.Mutation):
+class InsertReconciliationUnassignedAssetView(graphene.Mutation):
     class Arguments:
         objects = UnassignedAssetViewSet(required=True)
 
@@ -51,11 +51,11 @@ class InsertUnassignedAssetView(graphene.Mutation):
             if data['result'] == 0:
                 data = UnassignedAssetsView.objects.filter(
                     pk=data['errors'])
-                return InsertUnassignedAssetView(returning=data)
+                return InsertReconciliationUnassignedAssetView(returning=data)
             raise GraphQLError(data['errors'])
 
 
-class UpdateUnassignedAssetView(graphene.Mutation):
+class UpdateReconciliationUnassignedAssetView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
         _set = UnassignedAssetViewSet(required=True)
@@ -76,11 +76,11 @@ class UpdateUnassignedAssetView(graphene.Mutation):
             # since we need to return a list with the object we deleted we can get the object before we delete it
             data = assign_asset_to_role_reconciliation(data, auth)
             if data.success:
-                return UpdateUnassignedAssetView(returning=result)
+                return UpdateReconciliationUnassignedAssetView(returning=result)
             raise GraphQLError(data.readable_message())
 
 
-class DeleteUnassignedAssetView(graphene.Mutation):
+class DeleteReconciliationUnassignedAssetView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
     # TODO not sure what should be returned since the entry disappears
@@ -96,5 +96,6 @@ class DeleteUnassignedAssetView(graphene.Mutation):
             result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))
             data = RetireAssetUtil(data, auth)
             if data['result'] == 0:
-                return DeleteUnassignedAssetView(returning=result)  # same as above where list???
+                # same as above where list???
+                return DeleteReconciliationUnassignedAssetView(returning=result)
             raise GraphQLError(data['errors'])

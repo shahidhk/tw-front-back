@@ -11,8 +11,8 @@ from djangoAPI.initialize import (clean_up_incrementers,
 from djangoAPI.graphql.schema import schema
 
 RESERVATION_RETURN = 'returning {approval_status approved full_path id parent project_id reservable reserved role_name role_number}'
-RECONCILIATION_RETURN = 'returning {approved asset_exists asset_id asset_missing_from_registry asset_serial_number full_path id parent parent_changed project_id role_changed role_exists role_missing_from_registry role_name role_number}'
-UNASSIGNED_RETURN = 'returning {asset_missing_from_registry asset_serial_number id project_id}'
+ROLE_ASSET_RETURN = 'returning {approved asset_exists asset_id asset_missing_from_registry asset_serial_number full_path id parent parent_changed project_id role_changed role_exists role_missing_from_registry role_name role_number role_new role_disposed designer_planned_action_type_tbl_id role_link asset_new}'
+UNASSIGNED_RETURN = 'returning {asset_missing_from_registry asset_serial_number id project_id installation_stage_id uninstallation_stage_id role_id asset_exists asset_new}'
 
 
 class MetaHeader():
@@ -71,7 +71,7 @@ class SystemTests(TestCase):
         for add in add_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 insert_reconciliation_view(objects: { role_number: "%s", role_name: "%s", parent: %d, asset_serial_number: "%s-serial-number"}) {%s
-                }}''' % (add, add+' name', 34, add, RECONCILIATION_RETURN),
+                }}''' % (add, add+' name', 34, add, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_4_change_parent(self):
@@ -84,7 +84,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_reconciliation_view(_set: { parent: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (34, change, RECONCILIATION_RETURN),
+                }}''' % (34, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_4_revert_parent(self):
@@ -97,7 +97,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_reconciliation_view(_set: { parent: %d}, where: { id: {_eq: %d}}) {%s
-                }}''' % (44, change, RECONCILIATION_RETURN),
+                }}''' % (44, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_5_unassign_assets(self):
@@ -110,7 +110,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_reconciliation_view(_set: { asset_id: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (change, 0, RECONCILIATION_RETURN),
+                }}''' % (change, 0, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_6_reassign_assets(self):
@@ -136,7 +136,7 @@ class SystemTests(TestCase):
         for add in add_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 insert_reconciliation_view(objects: { role_number: "%s", role_name: "%s", parent: %d}) {%s
-                }}''' % (add, add+' name', 34, RECONCILIATION_RETURN),
+                }}''' % (add, add+' name', 34, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_8_add_asset_to_role(self):
@@ -150,7 +150,7 @@ class SystemTests(TestCase):
         for i, add in enumerate(add_list):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 insert_reconciliation_view(objects: { asset_serial_number: "%s", id: "%s"}) {%s
-                }}''' % (add, role_list[i], RECONCILIATION_RETURN),
+                }}''' % (add, role_list[i], ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_9_non_existant_entities(self):
@@ -163,7 +163,7 @@ class SystemTests(TestCase):
         for item in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 delete_reconciliation_view(where: { id: {_eq: %d}}) {%s
-                }}''' % (item, RECONCILIATION_RETURN),
+                }}''' % (item, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_10_orphan_census(self):
@@ -185,7 +185,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_garbage_can_reconciliation_view(_set: { parent: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (33, change, RECONCILIATION_RETURN),
+                }}''' % (33, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_12_delete_orphans(self):
@@ -198,7 +198,7 @@ class SystemTests(TestCase):
         for item in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 delete_reconciliation_orphan_view(where: { id: {_eq: %d}}) {%s
-                }}''' % (item, RECONCILIATION_RETURN),
+                }}''' % (item, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_13_assign_parent_to_orphans(self):
@@ -211,7 +211,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_reconciliation_orphan_view(_set: { parent: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (33, change, RECONCILIATION_RETURN),
+                }}''' % (33, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_14_create_unassigned_asset(self):
@@ -259,7 +259,7 @@ class SystemTests(TestCase):
         for i, add in enumerate(add_list):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 insert_change_view(objects: { role_number: "%s", role_name: "%s", parent: %d, asset_serial_number: "%s-serial-number"}) {%s
-                }}''' % (add, add+' name', 34, add, RECONCILIATION_RETURN),
+                }}''' % (add, add+' name', 34, add, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_18_change_parent(self):
@@ -272,7 +272,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_change_view(_set: { parent: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (34, change, RECONCILIATION_RETURN),
+                }}''' % (34, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_19_revert_parent(self):
@@ -285,7 +285,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_change_view(_set: { parent: %d}, where: { id: {_eq: %d}}) {%s
-                }}''' % (44, change, RECONCILIATION_RETURN),
+                }}''' % (44, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_20_unassign_assets(self):
@@ -298,7 +298,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_change_view(_set: { asset_id: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (change, 0, RECONCILIATION_RETURN),
+                }}''' % (change, 0, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_21_reassign_assets(self):
@@ -324,7 +324,7 @@ class SystemTests(TestCase):
         for add in add_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 insert_change_view(objects: { role_number: "%s", role_name: "%s", parent: %d}) {%s
-                }}''' % (add, add+' name', 34, RECONCILIATION_RETURN),
+                }}''' % (add, add+' name', 34, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_23_add_asset_to_role(self):
@@ -338,7 +338,7 @@ class SystemTests(TestCase):
         for i, add in enumerate(add_list):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 insert_change_view(objects: { asset_serial_number: "%s", id: "%s"}) {%s
-                }}''' % (add, role_list[i], RECONCILIATION_RETURN),
+                }}''' % (add, role_list[i], ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_24_non_existant_entities(self):
@@ -351,7 +351,7 @@ class SystemTests(TestCase):
         for item in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 delete_change_view(where: { id: {_eq: %d}}) {%s
-                }}''' % (item, RECONCILIATION_RETURN),
+                }}''' % (item, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_25_orphan_census(self):  # change orphan view is deprecated
@@ -373,7 +373,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_dumpster_change_view(_set: { parent: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (33, change, RECONCILIATION_RETURN),
+                }}''' % (33, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_27_delete_orphans(self):  # change orphan view is deprecated
@@ -386,7 +386,7 @@ class SystemTests(TestCase):
         for item in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 delete_change_orphan_view(where: { id: {_eq: %d}}) {%s
-                }}''' % (item, RECONCILIATION_RETURN),
+                }}''' % (item, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_28_assign_parent_to_orphans(self):  # change orphan view is deprecated
@@ -399,7 +399,7 @@ class SystemTests(TestCase):
         for change in change_list:
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
                 update_change_orphan_view(_set: { parent: %d}, where: {id: {_eq: %d}}) {%s
-                }}''' % (33, change, RECONCILIATION_RETURN),
+                }}''' % (33, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
     def test_29_create_unassigned_asset(self):

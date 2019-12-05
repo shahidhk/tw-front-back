@@ -587,9 +587,13 @@ class UnassignedAssetsView(models.Model):
     # TODO this probably does not need to be a view, a filter probably works
     id = models.IntegerField(primary_key=True)
     asset_serial_number = models.TextField(null=True)
-    asset_missing_from_registry = models.BooleanField(null=True)
     project_id = models.IntegerField(null=True)
-
+    installation_stage_id = models.IntegerField(null=True)
+    uninstallation_stage_id = models.IntegerField(null=True)
+    asset_exists = models.BooleanField(null=True)
+    asset_new = models.BooleanField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)
+    
     class Meta:
         managed = False
         db_table = "general_unassigned_asset_view"
@@ -656,18 +660,23 @@ class ChangeView(models.Model):
     id = models.IntegerField(primary_key=True)
     role_number = models.TextField(null=True)
     role_name = models.TextField(null=True)
-    approved = models.BooleanField(null=True)
     parent = models.IntegerField(null=True)
     project_id = models.IntegerField(null=True)
-    new_role = models.BooleanField(null=True)
+    role_exists = models.BooleanField(null=True)
+    role_missing_from_registry = models.BooleanField(null=True)
     full_path = models.TextField(null=True)
     parent_changed = models.BooleanField(null=True)
+    approved = models.BooleanField(null=True)
+    role_new = models.BooleanField(null=True)
+    role_disposed = models.BooleanField(null=True)
     asset_id = models.IntegerField(null=True)
     asset_serial_number = models.TextField(null=True)
+    designer_planned_action_type_tbl_id = models.TextField(null=True)
     role_changed = models.BooleanField(null=True)
-    installation_stage_id = models.TextField(null=True)
-    uninstallation_stage_id = models.TextField(null=True)
-    new_asset = models.BooleanField(null=True)
+    role_link = models.IntegerField(null=True)
+    asset_new = models.BooleanField(null=True)
+    asset_exists = models.BooleanField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)    
 
     class Meta:
         managed = False
@@ -678,8 +687,8 @@ class ChangeView(models.Model):
         Calls removal functions depending on if they are prexisting or new
         can only remove
         """
-        new_role = self.new_role
-        new_asset = self.new_asset
+        new_role = self.role_new
+        new_asset = self.asset_new
         role_id = self.pk
 
         if new_asset:

@@ -98,7 +98,7 @@ class UpdateReconciliationView(graphene.Mutation):
             auth = AuthenticationUtil(info)
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-            elif not _set.parent is None:
+            if not _set.parent is None:
                 data = {'role_id': where.id._eq,
                         'parent_id': _set.parent,
                         }
@@ -133,34 +133,16 @@ class DeleteReconciliationView(graphene.Mutation):
             auth = AuthenticationUtil(info)
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-            data = {'role_id': where.id._eq, 'entity_exists': False, }
-            result = ReconciliationView.objects.filter(pk=where.id._eq)
-            data = remove_reconciliation(data, auth)
+            if not where.id is None:  # delete role
+                data = {'role_id': where.id._eq, 'entity_exists': False, }
+                result = ReconciliationView.objects.filter(pk=where.id._eq)
+                data = remove_reconciliation(data, auth)
+            elif not where.asset_id is None:  # delete asset
+                data = {'asset_id': where.asset_id._eq, 'entity_exists': False, }
+                result = ReconciliationView.objects.filter(asset_id=where.asset_id._eq)
+                data = remove_reconciliation(data, auth)  # TODO asset
             if data.success:
                 return DeleteReconciliationView(returning=result)
-            raise GraphQLError(data.readable_message())
-
-
-class UpdateOrphanView(graphene.Mutation):
-    # Reservation and Orphan View are based on the same table so they can have the same inputs & outputs
-    class Arguments:
-        where = IDEQ(required=True)
-        _set = ReconciliationViewSet(required=True)
-    returning = graphene.List(ReconciliationViewType)
-
-    @staticmethod
-    def mutate(root, info, where=None, _set=None):
-        with transaction.atomic():
-            auth = AuthenticationUtil(info)
-            if not auth['valid']:
-                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-            if not _set.parent is None:
-                # Used to assign orphaned child to a new parent, drags from orphan_view to reconciliation view
-                data = {'role_id': where.id._eq, 'parent_id': _set.parent}
-                data = change_role_parent(data, auth)
-            if data.success:
-                data = ReconciliationView.objects.filter(pk=data.obj_id)
-                return UpdateOrphanView(returning=data)
             raise GraphQLError(data.readable_message())
 
 
@@ -243,9 +225,14 @@ class DeleteChangeView(graphene.Mutation):
             auth = AuthenticationUtil(info)
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
-            data = {'role_id': where.id._eq, 'entity_exists': False, }
-            result = ChangeView.objects.filter(pk=where.id._eq)
-            data = remove_change(data, auth)
+            if not where.id is None:  # delete role
+                data = {'role_id': where.id._eq, 'entity_exists': False, }
+                result = ChangeView.objects.filter(pk=where.id._eq)
+                data = remove_change(data, auth)
+            elif not where.asset_id is None:  # delete asset
+                data = {'asset_id': where.asset_id._eq, 'entity_exists': False, }
+                result = ChangeView.objects.filter(pk=where.asset_id._eq)
+                data = remove_change(data, auth)  # TODO asset
             if data.success:
                 data = ChangeView.objects.filter(pk=data.obj_id)
                 return DeleteChangeView(returning=(data if data else result))

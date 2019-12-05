@@ -15,13 +15,12 @@ from djangoAPI.graphql.asset_role_view import (DeleteChangeView,
                                                InsertChangeView,
                                                InsertReconciliationView,
                                                UpdateChangeView,
-                                               UpdateOrphanView,
                                                UpdateReconciliationView)
 from djangoAPI.graphql.commons import IDEQ, QueryTypeCache, TableType
 from djangoAPI.graphql.projects import ProjectDetailsType, UsersProjectsType
 from djangoAPI.graphql.unassigned_asset_view import (
-    DeleteUnassignedAssetView, InsertUnassignedAssetView,
-    UpdateUnassignedAssetView)
+    DeleteReconciliationUnassignedAssetView, InsertReconciliationUnassignedAssetView,
+    UpdateReconciliationUnassignedAssetView)
 from djangoAPI.models import ReservationView
 from project.commons import ProjectDetails, project_details, user_projects
 
@@ -97,25 +96,26 @@ class Query(ObjectType):
 
 
 class Mutations(graphene.ObjectType):
+    update_reservation_view = UpdateReserView.Field()
+
     insert_reconciliation_view = InsertReconciliationView.Field()
     update_reconciliation_view = UpdateReconciliationView.Field()
     delete_reconciliation_view = DeleteReconciliationView.Field()
-    insert_unassigned_assets = InsertUnassignedAssetView.Field()
-    update_unassigned_assets = UpdateUnassignedAssetView.Field()
-    delete_unassigned_assets = DeleteUnassignedAssetView.Field()
-    update_reservation_view = UpdateReserView.Field()
-    insert_orphan_view = InsertReconciliationView.Field()
-    update_orphan_view = UpdateReconciliationView.Field()
-    delete_orphan_view = DeleteReconciliationView.Field()
-    insert_garbage_can_reconciliation_view = InsertReconciliationView.Field()
+    update_reconciliation_orphan_view = UpdateReconciliationView.Field()
+    delete_reconciliation_orphan_view = DeleteReconciliationView.Field()
     update_garbage_can_reconciliation_view = UpdateReconciliationView.Field()
-    delete_garbage_can_reconciliation_view = DeleteReconciliationView.Field()
-    insert_garbage_can_unassigned_assets = InsertUnassignedAssetView.Field()
-    update_garbage_can_unassigned_assets = UpdateUnassignedAssetView.Field()
-    delete_garbage_can_unassigned_assets = DeleteUnassignedAssetView.Field()
+
+    insert_reconciliation_unassigned_asset_view = InsertReconciliationUnassignedAssetView.Field()
+    update_reconciliation_unassigned_asset_view = UpdateReconciliationUnassignedAssetView.Field()
+    delete_reconciliation_unassigned_asset_view = DeleteReconciliationUnassignedAssetView.Field()
+    update_garbage_can_asset_view = UpdateReconciliationUnassignedAssetView.Field()
+
     insert_change_view = InsertChangeView.Field()
     update_change_view = UpdateChangeView.Field()
     delete_change_view = DeleteChangeView.Field()
+    update_dumpster_change_view = UpdateChangeView.Field()
+
+    # changed unassigned asset views
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations, auto_camelcase=False)
