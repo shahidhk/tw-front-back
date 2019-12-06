@@ -31,12 +31,13 @@ class ChangeViewType(DjangoObjectType):
 class ReconciliationViewSerial(serializers.ModelSerializer):
     class Meta:
         model = ReconciliationView
-        # the id is excluded since the client will never be able to specify the primary key, it will be returned once the entry is generated on the db
+        # the id is excluded since the primary key auto defaults to required, we will add it back later
         exclude = ('id',)
 
 
 class ReconciliationViewSet(convert_serializer_to_input_type(ReconciliationViewSerial)):
     role_id = graphene.Int()
+    id = graphene.Int()
 
 
 class ChangeViewSerial(serializers.ModelSerializer):

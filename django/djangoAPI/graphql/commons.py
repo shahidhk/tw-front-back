@@ -9,8 +9,8 @@ class EQ(graphene.InputObjectType):
 
 
 class IDEQ(graphene.InputObjectType):
-    id = EQ(required=True)
-    asset_id = EQ(required=True)
+    id = EQ(required=False)
+    asset_id = EQ(required=False)
 
 
 class TableType(graphene.ObjectType):

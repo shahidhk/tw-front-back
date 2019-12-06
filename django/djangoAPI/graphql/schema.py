@@ -39,15 +39,15 @@ class ReservationViewSerial(serializers.ModelSerializer):
         exclude = ('id',)
 
 
-class ReserViewSet(convert_serializer_to_input_type(ReservationViewSerial)):
-    pass
+class ReservationViewSet(convert_serializer_to_input_type(ReservationViewSerial)):
+    id = graphene.Int()
 
 
 # mutations
 class UpdateReserView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
-        _set = ReserViewSet(required=True)
+        _set = ReservationViewSet(required=True)
     returning = graphene.List(ReservationViewType)
 
     @staticmethod

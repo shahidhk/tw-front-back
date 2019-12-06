@@ -35,7 +35,7 @@ class SystemTests(TestCase):
     """
     initialization()
 
-    def test_1_reserve_assets(self):
+    def test_01_reserve_assets(self):
         """
         Reserve some assets
         User: Tony, Group: 2, View: Reservation, Type: Standard Use Test
@@ -48,7 +48,7 @@ class SystemTests(TestCase):
                 }}''' % (reserve, RESERVATION_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_2_approve_assets(self):
+    def test_02_approve_assets(self):
         """
         Approve previously reserved assets
         User: Tony, Group: 2, View: Reservation, Type: Standard Use Test
@@ -61,7 +61,7 @@ class SystemTests(TestCase):
                 }}''' % (reserve, RESERVATION_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_3_add_new_roles_w_asset(self):
+    def test_03_add_new_roles_w_asset(self):
         """
         Add roles with assets
         User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
@@ -74,7 +74,7 @@ class SystemTests(TestCase):
                 }}''' % (add, add+' name', 34, add, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_4_change_parent(self):
+    def test_04_0_change_parent(self):
         """
         Change parents of roles
         User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
@@ -87,7 +87,7 @@ class SystemTests(TestCase):
                 }}''' % (34, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_4_revert_parent(self):
+    def test_04_1_revert_parent(self):
         """
         Change parents of roles back (test parent_changed)
         User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
@@ -100,7 +100,7 @@ class SystemTests(TestCase):
                 }}''' % (44, change, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_5_unassign_assets(self):
+    def test_05_unassign_assets(self):
         """
         Remove some assets from their roles
         User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
@@ -113,7 +113,7 @@ class SystemTests(TestCase):
                 }}''' % (change, 0, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_6_reassign_assets(self):
+    def test_06_reassign_assets(self):
         """
         Switch up the assets role
         User: Tony, Group: 2, View: reconciliation_unassigned_asset, Type: Standard Use Test
@@ -126,7 +126,7 @@ class SystemTests(TestCase):
                 }}''' % (change[0], change[1], UNASSIGNED_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_7_add_role_only(self):
+    def test_07_add_role_only(self):
         """
         Add roles without assets
         User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
@@ -139,7 +139,7 @@ class SystemTests(TestCase):
                 }}''' % (add, add+' name', 34, ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_8_add_asset_to_role(self):
+    def test_08_add_asset_to_role(self):
         """
         Add new assets to roles
         User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
@@ -149,11 +149,11 @@ class SystemTests(TestCase):
         role_list = [49, 64, 65]
         for i, add in enumerate(add_list):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
-                insert_reconciliation_view(objects: { asset_serial_number: "%s", id: "%s"}) {%s
+                insert_reconciliation_view(objects: { asset_serial_number: "%s", id: %d}) {%s
                 }}''' % (add, role_list[i], ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
-    def test_9_non_existant_entities(self):
+    def test_09_non_existant_entities(self):
         """
         Marks some assets as none existant (will also orphan some children)
         User: Tony, Group: 2, View: Reconciliation, Type: Standard Use Test
@@ -234,7 +234,7 @@ class SystemTests(TestCase):
         add_list = [69, 420, 69]  # TODO newly created and existing
         for i, add in enumerate(add_list):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
-                delete_reconciliation_unassigned_view(objects: { id: "%s" }) {%s
+                delete_reconciliation_unassigned_view(objects: { id: %d }) {%s
                 }}''' % (add, UNASSIGNED_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
@@ -337,7 +337,7 @@ class SystemTests(TestCase):
         role_list = [49, 64, 65]  # TODO
         for i, add in enumerate(add_list):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
-                insert_change_view(objects: { asset_serial_number: "%s", id: "%s"}) {%s
+                insert_change_view(objects: { asset_serial_number: "%s", id: %d}) {%s
                 }}''' % (add, role_list[i], ROLE_ASSET_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 
@@ -422,7 +422,7 @@ class SystemTests(TestCase):
         add_list = [69, 420, 69]  # TODO newly created and existing
         for i, add in enumerate(add_list):
             self.assertMatchSnapshot(client.execute('''mutation MyMutation {
-                delete_change_unassigned_asset_view(objects: { id: "%s" }) {%s
+                delete_change_unassigned_asset_view(objects: { id: %d }) {%s
                 }}''' % (add, UNASSIGNED_RETURN),
                 context=MetaHeader({'HTTP_X_USERNAME': 'tony.huang', 'HTTP_X_PROJECT': 2})))
 

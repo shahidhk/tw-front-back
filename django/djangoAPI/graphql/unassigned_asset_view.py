@@ -30,7 +30,7 @@ class UnassignedAssetViewSerial(serializers.ModelSerializer):
 
 class UnassignedAssetViewSet(convert_serializer_to_input_type(UnassignedAssetViewSerial)):
     role_id = graphene.Int()
-
+    id = graphene.Int()
 # mutation
 
 
