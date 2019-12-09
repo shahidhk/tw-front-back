@@ -43,6 +43,8 @@ def AuthenticationUtil(info):
 
 
 def add_missing_role_asset(role_data, change_type, auth):
+    # TODO need general function for checking if role is in use
+    # currently these add functions do not check if role is in use, which can result in double assignment to a role
     """
     Adds a Role / Asset record that was missing from Avantis
     add_type:
@@ -77,12 +79,10 @@ def add_missing_role_asset(role_data, change_type, auth):
                 return Result(message='Parent Does Not Exist: ' + str(role_data['parent_id']), error_code=100)
             except Exception as e:
                 return Result(message='Failed to Create Role', exception=e, error_code=201)
-            else:
-                return Result(success=True, obj_id=role.pk)
         else:
             return role_number_obj
-    if change_type == 2:
-        pass # no further action required for new role only
+    if change_type == 2: # if we only want a new role we are done now
+        pass # we will use the return at the end since its the same
     else:
         asset = PreDesignReconciledAssetRecordTbl(
             project_tbl_id=auth['group'],
@@ -96,7 +96,7 @@ def add_missing_role_asset(role_data, change_type, auth):
             asset.save()
         except Exception as e:
             return Result(success=False, error_code=202, message='Failed to Create Asset', exception=e)
-        return Result(success=True, obj_id=role.pk, obj=role)
+    return Result(success=True, obj_id=role.pk, obj=role)
 
 
 def MissingRoleUtil(role_data, auth):
@@ -215,6 +215,21 @@ def assign_asset_to_role_reconciliation(data, auth):
         return Result(success=True, obj=role, obj_id=data['role_id'])
     except Exception as e:
         return Result(message='Operation Failed', exception=e, error_code=406)
+
+
+def remove_reconciliation_asset(data, auth):
+    """
+    Marks existing asset as non-existant
+    deletes user created asset
+    """
+    asset_id = data['asset_id']
+    project_id = auth['group']
+    try:
+        asset = PreDesignReconciledAssetRecordTbl.objects.get(pk=asset_id)
+    except ObjectDoesNotExist as e:
+        return Result(error_code=900, message='Asset cannot be found')
+    else:
+        return asset.remove_reconciliation(project_id)
 
 
 def remove_reconciliation(data, auth):
@@ -565,6 +580,8 @@ def ApproveReservationUtil(data, auth):
 
 
 def add_new_role_asset(data, change_type, auth):
+    # TODO need general function for checking if role is in use
+    # currently these add functions do not check if role is in use, which can result in double assignment to a role
     """
     Creates a new role / asset
     type 1: new role + asset

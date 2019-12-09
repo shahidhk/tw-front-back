@@ -770,11 +770,11 @@ snapshots['SystemTests::test_03_add_new_roles_w_asset 1'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 51,
-                    'asset_missing_from_registry': True,
+                    'asset_id': None,
+                    'asset_missing_from_registry': False,
                     'asset_new': False,
-                    'asset_serial_number': 'role_asset_1-serial-number',
-                    'designer_planned_action_type_tbl_id': 'c',
+                    'asset_serial_number': None,
+                    'designer_planned_action_type_tbl_id': None,
                     'full_path': '11.34.61',
                     'id': 61,
                     'parent': 34,
@@ -783,7 +783,7 @@ snapshots['SystemTests::test_03_add_new_roles_w_asset 1'] = {
                     'role_changed': False,
                     'role_disposed': False,
                     'role_exists': True,
-                    'role_link': 61,
+                    'role_link': None,
                     'role_missing_from_registry': True,
                     'role_name': 'role_asset_1 name',
                     'role_new': False,
@@ -801,11 +801,11 @@ snapshots['SystemTests::test_03_add_new_roles_w_asset 2'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 52,
-                    'asset_missing_from_registry': True,
+                    'asset_id': None,
+                    'asset_missing_from_registry': False,
                     'asset_new': False,
-                    'asset_serial_number': 'role_asset_2-serial-number',
-                    'designer_planned_action_type_tbl_id': 'c',
+                    'asset_serial_number': None,
+                    'designer_planned_action_type_tbl_id': None,
                     'full_path': '11.34.62',
                     'id': 62,
                     'parent': 34,
@@ -814,7 +814,7 @@ snapshots['SystemTests::test_03_add_new_roles_w_asset 2'] = {
                     'role_changed': False,
                     'role_disposed': False,
                     'role_exists': True,
-                    'role_link': 62,
+                    'role_link': None,
                     'role_missing_from_registry': True,
                     'role_name': 'role_asset_2 name',
                     'role_new': False,
@@ -832,11 +832,11 @@ snapshots['SystemTests::test_03_add_new_roles_w_asset 3'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 53,
-                    'asset_missing_from_registry': True,
+                    'asset_id': None,
+                    'asset_missing_from_registry': False,
                     'asset_new': False,
-                    'asset_serial_number': 'role_asset_3-serial-number',
-                    'designer_planned_action_type_tbl_id': 'c',
+                    'asset_serial_number': None,
+                    'designer_planned_action_type_tbl_id': None,
                     'full_path': '11.34.63',
                     'id': 63,
                     'parent': 34,
@@ -845,7 +845,7 @@ snapshots['SystemTests::test_03_add_new_roles_w_asset 3'] = {
                     'role_changed': False,
                     'role_disposed': False,
                     'role_exists': True,
-                    'role_link': 63,
+                    'role_link': None,
                     'role_missing_from_registry': True,
                     'role_name': 'role_asset_3 name',
                     'role_new': False,
@@ -1141,41 +1141,31 @@ snapshots['SystemTests::test_05_unassign_assets 4'] = {
 }
 
 snapshots['SystemTests::test_06_reassign_assets 1'] = {
-    'data': {
-        'update_reconciliation_unassigned_asset_view': {
-            'returning': [
+    'errors': [
+        {
+            'locations': [
                 {
-                    'asset_exists': True,
-                    'asset_missing_from_registry': False,
-                    'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-37',
-                    'id': 38,
-                    'installation_stage_id': None,
-                    'project_id': 2,
-                    'uninstallation_stage_id': None
+                    'column': 17,
+                    'line': 2
                 }
-            ]
+            ],
+            'message': 'Cannot query field "update_reconciliation_unassigned_assets" on type "Mutations". Did you mean "update_reconciliation_unassigned_asset_view", "delete_reconciliation_unassigned_asset_view", "insert_reconciliation_unassigned_asset_view", "update_reconciliation_orphan_view" or "update_reconciliation_view"?'
         }
-    }
+    ]
 }
 
 snapshots['SystemTests::test_06_reassign_assets 2'] = {
-    'data': {
-        'update_reconciliation_unassigned_asset_view': {
-            'returning': [
+    'errors': [
+        {
+            'locations': [
                 {
-                    'asset_exists': True,
-                    'asset_missing_from_registry': False,
-                    'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-36',
-                    'id': 37,
-                    'installation_stage_id': None,
-                    'project_id': 2,
-                    'uninstallation_stage_id': None
+                    'column': 17,
+                    'line': 2
                 }
-            ]
+            ],
+            'message': 'Cannot query field "update_reconciliation_unassigned_assets" on type "Mutations". Did you mean "update_reconciliation_unassigned_asset_view", "delete_reconciliation_unassigned_asset_view", "insert_reconciliation_unassigned_asset_view", "update_reconciliation_orphan_view" or "update_reconciliation_view"?'
         }
-    }
+    ]
 }
 
 snapshots['SystemTests::test_07_add_role_only 1'] = {
@@ -1278,7 +1268,7 @@ snapshots['SystemTests::test_08_add_asset_to_role 1'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 54,
+                    'asset_id': 51,
                     'asset_missing_from_registry': True,
                     'asset_new': False,
                     'asset_serial_number': 'asset_only_1',
@@ -1309,7 +1299,7 @@ snapshots['SystemTests::test_08_add_asset_to_role 2'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 55,
+                    'asset_id': 52,
                     'asset_missing_from_registry': True,
                     'asset_new': False,
                     'asset_serial_number': 'asset_only_2',
@@ -1340,7 +1330,7 @@ snapshots['SystemTests::test_08_add_asset_to_role 3'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 56,
+                    'asset_id': 53,
                     'asset_missing_from_registry': True,
                     'asset_new': False,
                     'asset_serial_number': 'asset_only_3',
@@ -1364,7 +1354,7 @@ snapshots['SystemTests::test_08_add_asset_to_role 3'] = {
     }
 }
 
-snapshots['SystemTests::test_09_0_non_existant_entities 1'] = {
+snapshots['SystemTests::test_09_non_existant_entities 1'] = {
     'data': {
         'delete_reconciliation_view': {
             'returning': [
@@ -1373,7 +1363,7 @@ snapshots['SystemTests::test_09_0_non_existant_entities 1'] = {
     }
 }
 
-snapshots['SystemTests::test_09_0_non_existant_entities 2'] = {
+snapshots['SystemTests::test_09_non_existant_entities 2'] = {
     'data': {
         'delete_reconciliation_view': None
     },
@@ -1393,7 +1383,7 @@ snapshots['SystemTests::test_09_0_non_existant_entities 2'] = {
     ]
 }
 
-snapshots['SystemTests::test_09_0_non_existant_entities 3'] = {
+snapshots['SystemTests::test_09_non_existant_entities 3'] = {
     'data': {
         'delete_reconciliation_view': None
     },
@@ -1413,93 +1403,13 @@ snapshots['SystemTests::test_09_0_non_existant_entities 3'] = {
     ]
 }
 
-snapshots['SystemTests::test_09_0_non_existant_entities 4'] = {
+snapshots['SystemTests::test_09_non_existant_entities 4'] = {
     'data': {
         'delete_reconciliation_view': {
             'returning': [
             ]
         }
     }
-}
-
-snapshots['SystemTests::test_09_1_non_existant_assets 1'] = {
-    'data': {
-        'delete_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': "'role_id'",
-            'path': [
-                'delete_reconciliation_view'
-            ]
-        }
-    ]
-}
-
-snapshots['SystemTests::test_09_1_non_existant_assets 2'] = {
-    'data': {
-        'delete_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': "'role_id'",
-            'path': [
-                'delete_reconciliation_view'
-            ]
-        }
-    ]
-}
-
-snapshots['SystemTests::test_09_1_non_existant_assets 3'] = {
-    'data': {
-        'delete_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': "'role_id'",
-            'path': [
-                'delete_reconciliation_view'
-            ]
-        }
-    ]
-}
-
-snapshots['SystemTests::test_09_1_non_existant_assets 4'] = {
-    'data': {
-        'delete_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': "'role_id'",
-            'path': [
-                'delete_reconciliation_view'
-            ]
-        }
-    ]
 }
 
 snapshots['SystemTests::test_11_bring_back_non_existant_entities 1'] = {
@@ -1623,7 +1533,7 @@ snapshots['SystemTests::test_14_create_unassigned_asset 1'] = {
                     'asset_missing_from_registry': True,
                     'asset_new': False,
                     'asset_serial_number': 'unasset_only_1',
-                    'id': 57,
+                    'id': 54,
                     'installation_stage_id': None,
                     'project_id': 2,
                     'uninstallation_stage_id': None
@@ -1642,7 +1552,7 @@ snapshots['SystemTests::test_14_create_unassigned_asset 2'] = {
                     'asset_missing_from_registry': True,
                     'asset_new': False,
                     'asset_serial_number': 'unasset_only_2',
-                    'id': 58,
+                    'id': 55,
                     'installation_stage_id': None,
                     'project_id': 2,
                     'uninstallation_stage_id': None
@@ -1661,7 +1571,7 @@ snapshots['SystemTests::test_14_create_unassigned_asset 3'] = {
                     'asset_missing_from_registry': True,
                     'asset_new': False,
                     'asset_serial_number': 'unasset_only_3',
-                    'id': 59,
+                    'id': 56,
                     'installation_stage_id': None,
                     'project_id': 2,
                     'uninstallation_stage_id': None
@@ -1675,21 +1585,12 @@ snapshots['SystemTests::test_15_delete_unassigned_asset 1'] = {
     'data': {
         'delete_reconciliation_unassigned_asset_view': {
             'returning': [
-            ]
-        }
-    }
-}
-
-snapshots['SystemTests::test_15_delete_unassigned_asset 2'] = {
-    'data': {
-        'delete_reconciliation_unassigned_asset_view': {
-            'returning': [
                 {
                     'asset_exists': True,
-                    'asset_missing_from_registry': False,
+                    'asset_missing_from_registry': True,
                     'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-39',
-                    'id': 40,
+                    'asset_serial_number': 'unasset_only_3',
+                    'id': 56,
                     'installation_stage_id': None,
                     'project_id': 2,
                     'uninstallation_stage_id': None
@@ -1697,6 +1598,66 @@ snapshots['SystemTests::test_15_delete_unassigned_asset 2'] = {
             ]
         }
     }
+}
+
+snapshots['SystemTests::test_15_delete_unassigned_asset 2'] = {
+    'data': {
+        'delete_reconciliation_unassigned_asset_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "E14: Asset cannot be found please refresh your View: {'asset_id': 69}",
+            'path': [
+                'delete_reconciliation_unassigned_asset_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_15_delete_unassigned_asset 3'] = {
+    'data': {
+        'delete_reconciliation_unassigned_asset_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "E14: Asset cannot be found please refresh your View: {'asset_id': 420}",
+            'path': [
+                'delete_reconciliation_unassigned_asset_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_15_delete_unassigned_asset 4'] = {
+    'data': {
+        'delete_reconciliation_unassigned_asset_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "E14: Asset cannot be found please refresh your View: {'asset_id': 69}",
+            'path': [
+                'delete_reconciliation_unassigned_asset_view'
+            ]
+        }
+    ]
 }
 
 snapshots['SystemTests::test_16_assign_unassigned_asset 1'] = {
@@ -1711,7 +1672,7 @@ snapshots['SystemTests::test_16_assign_unassigned_asset 1'] = {
                     'line': 2
                 }
             ],
-            'message': '400:An Asset is currently assigned to the role: 38:',
+            'message': '402:You are assigning an asset to a role that is marked as Non Existant:',
             'path': [
                 'update_garbage_can_asset_view'
             ]
@@ -1721,22 +1682,21 @@ snapshots['SystemTests::test_16_assign_unassigned_asset 1'] = {
 
 snapshots['SystemTests::test_16_assign_unassigned_asset 2'] = {
     'data': {
-        'update_garbage_can_asset_view': None
-    },
-    'errors': [
-        {
-            'locations': [
+        'update_garbage_can_asset_view': {
+            'returning': [
                 {
-                    'column': 17,
-                    'line': 2
+                    'asset_exists': True,
+                    'asset_missing_from_registry': False,
+                    'asset_new': False,
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-36',
+                    'id': 37,
+                    'installation_stage_id': None,
+                    'project_id': 2,
+                    'uninstallation_stage_id': None
                 }
-            ],
-            'message': '400:An Asset is currently assigned to the role: 37:',
-            'path': [
-                'update_garbage_can_asset_view'
             ]
         }
-    ]
+    }
 }
 
 snapshots['SystemTests::test_17_create_changed_role_w_asset 1'] = {
@@ -1746,7 +1706,7 @@ snapshots['SystemTests::test_17_create_changed_role_w_asset 1'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 60,
+                    'asset_id': 57,
                     'asset_missing_from_registry': False,
                     'asset_new': True,
                     'asset_serial_number': 'new_role_asset_1-serial-number',
@@ -1777,7 +1737,7 @@ snapshots['SystemTests::test_17_create_changed_role_w_asset 2'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 61,
+                    'asset_id': 58,
                     'asset_missing_from_registry': False,
                     'asset_new': True,
                     'asset_serial_number': 'new_role_asset_2-serial-number',
@@ -1808,7 +1768,7 @@ snapshots['SystemTests::test_17_create_changed_role_w_asset 3'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 62,
+                    'asset_id': 59,
                     'asset_missing_from_registry': False,
                     'asset_new': True,
                     'asset_serial_number': 'new_role_asset_3-serial-number',
@@ -2003,7 +1963,7 @@ snapshots['SystemTests::test_18_change_parent 7'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 61,
+                    'asset_id': 58,
                     'asset_missing_from_registry': False,
                     'asset_new': True,
                     'asset_serial_number': 'new_role_asset_2-serial-number',
@@ -2034,7 +1994,7 @@ snapshots['SystemTests::test_18_change_parent 8'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 62,
+                    'asset_id': 59,
                     'asset_missing_from_registry': False,
                     'asset_new': True,
                     'asset_serial_number': 'new_role_asset_3-serial-number',
@@ -2168,7 +2128,7 @@ snapshots['SystemTests::test_21_reassign_assets 1'] = {
                     'line': 2
                 }
             ],
-            'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-37:',
+            'message': '603:You are assigning an asset to a role that is marked as Non Existant:',
             'path': [
                 'update_change_unassigned_asset_view'
             ]
@@ -2405,7 +2365,7 @@ snapshots['SystemTests::test_29_create_unassigned_asset 1'] = {
                 }
             ],
             'message': '''26:Failed to Create New Asset:null value in column "final_project_asset_role_id_id" violates not-null constraint
-DETAIL:  Failing row contains (66, null, 1).
+DETAIL:  Failing row contains (63, null, 1).
 :<class 'django.db.utils.IntegrityError'>''',
             'path': [
                 'insert_change_unassigned_asset_view'
@@ -2427,7 +2387,7 @@ snapshots['SystemTests::test_29_create_unassigned_asset 2'] = {
                 }
             ],
             'message': '''26:Failed to Create New Asset:null value in column "final_project_asset_role_id_id" violates not-null constraint
-DETAIL:  Failing row contains (67, null, 1).
+DETAIL:  Failing row contains (64, null, 1).
 :<class 'django.db.utils.IntegrityError'>''',
             'path': [
                 'insert_change_unassigned_asset_view'
@@ -2449,7 +2409,7 @@ snapshots['SystemTests::test_29_create_unassigned_asset 3'] = {
                 }
             ],
             'message': '''26:Failed to Create New Asset:null value in column "final_project_asset_role_id_id" violates not-null constraint
-DETAIL:  Failing row contains (68, null, 1).
+DETAIL:  Failing row contains (65, null, 1).
 :<class 'django.db.utils.IntegrityError'>''',
             'path': [
                 'insert_change_unassigned_asset_view'
@@ -2530,7 +2490,7 @@ snapshots['SystemTests::test_31_assign_unassigned_asset 1'] = {
                     'line': 2
                 }
             ],
-            'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-37:',
+            'message': '603:You are assigning an asset to a role that is marked as Non Existant:',
             'path': [
                 'update_dumpster_asset_view'
             ]
@@ -2553,6 +2513,144 @@ snapshots['SystemTests::test_31_assign_unassigned_asset 2'] = {
             'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-36:',
             'path': [
                 'update_dumpster_asset_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_09_0_non_existant_entities 1'] = {
+    'data': {
+        'delete_reconciliation_view': {
+            'returning': [
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_09_0_non_existant_entities 2'] = {
+    'data': {
+        'delete_reconciliation_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': '4:Asset Reserved by Another Project:',
+            'path': [
+                'delete_reconciliation_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_09_0_non_existant_entities 3'] = {
+    'data': {
+        'delete_reconciliation_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': '4:Asset Reserved by Another Project:',
+            'path': [
+                'delete_reconciliation_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_09_0_non_existant_entities 4'] = {
+    'data': {
+        'delete_reconciliation_view': {
+            'returning': [
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_09_1_non_existant_assets 1'] = {
+    'data': {
+        'delete_reconciliation_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "'role_id'",
+            'path': [
+                'delete_reconciliation_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_09_1_non_existant_assets 2'] = {
+    'data': {
+        'delete_reconciliation_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "'role_id'",
+            'path': [
+                'delete_reconciliation_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_09_1_non_existant_assets 3'] = {
+    'data': {
+        'delete_reconciliation_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "'role_id'",
+            'path': [
+                'delete_reconciliation_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_09_1_non_existant_assets 4'] = {
+    'data': {
+        'delete_reconciliation_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "'role_id'",
+            'path': [
+                'delete_reconciliation_view'
             ]
         }
     ]
