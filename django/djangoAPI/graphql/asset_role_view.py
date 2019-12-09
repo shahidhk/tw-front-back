@@ -25,9 +25,8 @@ class ChangeViewType(DjangoObjectType):
     class Meta:
         model = ChangeView
 
+
 # input classes
-
-
 class ReconciliationViewSerial(serializers.ModelSerializer):
     class Meta:
         model = ReconciliationView

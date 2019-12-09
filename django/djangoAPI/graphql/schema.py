@@ -19,8 +19,9 @@ from djangoAPI.graphql.asset_role_view import (DeleteChangeView,
 from djangoAPI.graphql.commons import IDEQ, QueryTypeCache, TableType
 from djangoAPI.graphql.projects import ProjectDetailsType, UsersProjectsType
 from djangoAPI.graphql.unassigned_asset_view import (
-    DeleteReconciliationUnassignedAssetView, InsertReconciliationUnassignedAssetView,
-    UpdateReconciliationUnassignedAssetView)
+    DeleteChangeUnassignedAssetView, DeleteReconciliationUnassignedAssetView,
+    InsertChangeUnassignedAssetView, InsertReconciliationUnassignedAssetView,
+    UpdateChangeUnassignedAssetView, UpdateReconciliationUnassignedAssetView)
 from djangoAPI.models import ReservationView
 from project.commons import ProjectDetails, project_details, user_projects
 
@@ -115,10 +116,10 @@ class Mutations(graphene.ObjectType):
     delete_change_view = DeleteChangeView.Field()
     update_dumpster_change_view = UpdateChangeView.Field()
 
-    # insert_change_unassigned_asset_view = InsertReconciliationUnassignedAssetView.Field()
-    # update_change_unassigned_asset_view = UpdateReconciliationUnassignedAssetView.Field()
-    # delete_change_unassigned_asset_view = DeleteReconciliationUnassignedAssetView.Field()
-    # update_dumpster_asset_view = UpdateReconciliationUnassignedAssetView.Field()
+    insert_change_unassigned_asset_view = InsertChangeUnassignedAssetView.Field()
+    update_change_unassigned_asset_view = UpdateChangeUnassignedAssetView.Field()
+    delete_change_unassigned_asset_view = DeleteChangeUnassignedAssetView.Field()
+    update_dumpster_asset_view = UpdateChangeUnassignedAssetView.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations, auto_camelcase=False)

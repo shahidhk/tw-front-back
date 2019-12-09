@@ -1582,39 +1582,29 @@ snapshots['SystemTests::test_14_create_unassigned_asset 3'] = {
 }
 
 snapshots['SystemTests::test_15_delete_unassigned_asset 1'] = {
-    'errors': [
-        {
-            'locations': [
+    'data': {
+        'delete_reconciliation_unassigned_asset_view': {
+            'returning': [
                 {
-                    'column': 61,
-                    'line': 2
+                    'asset_exists': True,
+                    'asset_missing_from_registry': True,
+                    'asset_new': False,
+                    'asset_serial_number': 'unasset_only_3',
+                    'id': 56,
+                    'installation_stage_id': None,
+                    'project_id': 2,
+                    'uninstallation_stage_id': None
                 }
-            ],
-            'message': 'Unknown argument "objects" on field "delete_reconciliation_unassigned_asset_view" of type "Mutations".'
-        },
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': 'Field "delete_reconciliation_unassigned_asset_view" argument "where" of type "IDEQ!" is required but not provided.'
+            ]
         }
-    ]
+    }
 }
 
 snapshots['SystemTests::test_15_delete_unassigned_asset 2'] = {
+    'data': {
+        'delete_reconciliation_unassigned_asset_view': None
+    },
     'errors': [
-        {
-            'locations': [
-                {
-                    'column': 61,
-                    'line': 2
-                }
-            ],
-            'message': 'Unknown argument "objects" on field "delete_reconciliation_unassigned_asset_view" of type "Mutations".'
-        },
         {
             'locations': [
                 {
@@ -1622,22 +1612,19 @@ snapshots['SystemTests::test_15_delete_unassigned_asset 2'] = {
                     'line': 2
                 }
             ],
-            'message': 'Field "delete_reconciliation_unassigned_asset_view" argument "where" of type "IDEQ!" is required but not provided.'
+            'message': "E14: Asset cannot be found please refresh your View: {'asset_id': 69}",
+            'path': [
+                'delete_reconciliation_unassigned_asset_view'
+            ]
         }
     ]
 }
 
 snapshots['SystemTests::test_15_delete_unassigned_asset 3'] = {
+    'data': {
+        'delete_reconciliation_unassigned_asset_view': None
+    },
     'errors': [
-        {
-            'locations': [
-                {
-                    'column': 61,
-                    'line': 2
-                }
-            ],
-            'message': 'Unknown argument "objects" on field "delete_reconciliation_unassigned_asset_view" of type "Mutations".'
-        },
         {
             'locations': [
                 {
@@ -1645,7 +1632,30 @@ snapshots['SystemTests::test_15_delete_unassigned_asset 3'] = {
                     'line': 2
                 }
             ],
-            'message': 'Field "delete_reconciliation_unassigned_asset_view" argument "where" of type "IDEQ!" is required but not provided.'
+            'message': "E14: Asset cannot be found please refresh your View: {'asset_id': 420}",
+            'path': [
+                'delete_reconciliation_unassigned_asset_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_15_delete_unassigned_asset 4'] = {
+    'data': {
+        'delete_reconciliation_unassigned_asset_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "E14: Asset cannot be found please refresh your View: {'asset_id': 69}",
+            'path': [
+                'delete_reconciliation_unassigned_asset_view'
+            ]
         }
     ]
 }
@@ -2107,6 +2117,9 @@ snapshots['SystemTests::test_20_unassign_assets 4'] = {
 }
 
 snapshots['SystemTests::test_21_reassign_assets 1'] = {
+    'data': {
+        'update_change_unassigned_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2115,12 +2128,18 @@ snapshots['SystemTests::test_21_reassign_assets 1'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "update_change_unassigned_asset_view" on type "Mutations". Did you mean "update_reconciliation_unassigned_asset_view", "update_garbage_can_asset_view", "delete_reconciliation_unassigned_asset_view", "insert_reconciliation_unassigned_asset_view" or "update_change_view"?'
+            'message': '603:You are assigning an asset to a role that is marked as Non Existant:',
+            'path': [
+                'update_change_unassigned_asset_view'
+            ]
         }
     ]
 }
 
 snapshots['SystemTests::test_21_reassign_assets 2'] = {
+    'data': {
+        'update_change_unassigned_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2129,7 +2148,10 @@ snapshots['SystemTests::test_21_reassign_assets 2'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "update_change_unassigned_asset_view" on type "Mutations". Did you mean "update_reconciliation_unassigned_asset_view", "update_garbage_can_asset_view", "delete_reconciliation_unassigned_asset_view", "insert_reconciliation_unassigned_asset_view" or "update_change_view"?'
+            'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-36:',
+            'path': [
+                'update_change_unassigned_asset_view'
+            ]
         }
     ]
 }
@@ -2330,91 +2352,10 @@ snapshots['SystemTests::test_26_bring_back_non_existant_entities 4'] = {
     }
 }
 
-snapshots['SystemTests::test_27_delete_orphans 1'] = {
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': 'Cannot query field "delete_change_orphan_view" on type "Mutations". Did you mean "delete_change_view", "update_change_view", "delete_reconciliation_view", "delete_reconciliation_orphan_view" or "insert_change_view"?'
-        }
-    ]
-}
-
-snapshots['SystemTests::test_27_delete_orphans 2'] = {
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': 'Cannot query field "delete_change_orphan_view" on type "Mutations". Did you mean "delete_change_view", "update_change_view", "delete_reconciliation_view", "delete_reconciliation_orphan_view" or "insert_change_view"?'
-        }
-    ]
-}
-
-snapshots['SystemTests::test_27_delete_orphans 3'] = {
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': 'Cannot query field "delete_change_orphan_view" on type "Mutations". Did you mean "delete_change_view", "update_change_view", "delete_reconciliation_view", "delete_reconciliation_orphan_view" or "insert_change_view"?'
-        }
-    ]
-}
-
-snapshots['SystemTests::test_27_delete_orphans 4'] = {
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': 'Cannot query field "delete_change_orphan_view" on type "Mutations". Did you mean "delete_change_view", "update_change_view", "delete_reconciliation_view", "delete_reconciliation_orphan_view" or "insert_change_view"?'
-        }
-    ]
-}
-
-snapshots['SystemTests::test_27_delete_orphans 5'] = {
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': 'Cannot query field "delete_change_orphan_view" on type "Mutations". Did you mean "delete_change_view", "update_change_view", "delete_reconciliation_view", "delete_reconciliation_orphan_view" or "insert_change_view"?'
-        }
-    ]
-}
-
-snapshots['SystemTests::test_28_assign_parent_to_orphans 1'] = {
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': 'Cannot query field "update_change_orphan_view" on type "Mutations". Did you mean "update_change_view", "update_reservation_view", "delete_change_view", "update_reconciliation_view" or "update_reconciliation_orphan_view"?'
-        }
-    ]
-}
-
 snapshots['SystemTests::test_29_create_unassigned_asset 1'] = {
+    'data': {
+        'insert_change_unassigned_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2423,12 +2364,20 @@ snapshots['SystemTests::test_29_create_unassigned_asset 1'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "insert_change_unassigned_asset_view" on type "Mutations". Did you mean "insert_reconciliation_unassigned_asset_view", "update_reconciliation_unassigned_asset_view", "delete_reconciliation_unassigned_asset_view" or "insert_change_view"?'
+            'message': '''26:Failed to Create New Asset:null value in column "final_project_asset_role_id_id" violates not-null constraint
+DETAIL:  Failing row contains (63, null, 1).
+:<class 'django.db.utils.IntegrityError'>''',
+            'path': [
+                'insert_change_unassigned_asset_view'
+            ]
         }
     ]
 }
 
 snapshots['SystemTests::test_29_create_unassigned_asset 2'] = {
+    'data': {
+        'insert_change_unassigned_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2437,12 +2386,20 @@ snapshots['SystemTests::test_29_create_unassigned_asset 2'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "insert_change_unassigned_asset_view" on type "Mutations". Did you mean "insert_reconciliation_unassigned_asset_view", "update_reconciliation_unassigned_asset_view", "delete_reconciliation_unassigned_asset_view" or "insert_change_view"?'
+            'message': '''26:Failed to Create New Asset:null value in column "final_project_asset_role_id_id" violates not-null constraint
+DETAIL:  Failing row contains (64, null, 1).
+:<class 'django.db.utils.IntegrityError'>''',
+            'path': [
+                'insert_change_unassigned_asset_view'
+            ]
         }
     ]
 }
 
 snapshots['SystemTests::test_29_create_unassigned_asset 3'] = {
+    'data': {
+        'insert_change_unassigned_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2451,12 +2408,20 @@ snapshots['SystemTests::test_29_create_unassigned_asset 3'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "insert_change_unassigned_asset_view" on type "Mutations". Did you mean "insert_reconciliation_unassigned_asset_view", "update_reconciliation_unassigned_asset_view", "delete_reconciliation_unassigned_asset_view" or "insert_change_view"?'
+            'message': '''26:Failed to Create New Asset:null value in column "final_project_asset_role_id_id" violates not-null constraint
+DETAIL:  Failing row contains (65, null, 1).
+:<class 'django.db.utils.IntegrityError'>''',
+            'path': [
+                'insert_change_unassigned_asset_view'
+            ]
         }
     ]
 }
 
 snapshots['SystemTests::test_30_delete_unassigned_asset 1'] = {
+    'data': {
+        'delete_change_unassigned_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2465,12 +2430,18 @@ snapshots['SystemTests::test_30_delete_unassigned_asset 1'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "delete_change_unassigned_asset_view" on type "Mutations". Did you mean "delete_reconciliation_unassigned_asset_view", "insert_reconciliation_unassigned_asset_view", "update_reconciliation_unassigned_asset_view", "update_garbage_can_asset_view" or "delete_change_view"?'
+            'message': "800:Asset does not exist:ProjectAssetRecordTbl matching query does not exist.:<class 'djangoAPI.models.ProjectAssetRecordTbl.DoesNotExist'>",
+            'path': [
+                'delete_change_unassigned_asset_view'
+            ]
         }
     ]
 }
 
 snapshots['SystemTests::test_30_delete_unassigned_asset 2'] = {
+    'data': {
+        'delete_change_unassigned_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2479,12 +2450,18 @@ snapshots['SystemTests::test_30_delete_unassigned_asset 2'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "delete_change_unassigned_asset_view" on type "Mutations". Did you mean "delete_reconciliation_unassigned_asset_view", "insert_reconciliation_unassigned_asset_view", "update_reconciliation_unassigned_asset_view", "update_garbage_can_asset_view" or "delete_change_view"?'
+            'message': "800:Asset does not exist:ProjectAssetRecordTbl matching query does not exist.:<class 'djangoAPI.models.ProjectAssetRecordTbl.DoesNotExist'>",
+            'path': [
+                'delete_change_unassigned_asset_view'
+            ]
         }
     ]
 }
 
 snapshots['SystemTests::test_30_delete_unassigned_asset 3'] = {
+    'data': {
+        'delete_change_unassigned_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2493,12 +2470,18 @@ snapshots['SystemTests::test_30_delete_unassigned_asset 3'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "delete_change_unassigned_asset_view" on type "Mutations". Did you mean "delete_reconciliation_unassigned_asset_view", "insert_reconciliation_unassigned_asset_view", "update_reconciliation_unassigned_asset_view", "update_garbage_can_asset_view" or "delete_change_view"?'
+            'message': "800:Asset does not exist:ProjectAssetRecordTbl matching query does not exist.:<class 'djangoAPI.models.ProjectAssetRecordTbl.DoesNotExist'>",
+            'path': [
+                'delete_change_unassigned_asset_view'
+            ]
         }
     ]
 }
 
 snapshots['SystemTests::test_31_assign_unassigned_asset 1'] = {
+    'data': {
+        'update_dumpster_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2507,12 +2490,18 @@ snapshots['SystemTests::test_31_assign_unassigned_asset 1'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "update_dumpster_asset_view" on type "Mutations". Did you mean "update_dumpster_change_view", "update_reservation_view", "update_garbage_can_asset_view", "update_change_view" or "update_reconciliation_view"?'
+            'message': '603:You are assigning an asset to a role that is marked as Non Existant:',
+            'path': [
+                'update_dumpster_asset_view'
+            ]
         }
     ]
 }
 
 snapshots['SystemTests::test_31_assign_unassigned_asset 2'] = {
+    'data': {
+        'update_dumpster_asset_view': None
+    },
     'errors': [
         {
             'locations': [
@@ -2521,7 +2510,10 @@ snapshots['SystemTests::test_31_assign_unassigned_asset 2'] = {
                     'line': 2
                 }
             ],
-            'message': 'Cannot query field "update_dumpster_asset_view" on type "Mutations". Did you mean "update_dumpster_change_view", "update_reservation_view", "update_garbage_can_asset_view", "update_change_view" or "update_reconciliation_view"?'
+            'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-36:',
+            'path': [
+                'update_dumpster_asset_view'
+            ]
         }
     ]
 }

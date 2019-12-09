@@ -41,6 +41,7 @@ def AuthenticationUtil(info):
                             info.context.META['HTTP_X_PROJECT'])
     return user
 
+
 def add_missing_role_asset(role_data, change_type, auth):
     """
     Adds a Role / Asset record that was missing from Avantis
@@ -157,16 +158,15 @@ def MissingAssetUtil(asset_data, auth):
     '''
 
     try:
-        with transaction.atomic():
-            asset = PreDesignReconciledAssetRecordTbl()
-            asset.designer_planned_action_type_tbl_id = 'c'
-            asset.entity_exists = True
-            asset.initial_project_asset_role_id = None
-            asset.missing_from_registry = True
-            asset.asset_serial_number = asset_data['asset_serial_number']
-            asset.role_changed = False
-            asset.project_tbl_id = auth['group']
-            asset.save()
+        asset = PreDesignReconciledAssetRecordTbl()
+        asset.designer_planned_action_type_tbl_id = 'c'
+        asset.entity_exists = True
+        asset.initial_project_asset_role_id = None
+        asset.missing_from_registry = True
+        asset.asset_serial_number = asset_data['asset_serial_number']
+        asset.role_changed = False
+        asset.project_tbl_id = auth['group']
+        asset.save()
     except Exception as e:
         return {'result': 1,
                 'errors': 'E5: Operation Failed ' + str(e) + ' ' + str(type(e))
@@ -212,7 +212,7 @@ def assign_asset_to_role_reconciliation(data, auth):
     try:
         asset.initial_project_asset_role_id_id = data['role_id']
         asset.save()
-        return Result(success=True, obj=role if role else None, obj_id=data['role_id'] if data['role_id'] else None)
+        return Result(success=True, obj=role, obj_id=data['role_id'])
     except Exception as e:
         return Result(message='Operation Failed', exception=e, error_code=406)
 
@@ -250,6 +250,7 @@ def remove_reconciliation(data, auth):
         return Result(success=True, obj_id=role.pk)
     else:
         return result
+
 
 def remove_change(role_id, auth):
     """
@@ -290,6 +291,7 @@ def unremove_role(role_id, auth):
     if asset: # if an asset gets returned
         unremove_asset(asset.pk, auth)
 
+
 def get_asset_by_role_id(role_id):
     try:
         asset = NewAssetDeliveredByProjectTbl.objects.get(final_project_asset_role_id_id=role_id)
@@ -310,6 +312,7 @@ def get_asset_by_role_id(role_id):
     else:
         return asset
     return None
+
 
 def DoesNotExistUtil(data, auth):
     '''
@@ -409,11 +412,6 @@ def RetireAssetUtil(asset, auth):
             return {'result': 1,
                     'errors': 'E15: Asset or Role reserved by another project'
                     }
-        # this check is unnecessary since an asset cannot be unassigned until the reservation has been approved
-        # elif not existing_asset.initial_project_asset_role_id.approved:
-        #     return {'result': 1,
-        #             'errors': 'E36: The reservation for this entity has not been approved'
-        #             }
         serial = existing_asset.asset_serial_number
         try:
             if existing_asset.missing_from_registry:
@@ -437,6 +435,27 @@ def RetireAssetUtil(asset, auth):
                     'errors': serial,
                     }
 
+
+def remove_asset(data, auth):
+    """
+    Takes in the assets id and removes the asset
+    calls RetireAssetUtil for existing assets
+    """
+    try:
+        asset = ProjectAssetRecordTbl.objects.get(pk=data['asset_id'])
+    except Exception as e:
+        return Result(message='Asset does not exist', exception=e, error_code=800)
+    try:
+        asset = NewAssetDeliveredByProjectTbl.objects.get(pk=data['asset_id'])
+    except Exception as e:
+        return RetireAssetUtil(asset, auth)
+    else:
+        try:
+            asset.delete()
+        except Exception as e:
+            return Result(message='Cannot delete user created asset', exception=e, error_code=801)
+        else:
+            return Result(success=True, obj_id=None, obj=None)
 
 def change_role_parent(data, auth):
     '''

@@ -7,10 +7,12 @@ from graphql import GraphQLError
 from rest_framework import serializers
 
 from djangoAPI.apiUtils import (AuthenticationUtil, MissingAssetUtil,
-                                RetireAssetUtil,
-                                assign_asset_to_role_reconciliation)
+                                RetireAssetUtil, assign_asset_to_role_change,
+                                assign_asset_to_role_reconciliation,
+                                remove_asset)
 from djangoAPI.graphql.commons import IDEQ
-from djangoAPI.models import UnassignedAssetsView
+from djangoAPI.models import (NewAssetDeliveredByProjectTbl,
+                              UnassignedAssetsView)
 
 # outputs
 
@@ -31,9 +33,9 @@ class UnassignedAssetViewSerial(serializers.ModelSerializer):
 class UnassignedAssetViewSet(convert_serializer_to_input_type(UnassignedAssetViewSerial)):
     role_id = graphene.Int()
     id = graphene.Int()
+
+
 # mutation
-
-
 class InsertReconciliationUnassignedAssetView(graphene.Mutation):
     class Arguments:
         objects = UnassignedAssetViewSet(required=True)
@@ -59,7 +61,6 @@ class UpdateReconciliationUnassignedAssetView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
         _set = UnassignedAssetViewSet(required=True)
-    # TODO not sure what should be returned since the entry disappears
     returning = graphene.List(UnassignedAssetViewType)
 
     @staticmethod
@@ -83,7 +84,6 @@ class UpdateReconciliationUnassignedAssetView(graphene.Mutation):
 class DeleteReconciliationUnassignedAssetView(graphene.Mutation):
     class Arguments:
         where = IDEQ(required=True)
-    # TODO not sure what should be returned since the entry disappears
     returning = graphene.List(UnassignedAssetViewType)
 
     @staticmethod
@@ -99,3 +99,65 @@ class DeleteReconciliationUnassignedAssetView(graphene.Mutation):
                 # same as above where list???
                 return DeleteReconciliationUnassignedAssetView(returning=result)
             raise GraphQLError(data['errors'])
+
+
+class InsertChangeUnassignedAssetView(graphene.Mutation):
+    class Arguments:
+        objects = UnassignedAssetViewSet(required=True)
+
+    returning = graphene.List(UnassignedAssetViewType)
+
+    @staticmethod
+    def mutate(root, info, objects=None):
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            data = {'asset_serial_number': objects.asset_serial_number}
+            data = NewAssetDeliveredByProjectTbl.add(data, auth['group'], None)
+            if data.success:
+                return InsertChangeUnassignedAssetView(returning=data.obj)
+            raise GraphQLError(data.readable_message())
+
+
+class UpdateChangeUnassignedAssetView(graphene.Mutation):
+    class Arguments:
+        where = IDEQ(required=True)
+        _set = UnassignedAssetViewSet(required=True)
+    returning = graphene.List(UnassignedAssetViewType)
+
+    @staticmethod
+    def mutate(root, info, where=None, _set=None):
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            data = {'role_id': _set.role_id,
+                    'asset_id': where.id._eq,
+                    }
+            result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))  # be optimistic
+            # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
+            # since we need to return a list with the object we deleted we can get the object before we delete it
+            data = assign_asset_to_role_change(data, auth)
+            if data.success:
+                return UpdateChangeUnassignedAssetView(returning=result)
+            raise GraphQLError(data.readable_message())
+
+
+class DeleteChangeUnassignedAssetView(graphene.Mutation):
+    class Arguments:
+        where = IDEQ(required=True)
+    returning = graphene.List(UnassignedAssetViewType)
+
+    @staticmethod
+    def mutate(root, info, where=None):
+        with transaction.atomic():
+            auth = AuthenticationUtil(info)
+            if not auth['valid']:
+                raise GraphQLError('User / Client is not properly authenticated. Please Login.')
+            data = {'asset_id': where.id._eq, }
+            result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))
+            data = remove_asset(data, auth)
+            if data.success:
+                return DeleteChangeUnassignedAssetView(returning=result)
+            raise GraphQLError(data.readable_message())
