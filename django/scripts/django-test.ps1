@@ -18,6 +18,10 @@ Write-Output "Creating New test database"
 Write-Output "Migrating Django schema"
 Set-Location "C:\Users\jma\Documents\tw-front-back\django"
 python manage.py migrate
+
+Write-Output "Press Enter to run tests"
+pause
+
 Write-Output "Running Tests"
 python manage.py test > "C:\Users\jma\Documents\tw-front-back\django\scripts\test.log"
 

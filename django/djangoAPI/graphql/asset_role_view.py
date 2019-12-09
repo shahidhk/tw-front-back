@@ -227,13 +227,13 @@ class DeleteChangeView(graphene.Mutation):
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
             if not where.id is None:  # delete role
-                data = {'role_id': where.id._eq, 'entity_exists': False, }
+                role_id = where.id._eq
                 result = ChangeView.objects.filter(pk=where.id._eq)
-                data = remove_change(data, auth)
+                data = remove_change(role_id, auth)
             elif not where.asset_id is None:  # delete asset
-                data = {'asset_id': where.asset_id._eq, 'entity_exists': False, }
+                asset_id = where.asset_id._eq
                 result = ChangeView.objects.filter(pk=where.asset_id._eq)
-                data = remove_change(data, auth)  # TODO asset
+                data = remove_change(asset_id, auth)  # TODO asset
             if data.success:
                 data = ChangeView.objects.filter(pk=data.obj_id)
                 return DeleteChangeView(returning=(data if data else result))

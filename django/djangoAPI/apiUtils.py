@@ -88,7 +88,7 @@ def add_missing_role_asset(role_data, change_type, auth):
             asset_serial_number=role_data['asset_serial_number'],
             entity_exists=True,
             missing_from_registry=True,
-            initial_project_asset_role=role,
+            initial_project_asset_role_id=role,
             designer_planned_action_type_tbl_id='c',
         )
         try:
@@ -563,6 +563,7 @@ def assign_asset_to_role_change(data, auth):
     # TODO consider merging with assign_asset_to_role_reconciliation(data, auth):
     if data['role_id'] is None or data['role_id'] == 0:
         data['role_id'] = None
+        role = None
     else:
         asset = list(PreDesignReconciledAssetRecordTbl.objects.filter(
             initial_project_asset_role_id_id=data['role_id']))
@@ -607,5 +608,5 @@ def assign_asset_to_role_change(data, auth):
             asset.newassetdeliveredbyprojecttbl.save() #TODO not sure which one is necessary
     except Exception:
         pass
-    return Result(success=True, obj=role if role else None, obj_id=data['role_id'] if data['role_id'] else None)
+    return Result(success=True, obj=role, obj_id=data['role_id'])
         

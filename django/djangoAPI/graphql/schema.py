@@ -115,7 +115,10 @@ class Mutations(graphene.ObjectType):
     delete_change_view = DeleteChangeView.Field()
     update_dumpster_change_view = UpdateChangeView.Field()
 
-    # changed unassigned asset views
+    # insert_change_unassigned_asset_view = InsertReconciliationUnassignedAssetView.Field()
+    # update_change_unassigned_asset_view = UpdateReconciliationUnassignedAssetView.Field()
+    # delete_change_unassigned_asset_view = DeleteReconciliationUnassignedAssetView.Field()
+    # update_dumpster_asset_view = UpdateReconciliationUnassignedAssetView.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations, auto_camelcase=False)

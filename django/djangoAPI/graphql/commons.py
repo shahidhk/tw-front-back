@@ -51,4 +51,5 @@ class QueryTypeCache(models.Model):
             )
             if field['name'] == name:
                 result = temp
+            # TODO catch if result is nothing
         return result[0]
