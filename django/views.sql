@@ -471,7 +471,7 @@ select
 from
 	joined_role_asset
 where
-full_path <@ '1'::ltree and role_exists = false and role_disposed = false and role_new = false and full_path <> '1'::ltree;
+nlevel(full_path) > 1 and role_exists = false and role_disposed = false and role_new = false;
 !!!
 create or replace
 view change_view as
@@ -561,7 +561,7 @@ select
 from
 	joined_role_asset
 where
-full_path <@ '2'::ltree and role_exists = true and role_disposed = true and full_path <> '2'::ltree;
+nlevel(full_path) > 1 and role_exists = true and role_disposed = true;
 !!!
 create or replace
 view general_unassigned_asset_view as

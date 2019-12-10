@@ -256,6 +256,8 @@ def remove_reconciliation(data, auth):
     if child_roles:
         try:
             for child in child_roles:
+                # if child.predesignreconciledassetrecordtbl.entity_exists:
+                # TODO currently deleted children are moved to orphan state (but still shows in deleted view) when their parent gets deleted
                 child.parent_id_id = 2
                 child.save()
         except Exception as e:
