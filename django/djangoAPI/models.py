@@ -586,7 +586,6 @@ class ReconciliationView(models.Model):
 
 class UnassignedAssetsView(models.Model):
     '''Read Only model using data from unassigned_assets'''
-    # TODO this probably does not need to be a view, a filter probably works
     id = models.IntegerField(primary_key=True)
     asset_serial_number = models.TextField(null=True)
     project_id = models.IntegerField(null=True)

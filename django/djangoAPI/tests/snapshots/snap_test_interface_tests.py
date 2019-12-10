@@ -2694,63 +2694,27 @@ snapshots['SystemTests::test_29_create_unassigned_asset 1'] = {
     'data': {
         'insert_change_unassigned_asset_view': {
             'returning': [
-                None
             ]
         }
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 110,
-                    'line': 2
-                }
-            ],
-            'message': 'Expected value of type "UnassignedAssetViewType" but got: NewAssetDeliveredByProjectTbl.'
-        }
-    ]
+    }
 }
 
 snapshots['SystemTests::test_29_create_unassigned_asset 2'] = {
     'data': {
         'insert_change_unassigned_asset_view': {
             'returning': [
-                None
             ]
         }
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 110,
-                    'line': 2
-                }
-            ],
-            'message': 'Expected value of type "UnassignedAssetViewType" but got: NewAssetDeliveredByProjectTbl.'
-        }
-    ]
+    }
 }
 
 snapshots['SystemTests::test_29_create_unassigned_asset 3'] = {
     'data': {
         'insert_change_unassigned_asset_view': {
             'returning': [
-                None
             ]
         }
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 110,
-                    'line': 2
-                }
-            ],
-            'message': 'Expected value of type "UnassignedAssetViewType" but got: NewAssetDeliveredByProjectTbl.'
-        }
-    ]
+    }
 }
 
 snapshots['SystemTests::test_30_delete_unassigned_asset 1'] = {
