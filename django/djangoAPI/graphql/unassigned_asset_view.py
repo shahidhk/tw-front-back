@@ -51,8 +51,8 @@ class InsertReconciliationUnassignedAssetView(graphene.Mutation):
             data = {'asset_serial_number': objects.asset_serial_number}
             data = MissingAssetUtil(data, auth)
             if data['result'] == 0:
-                data = UnassignedAssetsView.objects.filter(
-                    pk=data['errors'])
+                data = list(UnassignedAssetsView.objects.filter(
+                    pk=data['errors']))
                 return InsertReconciliationUnassignedAssetView(returning=data)
             raise GraphQLError(data['errors'])
 
