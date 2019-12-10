@@ -1482,6 +1482,26 @@ snapshots['SystemTests::test_09_1_non_existant_assets 3'] = {
     ]
 }
 
+snapshots['SystemTests::test_09_1_non_existant_assets 4'] = {
+    'data': {
+        'delete_reconciliation_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "'role_id'",
+            'path': [
+                'delete_reconciliation_view'
+            ]
+        }
+    ]
+}
+
 snapshots['SystemTests::test_11_bring_back_non_existant_entities 1'] = {
     'data': {
         'update_garbage_can_reconciliation_view': {
@@ -1594,192 +1614,6 @@ snapshots['SystemTests::test_13_assign_parent_to_orphans 1'] = {
     }
 }
 
-snapshots['SystemTests::test_13_assign_parent_to_orphans 2'] = {
-    'data': {
-        'update_reconciliation_orphan_view': {
-            'returning': [
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 25,
-                    'asset_missing_from_registry': False,
-                    'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-24',
-                    'designer_planned_action_type_tbl_id': 'c',
-                    'full_path': '11.29.31.32.33.35',
-                    'id': 35,
-                    'parent': 33,
-                    'parent_changed': True,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 35,
-                    'role_missing_from_registry': False,
-                    'role_name': 'Asset Number 24 Name',
-                    'role_new': False,
-                    'role_number': 'SITE-ROLE-NUM-24'
-                }
-            ]
-        }
-    }
-}
-
-snapshots['SystemTests::test_13_assign_parent_to_orphans 3'] = {
-    'data': {
-        'update_reconciliation_orphan_view': {
-            'returning': [
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 28,
-                    'asset_missing_from_registry': False,
-                    'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-27',
-                    'designer_planned_action_type_tbl_id': 'c',
-                    'full_path': '11.29.31.32.33.38',
-                    'id': 38,
-                    'parent': 33,
-                    'parent_changed': True,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 38,
-                    'role_missing_from_registry': False,
-                    'role_name': 'Asset Number 27 Name',
-                    'role_new': False,
-                    'role_number': 'SITE-ROLE-NUM-27'
-                }
-            ]
-        }
-    }
-}
-
-snapshots['SystemTests::test_13_assign_parent_to_orphans 4'] = {
-    'data': {
-        'update_reconciliation_orphan_view': {
-            'returning': [
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 51,
-                    'asset_missing_from_registry': True,
-                    'asset_new': False,
-                    'asset_serial_number': 'role_asset_1-serial-number',
-                    'designer_planned_action_type_tbl_id': 'c',
-                    'full_path': '11.29.31.32.33.61',
-                    'id': 61,
-                    'parent': 33,
-                    'parent_changed': False,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 61,
-                    'role_missing_from_registry': True,
-                    'role_name': 'role_asset_1 name',
-                    'role_new': False,
-                    'role_number': 'role_asset_1'
-                }
-            ]
-        }
-    }
-}
-
-snapshots['SystemTests::test_13_assign_parent_to_orphans 5'] = {
-    'data': {
-        'update_reconciliation_orphan_view': {
-            'returning': [
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 52,
-                    'asset_missing_from_registry': True,
-                    'asset_new': False,
-                    'asset_serial_number': 'role_asset_2-serial-number',
-                    'designer_planned_action_type_tbl_id': 'c',
-                    'full_path': '11.29.31.32.33.62',
-                    'id': 62,
-                    'parent': 33,
-                    'parent_changed': False,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 62,
-                    'role_missing_from_registry': True,
-                    'role_name': 'role_asset_2 name',
-                    'role_new': False,
-                    'role_number': 'role_asset_2'
-                }
-            ]
-        }
-    }
-}
-
-snapshots['SystemTests::test_13_assign_parent_to_orphans 6'] = {
-    'data': {
-        'update_reconciliation_orphan_view': {
-            'returning': [
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 55,
-                    'asset_missing_from_registry': True,
-                    'asset_new': False,
-                    'asset_serial_number': 'asset_only_2',
-                    'designer_planned_action_type_tbl_id': 'c',
-                    'full_path': '11.29.31.32.33.64',
-                    'id': 64,
-                    'parent': 33,
-                    'parent_changed': False,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 64,
-                    'role_missing_from_registry': True,
-                    'role_name': 'role_only_1 name',
-                    'role_new': False,
-                    'role_number': 'role_only_1'
-                }
-            ]
-        }
-    }
-}
-
-snapshots['SystemTests::test_13_assign_parent_to_orphans 7'] = {
-    'data': {
-        'update_reconciliation_orphan_view': {
-            'returning': [
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 56,
-                    'asset_missing_from_registry': True,
-                    'asset_new': False,
-                    'asset_serial_number': 'asset_only_3',
-                    'designer_planned_action_type_tbl_id': 'c',
-                    'full_path': '11.29.31.32.33.65',
-                    'id': 65,
-                    'parent': 33,
-                    'parent_changed': False,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 65,
-                    'role_missing_from_registry': True,
-                    'role_name': 'role_only_2 name',
-                    'role_new': False,
-                    'role_number': 'role_only_2'
-                }
-            ]
-        }
-    }
-}
-
 snapshots['SystemTests::test_14_create_unassigned_asset 1'] = {
     'data': {
         'insert_reconciliation_unassigned_asset_view': {
@@ -1841,60 +1675,12 @@ snapshots['SystemTests::test_15_delete_unassigned_asset 1'] = {
     'data': {
         'delete_reconciliation_unassigned_asset_view': {
             'returning': [
-                {
-                    'asset_exists': True,
-                    'asset_missing_from_registry': True,
-                    'asset_new': False,
-                    'asset_serial_number': 'unasset_only_2',
-                    'id': 58,
-                    'installation_stage_id': None,
-                    'project_id': 2,
-                    'uninstallation_stage_id': None
-                }
             ]
         }
     }
 }
 
 snapshots['SystemTests::test_15_delete_unassigned_asset 2'] = {
-    'data': {
-        'delete_reconciliation_unassigned_asset_view': {
-            'returning': [
-                {
-                    'asset_exists': True,
-                    'asset_missing_from_registry': True,
-                    'asset_new': False,
-                    'asset_serial_number': 'unasset_only_3',
-                    'id': 59,
-                    'installation_stage_id': None,
-                    'project_id': 2,
-                    'uninstallation_stage_id': None
-                }
-            ]
-        }
-    }
-}
-
-snapshots['SystemTests::test_15_delete_unassigned_asset 3'] = {
-    'data': {
-        'delete_reconciliation_unassigned_asset_view': {
-            'returning': [
-                {
-                    'asset_exists': True,
-                    'asset_missing_from_registry': False,
-                    'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-38',
-                    'id': 39,
-                    'installation_stage_id': None,
-                    'project_id': 2,
-                    'uninstallation_stage_id': None
-                }
-            ]
-        }
-    }
-}
-
-snapshots['SystemTests::test_15_delete_unassigned_asset 4'] = {
     'data': {
         'delete_reconciliation_unassigned_asset_view': {
             'returning': [
@@ -2516,50 +2302,6 @@ snapshots['SystemTests::test_23_add_asset_to_role 2'] = {
     'data': {
         'insert_change_view': {
             'returning': [
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 64,
-                    'asset_missing_from_registry': False,
-                    'asset_new': True,
-                    'asset_serial_number': 'new_asset_only_2',
-                    'designer_planned_action_type_tbl_id': None,
-                    'full_path': '11.29.31.32.33.64',
-                    'id': 64,
-                    'parent': 33,
-                    'parent_changed': False,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 64,
-                    'role_missing_from_registry': True,
-                    'role_name': 'role_only_1 name',
-                    'role_new': False,
-                    'role_number': 'role_only_1'
-                },
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 55,
-                    'asset_missing_from_registry': True,
-                    'asset_new': False,
-                    'asset_serial_number': 'asset_only_2',
-                    'designer_planned_action_type_tbl_id': 'c',
-                    'full_path': '11.29.31.32.33.64',
-                    'id': 64,
-                    'parent': 33,
-                    'parent_changed': False,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 64,
-                    'role_missing_from_registry': True,
-                    'role_name': 'role_only_1 name',
-                    'role_new': False,
-                    'role_number': 'role_only_1'
-                }
             ]
         }
     }
@@ -2569,50 +2311,6 @@ snapshots['SystemTests::test_23_add_asset_to_role 3'] = {
     'data': {
         'insert_change_view': {
             'returning': [
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 65,
-                    'asset_missing_from_registry': False,
-                    'asset_new': True,
-                    'asset_serial_number': 'new_asset_only_3',
-                    'designer_planned_action_type_tbl_id': None,
-                    'full_path': '11.29.31.32.33.65',
-                    'id': 65,
-                    'parent': 33,
-                    'parent_changed': False,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 65,
-                    'role_missing_from_registry': True,
-                    'role_name': 'role_only_2 name',
-                    'role_new': False,
-                    'role_number': 'role_only_2'
-                },
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 56,
-                    'asset_missing_from_registry': True,
-                    'asset_new': False,
-                    'asset_serial_number': 'asset_only_3',
-                    'designer_planned_action_type_tbl_id': 'c',
-                    'full_path': '11.29.31.32.33.65',
-                    'id': 65,
-                    'parent': 33,
-                    'parent_changed': False,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 65,
-                    'role_missing_from_registry': True,
-                    'role_name': 'role_only_2 name',
-                    'role_new': False,
-                    'role_number': 'role_only_2'
-                }
             ]
         }
     }
@@ -2858,4 +2556,190 @@ snapshots['SystemTests::test_31_assign_unassigned_asset 2'] = {
             ]
         }
     ]
+}
+
+snapshots['SystemTests::test_13_assign_parent_to_orphans 2'] = {
+    'data': {
+        'update_reconciliation_orphan_view': {
+            'returning': [
+                {
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': 25,
+                    'asset_missing_from_registry': False,
+                    'asset_new': False,
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-24',
+                    'designer_planned_action_type_tbl_id': 'c',
+                    'full_path': '11.29.31.32.33.35',
+                    'id': 35,
+                    'parent': 33,
+                    'parent_changed': True,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_disposed': False,
+                    'role_exists': True,
+                    'role_link': 35,
+                    'role_missing_from_registry': False,
+                    'role_name': 'Asset Number 24 Name',
+                    'role_new': False,
+                    'role_number': 'SITE-ROLE-NUM-24'
+                }
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_13_assign_parent_to_orphans 3'] = {
+    'data': {
+        'update_reconciliation_orphan_view': {
+            'returning': [
+                {
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': 28,
+                    'asset_missing_from_registry': False,
+                    'asset_new': False,
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-27',
+                    'designer_planned_action_type_tbl_id': 'c',
+                    'full_path': '11.29.31.32.33.38',
+                    'id': 38,
+                    'parent': 33,
+                    'parent_changed': True,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_disposed': False,
+                    'role_exists': True,
+                    'role_link': 38,
+                    'role_missing_from_registry': False,
+                    'role_name': 'Asset Number 27 Name',
+                    'role_new': False,
+                    'role_number': 'SITE-ROLE-NUM-27'
+                }
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_13_assign_parent_to_orphans 4'] = {
+    'data': {
+        'update_reconciliation_orphan_view': {
+            'returning': [
+                {
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': 51,
+                    'asset_missing_from_registry': True,
+                    'asset_new': False,
+                    'asset_serial_number': 'role_asset_1-serial-number',
+                    'designer_planned_action_type_tbl_id': 'c',
+                    'full_path': '11.29.31.32.33.61',
+                    'id': 61,
+                    'parent': 33,
+                    'parent_changed': False,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_disposed': False,
+                    'role_exists': True,
+                    'role_link': 61,
+                    'role_missing_from_registry': True,
+                    'role_name': 'role_asset_1 name',
+                    'role_new': False,
+                    'role_number': 'role_asset_1'
+                }
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_13_assign_parent_to_orphans 5'] = {
+    'data': {
+        'update_reconciliation_orphan_view': {
+            'returning': [
+                {
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': 52,
+                    'asset_missing_from_registry': True,
+                    'asset_new': False,
+                    'asset_serial_number': 'role_asset_2-serial-number',
+                    'designer_planned_action_type_tbl_id': 'c',
+                    'full_path': '11.29.31.32.33.62',
+                    'id': 62,
+                    'parent': 33,
+                    'parent_changed': False,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_disposed': False,
+                    'role_exists': True,
+                    'role_link': 62,
+                    'role_missing_from_registry': True,
+                    'role_name': 'role_asset_2 name',
+                    'role_new': False,
+                    'role_number': 'role_asset_2'
+                }
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_13_assign_parent_to_orphans 6'] = {
+    'data': {
+        'update_reconciliation_orphan_view': {
+            'returning': [
+                {
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': 55,
+                    'asset_missing_from_registry': True,
+                    'asset_new': False,
+                    'asset_serial_number': 'asset_only_2',
+                    'designer_planned_action_type_tbl_id': 'c',
+                    'full_path': '11.29.31.32.33.64',
+                    'id': 64,
+                    'parent': 33,
+                    'parent_changed': False,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_disposed': False,
+                    'role_exists': True,
+                    'role_link': 64,
+                    'role_missing_from_registry': True,
+                    'role_name': 'role_only_1 name',
+                    'role_new': False,
+                    'role_number': 'role_only_1'
+                }
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_13_assign_parent_to_orphans 7'] = {
+    'data': {
+        'update_reconciliation_orphan_view': {
+            'returning': [
+                {
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': 56,
+                    'asset_missing_from_registry': True,
+                    'asset_new': False,
+                    'asset_serial_number': 'asset_only_3',
+                    'designer_planned_action_type_tbl_id': 'c',
+                    'full_path': '11.29.31.32.33.65',
+                    'id': 65,
+                    'parent': 33,
+                    'parent_changed': False,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_disposed': False,
+                    'role_exists': True,
+                    'role_link': 65,
+                    'role_missing_from_registry': True,
+                    'role_name': 'role_only_2 name',
+                    'role_new': False,
+                    'role_number': 'role_only_2'
+                }
+            ]
+        }
+    }
 }
