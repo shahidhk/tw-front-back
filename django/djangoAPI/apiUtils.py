@@ -270,7 +270,6 @@ def remove_reconciliation(data, auth):
 def remove_change(role_id, auth):
     """
     Unassign all children and move entity to removed view
-    Can be used on Reconciliation, Change and both Orphan Views
     """
     try:
         entity = ChangeView.objects.get(pk=role_id)
@@ -419,14 +418,10 @@ def RetireAssetUtil(asset, auth):
     except Exception as e:
         print(str(type(e)))
         print(str(e))
-        return {'result': 1,
-                'errors': 'E14: Asset cannot be found please refresh your View: ' + str(asset)
-                }
+        return Result(message='Asset cannot be found please refresh your View: ' + str(asset), error_code=1000)
     else:
         if existing_asset.project_tbl_id != auth['group']:
-            return {'result': 1,
-                    'errors': 'E15: Asset or Role reserved by another project'
-                    }
+            return Result(message='Asset or Role reserved by another project', error_code=1001)
         serial = existing_asset.asset_serial_number
         try:
             if existing_asset.missing_from_registry:
@@ -434,6 +429,7 @@ def RetireAssetUtil(asset, auth):
                 existing_asset.delete()
             else:
                 existing_asset.designer_planned_action_type_tbl_id = 'b'
+                existing_asset.entity_exists = False
                 existing_asset.save()
                 retired_asset = ExistingAssetDisposedByProjectTbl(
                     predesignreconciledassetrecordtbl_ptr=existing_asset,
@@ -442,13 +438,9 @@ def RetireAssetUtil(asset, auth):
                 retired_asset.save_base(raw=True)
                 # raw base save is required since the parent object has already been created
         except Exception as e:
-            return {'result': 1,
-                    'errors': 'E16: Operation Failed ' + str(e) + ' ' + str(type(e))
-                    }
+            return Result(message='Operation Failed', error_code=1002, exception=e)
         else:
-            return {'result': 0,
-                    'errors': serial,
-                    }
+            return Result(success=True, obj_id=existing_asset.pk)
 
 
 def remove_asset(data, auth):

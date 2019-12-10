@@ -488,9 +488,9 @@ class ExistingAssetDisposedByProjectTbl(PreDesignReconciledAssetRecordTbl):
 class NewAssetDeliveredByProjectTbl(ProjectAssetRecordTbl):
     '''New Assets'''
     final_project_asset_role_id = models.ForeignKey(
-        ProjectAssetRoleRecordTbl, models.PROTECT)
+        ProjectAssetRoleRecordTbl, models.SET_NULL, null=True, blank=True)
     installation_stage = models.ForeignKey(
-        ConstructionStageTbl, models.PROTECT)
+        ConstructionStageTbl, models.SET_NULL, null=True, blank=True)
 
     class Meta:
         db_table = 'djangoAPI_NewAssetDeliveredByProjectTbl'

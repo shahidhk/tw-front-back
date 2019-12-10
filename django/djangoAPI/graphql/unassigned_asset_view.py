@@ -95,10 +95,9 @@ class DeleteReconciliationUnassignedAssetView(graphene.Mutation):
             data = {'asset_id': where.id._eq, }
             result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))
             data = RetireAssetUtil(data, auth)
-            if data['result'] == 0:
-                # same as above where list???
+            if data.success:
                 return DeleteReconciliationUnassignedAssetView(returning=result)
-            raise GraphQLError(data['errors'])
+            raise GraphQLError(data.readable_message())
 
 
 class InsertChangeUnassignedAssetView(graphene.Mutation):
@@ -116,7 +115,8 @@ class InsertChangeUnassignedAssetView(graphene.Mutation):
             data = {'asset_serial_number': objects.asset_serial_number}
             data = NewAssetDeliveredByProjectTbl.add(data, auth['group'], None)
             if data.success:
-                return InsertChangeUnassignedAssetView(returning=data.obj)
+                data = list(UnassignedAssetsView.objects.filter(pk=data.obj_id))
+                return InsertChangeUnassignedAssetView(returning=data)
             raise GraphQLError(data.readable_message())
 
 

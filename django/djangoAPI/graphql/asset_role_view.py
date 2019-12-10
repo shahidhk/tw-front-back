@@ -9,8 +9,8 @@ from rest_framework import serializers
 from djangoAPI.apiUtils import (add_missing_role_asset, add_new_role_asset,
                                 assign_asset_to_role_change,
                                 assign_asset_to_role_reconciliation,
-                                change_role_parent, remove_change,
-                                remove_reconciliation, AuthenticationUtil)
+                                change_role_parent, remove_change, remove_asset,
+                                remove_reconciliation, AuthenticationUtil, remove_reconciliation_asset)
 from djangoAPI.graphql.commons import IDEQ
 from djangoAPI.models import ReconciliationView, ChangeView
 
@@ -140,7 +140,7 @@ class DeleteReconciliationView(graphene.Mutation):
             elif not where.asset_id is None:  # delete asset
                 data = {'asset_id': where.asset_id._eq, 'entity_exists': False, }
                 result = ReconciliationView.objects.filter(asset_id=where.asset_id._eq)
-                data = remove_reconciliation(data, auth)  # TODO asset
+                data = remove_reconciliation_asset(data, auth)
             if data.success:
                 return DeleteReconciliationView(returning=result)
             raise GraphQLError(data.readable_message())
@@ -232,7 +232,7 @@ class DeleteChangeView(graphene.Mutation):
             elif not where.asset_id is None:  # delete asset
                 asset_id = where.asset_id._eq
                 result = ChangeView.objects.filter(pk=where.asset_id._eq)
-                data = remove_change(asset_id, auth)  # TODO asset
+                data = remove_asset({'asset_id': asset_id}, auth)
             if data.success:
                 data = ChangeView.objects.filter(pk=data.obj_id)
                 return DeleteChangeView(returning=(data if data else result))

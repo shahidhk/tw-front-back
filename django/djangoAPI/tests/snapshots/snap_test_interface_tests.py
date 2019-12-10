@@ -1140,6 +1140,42 @@ snapshots['SystemTests::test_05_unassign_assets 4'] = {
     }
 }
 
+snapshots['SystemTests::test_05_unassign_assets 5'] = {
+    'data': {
+        'update_reconciliation_view': {
+            'returning': [
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_05_unassign_assets 6'] = {
+    'data': {
+        'update_reconciliation_view': {
+            'returning': [
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_05_unassign_assets 7'] = {
+    'data': {
+        'update_reconciliation_view': {
+            'returning': [
+            ]
+        }
+    }
+}
+
+snapshots['SystemTests::test_05_unassign_assets 8'] = {
+    'data': {
+        'update_reconciliation_view': {
+            'returning': [
+            ]
+        }
+    }
+}
+
 snapshots['SystemTests::test_06_reassign_assets 1'] = {
     'data': {
         'update_reconciliation_unassigned_asset_view': {
@@ -1424,22 +1460,11 @@ snapshots['SystemTests::test_09_0_non_existant_entities 4'] = {
 
 snapshots['SystemTests::test_09_1_non_existant_assets 1'] = {
     'data': {
-        'delete_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': "'role_id'",
-            'path': [
-                'delete_reconciliation_view'
+        'delete_reconciliation_view': {
+            'returning': [
             ]
         }
-    ]
+    }
 }
 
 snapshots['SystemTests::test_09_1_non_existant_assets 2'] = {
@@ -1454,7 +1479,7 @@ snapshots['SystemTests::test_09_1_non_existant_assets 2'] = {
                     'line': 2
                 }
             ],
-            'message': "'role_id'",
+            'message': '900:Asset cannot be found:',
             'path': [
                 'delete_reconciliation_view'
             ]
@@ -1464,22 +1489,11 @@ snapshots['SystemTests::test_09_1_non_existant_assets 2'] = {
 
 snapshots['SystemTests::test_09_1_non_existant_assets 3'] = {
     'data': {
-        'delete_reconciliation_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': "'role_id'",
-            'path': [
-                'delete_reconciliation_view'
+        'delete_reconciliation_view': {
+            'returning': [
             ]
         }
-    ]
+    }
 }
 
 snapshots['SystemTests::test_11_bring_back_non_existant_entities 1'] = {
@@ -1756,11 +1770,11 @@ snapshots['SystemTests::test_13_assign_parent_to_orphans 7'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 56,
-                    'asset_missing_from_registry': True,
+                    'asset_id': None,
+                    'asset_missing_from_registry': False,
                     'asset_new': False,
-                    'asset_serial_number': 'asset_only_3',
-                    'designer_planned_action_type_tbl_id': 'c',
+                    'asset_serial_number': None,
+                    'designer_planned_action_type_tbl_id': None,
                     'full_path': '11.29.31.32.33.65',
                     'id': 65,
                     'parent': 33,
@@ -1769,7 +1783,7 @@ snapshots['SystemTests::test_13_assign_parent_to_orphans 7'] = {
                     'role_changed': False,
                     'role_disposed': False,
                     'role_exists': True,
-                    'role_link': 65,
+                    'role_link': None,
                     'role_missing_from_registry': True,
                     'role_name': 'role_only_2 name',
                     'role_new': False,
@@ -1915,42 +1929,20 @@ snapshots['SystemTests::test_15_delete_unassigned_asset 4'] = {
 
 snapshots['SystemTests::test_16_assign_unassigned_asset 1'] = {
     'data': {
-        'update_garbage_can_asset_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '400:An Asset is currently assigned to the role: 38:',
-            'path': [
-                'update_garbage_can_asset_view'
+        'update_garbage_can_asset_view': {
+            'returning': [
             ]
         }
-    ]
+    }
 }
 
 snapshots['SystemTests::test_16_assign_unassigned_asset 2'] = {
     'data': {
-        'update_garbage_can_asset_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '400:An Asset is currently assigned to the role: 37:',
-            'path': [
-                'update_garbage_can_asset_view'
+        'update_garbage_can_asset_view': {
+            'returning': [
             ]
         }
-    ]
+    }
 }
 
 snapshots['SystemTests::test_17_create_changed_role_w_asset 1'] = {
@@ -2061,18 +2053,18 @@ snapshots['SystemTests::test_18_change_parent 2'] = {
             'returning': [
                 {
                     'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 32,
+                    'asset_exists': False,
+                    'asset_id': 39,
                     'asset_missing_from_registry': False,
                     'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-31',
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-38',
                     'designer_planned_action_type_tbl_id': 'c',
                     'full_path': '11.29.31.32.33.34.67.42',
                     'id': 42,
                     'parent': 67,
                     'parent_changed': False,
                     'project_id': 2,
-                    'role_changed': False,
+                    'role_changed': True,
                     'role_disposed': False,
                     'role_exists': True,
                     'role_link': 42,
@@ -2092,18 +2084,18 @@ snapshots['SystemTests::test_18_change_parent 3'] = {
             'returning': [
                 {
                     'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 33,
+                    'asset_exists': False,
+                    'asset_id': 40,
                     'asset_missing_from_registry': False,
                     'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-32',
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-39',
                     'designer_planned_action_type_tbl_id': 'c',
                     'full_path': '11.29.31.32.33.34.67.43',
                     'id': 43,
                     'parent': 67,
                     'parent_changed': False,
                     'project_id': 2,
-                    'role_changed': False,
+                    'role_changed': True,
                     'role_disposed': False,
                     'role_exists': True,
                     'role_link': 43,
@@ -2124,11 +2116,11 @@ snapshots['SystemTests::test_18_change_parent 4'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 34,
+                    'asset_id': None,
                     'asset_missing_from_registry': False,
                     'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-33',
-                    'designer_planned_action_type_tbl_id': 'c',
+                    'asset_serial_number': None,
+                    'designer_planned_action_type_tbl_id': None,
                     'full_path': '11.29.31.32.33.34.67.44',
                     'id': 44,
                     'parent': 67,
@@ -2137,7 +2129,7 @@ snapshots['SystemTests::test_18_change_parent 4'] = {
                     'role_changed': False,
                     'role_disposed': False,
                     'role_exists': True,
-                    'role_link': 44,
+                    'role_link': None,
                     'role_missing_from_registry': False,
                     'role_name': 'Asset Number 33 Name',
                     'role_new': False,
@@ -2155,11 +2147,11 @@ snapshots['SystemTests::test_18_change_parent 5'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 35,
+                    'asset_id': None,
                     'asset_missing_from_registry': False,
                     'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-34',
-                    'designer_planned_action_type_tbl_id': 'c',
+                    'asset_serial_number': None,
+                    'designer_planned_action_type_tbl_id': None,
                     'full_path': '11.29.31.32.33.34.67.45',
                     'id': 45,
                     'parent': 67,
@@ -2168,7 +2160,7 @@ snapshots['SystemTests::test_18_change_parent 5'] = {
                     'role_changed': False,
                     'role_disposed': False,
                     'role_exists': True,
-                    'role_link': 45,
+                    'role_link': None,
                     'role_missing_from_registry': False,
                     'role_name': 'Asset Number 34 Name',
                     'role_new': False,
@@ -2279,11 +2271,11 @@ snapshots['SystemTests::test_19_revert_parent 1'] = {
                 {
                     'approved': True,
                     'asset_exists': True,
-                    'asset_id': 35,
+                    'asset_id': None,
                     'asset_missing_from_registry': False,
                     'asset_new': False,
-                    'asset_serial_number': 'ASN SITE-ROLE-NUM-34',
-                    'designer_planned_action_type_tbl_id': 'c',
+                    'asset_serial_number': None,
+                    'designer_planned_action_type_tbl_id': None,
                     'full_path': '11.29.31.32.33.34.67.44.45',
                     'id': 45,
                     'parent': 44,
@@ -2292,7 +2284,7 @@ snapshots['SystemTests::test_19_revert_parent 1'] = {
                     'role_changed': False,
                     'role_disposed': False,
                     'role_exists': True,
-                    'role_link': 45,
+                    'role_link': None,
                     'role_missing_from_registry': False,
                     'role_name': 'Asset Number 34 Name',
                     'role_new': False,
@@ -2352,24 +2344,6 @@ snapshots['SystemTests::test_20_unassign_assets 2'] = {
     }
 }
 
-snapshots['SystemTests::test_20_unassign_assets 3'] = {
-    'data': {
-        'update_change_view': {
-            'returning': [
-            ]
-        }
-    }
-}
-
-snapshots['SystemTests::test_20_unassign_assets 4'] = {
-    'data': {
-        'update_change_view': {
-            'returning': [
-            ]
-        }
-    }
-}
-
 snapshots['SystemTests::test_21_reassign_assets 1'] = {
     'data': {
         'update_change_unassigned_asset_view': None
@@ -2382,7 +2356,7 @@ snapshots['SystemTests::test_21_reassign_assets 1'] = {
                     'line': 2
                 }
             ],
-            'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-37:',
+            'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-24:',
             'path': [
                 'update_change_unassigned_asset_view'
             ]
@@ -2402,7 +2376,7 @@ snapshots['SystemTests::test_21_reassign_assets 2'] = {
                     'line': 2
                 }
             ],
-            'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-36:',
+            'message': '600:Another Asset is currently assigned to this role: role_asset_1-serial-number:',
             'path': [
                 'update_change_unassigned_asset_view'
             ]
@@ -2590,28 +2564,6 @@ snapshots['SystemTests::test_23_add_asset_to_role 3'] = {
                     'role_name': 'role_only_2 name',
                     'role_new': False,
                     'role_number': 'role_only_2'
-                },
-                {
-                    'approved': True,
-                    'asset_exists': True,
-                    'asset_id': 56,
-                    'asset_missing_from_registry': True,
-                    'asset_new': False,
-                    'asset_serial_number': 'asset_only_3',
-                    'designer_planned_action_type_tbl_id': 'c',
-                    'full_path': '11.29.31.32.33.65',
-                    'id': 65,
-                    'parent': 33,
-                    'parent_changed': False,
-                    'project_id': 2,
-                    'role_changed': False,
-                    'role_disposed': False,
-                    'role_exists': True,
-                    'role_link': 65,
-                    'role_missing_from_registry': True,
-                    'role_name': 'role_only_2 name',
-                    'role_new': False,
-                    'role_number': 'role_only_2'
                 }
             ]
         }
@@ -2636,10 +2588,72 @@ snapshots['SystemTests::test_24_non_existant_entities 2'] = {
     }
 }
 
+snapshots['SystemTests::test_24_non_existant_entities 3'] = {
+    'data': {
+        'delete_change_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "700:This entity does not exist:ChangeView matching query does not exist.:<class 'djangoAPI.models.ChangeView.DoesNotExist'>",
+            'path': [
+                'delete_change_view'
+            ]
+        }
+    ]
+}
+
+snapshots['SystemTests::test_24_non_existant_entities 4'] = {
+    'data': {
+        'delete_change_view': None
+    },
+    'errors': [
+        {
+            'locations': [
+                {
+                    'column': 17,
+                    'line': 2
+                }
+            ],
+            'message': "700:This entity does not exist:ChangeView matching query does not exist.:<class 'djangoAPI.models.ChangeView.DoesNotExist'>",
+            'path': [
+                'delete_change_view'
+            ]
+        }
+    ]
+}
+
 snapshots['SystemTests::test_26_bring_back_non_existant_entities 1'] = {
     'data': {
         'update_dumpster_change_view': {
             'returning': [
+                {
+                    'approved': True,
+                    'asset_exists': True,
+                    'asset_id': 41,
+                    'asset_missing_from_registry': False,
+                    'asset_new': False,
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-40',
+                    'designer_planned_action_type_tbl_id': 'c',
+                    'full_path': '11.29.31.32.33.51',
+                    'id': 51,
+                    'parent': 33,
+                    'parent_changed': True,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_disposed': False,
+                    'role_exists': True,
+                    'role_link': 51,
+                    'role_missing_from_registry': False,
+                    'role_name': 'Asset Number 40 Name',
+                    'role_new': False,
+                    'role_number': 'SITE-ROLE-NUM-40'
+                }
             ]
         }
     }
@@ -2647,48 +2661,30 @@ snapshots['SystemTests::test_26_bring_back_non_existant_entities 1'] = {
 
 snapshots['SystemTests::test_26_bring_back_non_existant_entities 2'] = {
     'data': {
-        'update_dumpster_change_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '302:Entity unreserved or reserved by another project:',
-            'path': [
-                'update_dumpster_change_view'
-            ]
-        }
-    ]
-}
-
-snapshots['SystemTests::test_26_bring_back_non_existant_entities 3'] = {
-    'data': {
-        'update_dumpster_change_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '302:Entity unreserved or reserved by another project:',
-            'path': [
-                'update_dumpster_change_view'
-            ]
-        }
-    ]
-}
-
-snapshots['SystemTests::test_26_bring_back_non_existant_entities 4'] = {
-    'data': {
         'update_dumpster_change_view': {
             'returning': [
+                {
+                    'approved': True,
+                    'asset_exists': False,
+                    'asset_id': 37,
+                    'asset_missing_from_registry': False,
+                    'asset_new': False,
+                    'asset_serial_number': 'ASN SITE-ROLE-NUM-36',
+                    'designer_planned_action_type_tbl_id': 'c',
+                    'full_path': '11.29.31.32.33.48',
+                    'id': 48,
+                    'parent': 33,
+                    'parent_changed': True,
+                    'project_id': 2,
+                    'role_changed': False,
+                    'role_disposed': False,
+                    'role_exists': True,
+                    'role_link': 48,
+                    'role_missing_from_registry': False,
+                    'role_name': 'Asset Number 37 Name',
+                    'role_new': False,
+                    'role_number': 'SITE-ROLE-NUM-37'
+                }
             ]
         }
     }
@@ -2696,66 +2692,63 @@ snapshots['SystemTests::test_26_bring_back_non_existant_entities 4'] = {
 
 snapshots['SystemTests::test_29_create_unassigned_asset 1'] = {
     'data': {
-        'insert_change_unassigned_asset_view': None
+        'insert_change_unassigned_asset_view': {
+            'returning': [
+                None
+            ]
+        }
     },
     'errors': [
         {
             'locations': [
                 {
-                    'column': 17,
+                    'column': 110,
                     'line': 2
                 }
             ],
-            'message': '''26:Failed to Create New Asset:null value in column "final_project_asset_role_id_id" violates not-null constraint
-DETAIL:  Failing row contains (66, null, 1).
-:<class 'django.db.utils.IntegrityError'>''',
-            'path': [
-                'insert_change_unassigned_asset_view'
-            ]
+            'message': 'Expected value of type "UnassignedAssetViewType" but got: NewAssetDeliveredByProjectTbl.'
         }
     ]
 }
 
 snapshots['SystemTests::test_29_create_unassigned_asset 2'] = {
     'data': {
-        'insert_change_unassigned_asset_view': None
+        'insert_change_unassigned_asset_view': {
+            'returning': [
+                None
+            ]
+        }
     },
     'errors': [
         {
             'locations': [
                 {
-                    'column': 17,
+                    'column': 110,
                     'line': 2
                 }
             ],
-            'message': '''26:Failed to Create New Asset:null value in column "final_project_asset_role_id_id" violates not-null constraint
-DETAIL:  Failing row contains (67, null, 1).
-:<class 'django.db.utils.IntegrityError'>''',
-            'path': [
-                'insert_change_unassigned_asset_view'
-            ]
+            'message': 'Expected value of type "UnassignedAssetViewType" but got: NewAssetDeliveredByProjectTbl.'
         }
     ]
 }
 
 snapshots['SystemTests::test_29_create_unassigned_asset 3'] = {
     'data': {
-        'insert_change_unassigned_asset_view': None
+        'insert_change_unassigned_asset_view': {
+            'returning': [
+                None
+            ]
+        }
     },
     'errors': [
         {
             'locations': [
                 {
-                    'column': 17,
+                    'column': 110,
                     'line': 2
                 }
             ],
-            'message': '''26:Failed to Create New Asset:null value in column "final_project_asset_role_id_id" violates not-null constraint
-DETAIL:  Failing row contains (68, null, 1).
-:<class 'django.db.utils.IntegrityError'>''',
-            'path': [
-                'insert_change_unassigned_asset_view'
-            ]
+            'message': 'Expected value of type "UnassignedAssetViewType" but got: NewAssetDeliveredByProjectTbl.'
         }
     ]
 }
@@ -2772,89 +2765,9 @@ snapshots['SystemTests::test_30_delete_unassigned_asset 1'] = {
                     'line': 2
                 }
             ],
-            'message': "800:Asset does not exist:ProjectAssetRecordTbl matching query does not exist.:<class 'djangoAPI.models.ProjectAssetRecordTbl.DoesNotExist'>",
+            'message': '1000:Asset cannot be found please refresh your View: ProjectAssetRecordTbl object (57):',
             'path': [
                 'delete_change_unassigned_asset_view'
-            ]
-        }
-    ]
-}
-
-snapshots['SystemTests::test_30_delete_unassigned_asset 2'] = {
-    'data': {
-        'delete_change_unassigned_asset_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': "800:Asset does not exist:ProjectAssetRecordTbl matching query does not exist.:<class 'djangoAPI.models.ProjectAssetRecordTbl.DoesNotExist'>",
-            'path': [
-                'delete_change_unassigned_asset_view'
-            ]
-        }
-    ]
-}
-
-snapshots['SystemTests::test_30_delete_unassigned_asset 3'] = {
-    'data': {
-        'delete_change_unassigned_asset_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': "800:Asset does not exist:ProjectAssetRecordTbl matching query does not exist.:<class 'djangoAPI.models.ProjectAssetRecordTbl.DoesNotExist'>",
-            'path': [
-                'delete_change_unassigned_asset_view'
-            ]
-        }
-    ]
-}
-
-snapshots['SystemTests::test_31_assign_unassigned_asset 1'] = {
-    'data': {
-        'update_dumpster_asset_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-37:',
-            'path': [
-                'update_dumpster_asset_view'
-            ]
-        }
-    ]
-}
-
-snapshots['SystemTests::test_31_assign_unassigned_asset 2'] = {
-    'data': {
-        'update_dumpster_asset_view': None
-    },
-    'errors': [
-        {
-            'locations': [
-                {
-                    'column': 17,
-                    'line': 2
-                }
-            ],
-            'message': '600:Another Asset is currently assigned to this role: ASN SITE-ROLE-NUM-36:',
-            'path': [
-                'update_dumpster_asset_view'
             ]
         }
     ]
