@@ -29,16 +29,16 @@ def AuthenticationUtil(info):
     try:
         user = USER_PERMISSIONS[info.context.META['HTTP_X_USERNAME']]
     except KeyError:
-        raise Exception('The User Specified Cannot be Found: ' +
+        raise Exception('The user specified cannot be found: ' +
                         info.context.META['HTTP_X_USERNAME'])
     else:
-        if info.context.META['HTTP_X_PROJECT'] == '':
-            user['group'] = None
-        elif int(info.context.META['HTTP_X_PROJECT']) in user['group']:
+        if int(info.context.META['HTTP_X_PROJECT']) in user['group']:
             user['group'] = int(info.context.META['HTTP_X_PROJECT'])
         else:
-            raise Exception('User Does Not belong to project_id:' +
-                            info.context.META['HTTP_X_PROJECT'])
+            # User Does Not belong to the project specified in the header
+            # instead of raising an exception we set valid to false, this way non project required mutations can still run if needed
+            # ex getting projects of a user
+            user['valid'] = False
     return user
 
 
