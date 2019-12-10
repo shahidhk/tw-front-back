@@ -272,8 +272,8 @@ def update_hasura_schema():
     """
     subdomain = os.getenv('BRANCH', '')
     # TODO update tables, do not track change orphan view
-    tables = ['reconciliation_view', 'orphan_view', 'reservation_view', 'unassigned_assets',
-              'garbage_can_unassigned_assets', 'garbage_can_reconciliation_view', 'change_view']
+    tables = ['change_unassigned_asset_view', 'change_view', 'dumpster_asset_view', 'dumpster_change_view', 'garbage_can_asset_view',
+              'garbage_can_reconciliation_view', 'reconciliation_orphan_view', 'reconciliation_unassigned_asset_view', 'reconciliation_view', 'reservation_view']
     for table in tables:
         response = requests.post(
             'https://hasura.' + subdomain + '.duckdns.org/v1/query',
@@ -300,7 +300,6 @@ def update_hasura_schema():
                 "name": "django",
                 "definition": {
                     "url": "https://django." + subdomain + ".duckdns.org/graphql/",
-                    # "headers": [{"name": "X-Server-Request-From", "value": "Hasura"}],
                     "forward_client_headers": True,
                     "timeout_seconds": 60
                 },
