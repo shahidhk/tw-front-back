@@ -466,7 +466,7 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
 class ExistingAssetMovedByProjectTbl(PreDesignReconciledAssetRecordTbl):
     '''Assets that will need to be moved to a new role'''
     final_project_asset_role_id = models.ForeignKey(
-        ProjectAssetRoleRecordTbl, models.PROTECT)
+        ProjectAssetRoleRecordTbl, models.SET_NULL, null=True)
     uninstallation_stage = models.ForeignKey(
         ConstructionStageTbl, models.PROTECT, 'uninstall_stage')
     installation_stage = models.ForeignKey(

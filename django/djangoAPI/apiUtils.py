@@ -623,20 +623,24 @@ def assign_asset_to_role_change(data, auth):
         if asset.predesignreconciledassetrecordtbl:
             moved = ExistingAssetMovedByProjectTbl(
                 predesignreconciledassetrecordtbl_ptr=asset.predesignreconciledassetrecordtbl,
-                final_project_asset_role_id_id=role.pk,
+                final_project_asset_role_id_id=role.pk if role else None,
                 installation_stage_id=1,
                 uninstallation_stage_id=1,
             )
             moved.save_base(raw=True)
             # remove new entry if reverted to original parent
-    except Exception:
+    except ObjectDoesNotExist as e:
         pass
+    except Exception:
+        return Result(exception=e, error_code=605, message='Unexpected Exception')
     try:
         if asset.newassetdeliveredbyprojecttbl:
             asset.newassetdeliveredbyprojecttbl.final_project_asset_role_id_id = role.pk
-            asset.save()
+            # asset.save()
             asset.newassetdeliveredbyprojecttbl.save() #TODO not sure which one is necessary
-    except Exception:
+    except ObjectDoesNotExist as e:
         pass
+    except Exception:
+        return Result(exception=e, error_code=606, message='Unexpected Exception')
     return Result(success=True, obj=role, obj_id=data['role_id'])
         

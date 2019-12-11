@@ -201,7 +201,7 @@ create trigger role_changed_tgr
 -- probably should do this to exclude removed roles
 !!!
 create or replace
-view base_asset_view as
+view pre_base_asset_view as
 select
 	id as asset_id,
 	asset_serial_number,
@@ -235,6 +235,35 @@ left join (
 	from
 		public."djangoAPI_NewAssetDeliveredByProjectTbl") as NewAsset on
 	BasePreMovedAsset.id = NewAsset.new_link
+!!!
+create or replace
+view asset_moved_assigned as
+select
+predesignreconciledassetrecordtbl_ptr_id as id,
+not (final_project_asset_role_id_id is null) as assigned
+from public."djangoAPI_ExistingAssetMovedByProjectTbl"
+!!!
+create or replace
+view base_asset_view as
+select
+asset_id,
+asset_serial_number,
+project_id,
+designer_planned_action_type_tbl_id,
+role_changed,
+case assigned
+	when false then null
+	else role_link
+end as role_link,
+installation_stage_id,
+uninstallation_stage_id,
+asset_exists,
+asset_new,
+asset_missing_from_registry
+from
+pre_base_asset_view as ba
+left join asset_moved_assigned as ma
+on ba.asset_id = ma.id
 !!!
 create or replace
 view reconciliation_unassigned_asset_view as
