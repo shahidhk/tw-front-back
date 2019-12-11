@@ -44,10 +44,10 @@ def fill_database_test_data():
     Will eventually switch to initialization with constants for list tables
     '''
     init_value_lists()
-    for i in range(4):
+    for i, value in enumerate(['Bathroom Renovation', 'Kitchen Renovation', 'Living Room Renovation']):
         DesignProjectTbl.objects.create(
             pk=i + 1,
-            name='design project phase name ' + str(i+1),
+            name=value,
             designer_organization_name='designer organization name ' + str(i+1),
             phase_number=1,
             planned_date_range=(date.today(), date.today() + timedelta(days=40)),
