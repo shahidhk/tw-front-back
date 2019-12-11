@@ -591,9 +591,9 @@ def add_new_role_asset(data, change_type, auth):
 
 def assign_asset_to_role_change(data, auth):
     # TODO consider merging with assign_asset_to_role_reconciliation(data, auth):
+    role = None
     if data['role_id'] is None or data['role_id'] == 0:
         data['role_id'] = None
-        role = None
     else:
         asset = list(PreDesignReconciledAssetRecordTbl.objects.filter(
             initial_project_asset_role_id_id=data['role_id']))

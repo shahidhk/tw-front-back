@@ -207,7 +207,7 @@ def fill_database_test_data():
             role_priority=5,  # did not exist in my avantis import
             role_equipment_type='meh',
             role_classification='does this even matter right now?',
-            asset_serial_number='dont have this value either',
+            asset_serial_number=asset_row[1][1][9],
             suspension_id=1,
             already_reserved_id=1,
             intent_to_reserve_id=1,
@@ -256,7 +256,7 @@ def parse_avantis_data():
     with transaction.atomic():
         for entry in cloned_assets:
             existing_asset = PreDesignReconciledAssetRecordTbl()
-            existing_asset.asset_serial_number = 'ASN ' + entry.role_number
+            existing_asset.asset_serial_number = entry.asset_serial_number
             existing_asset.cloned_role_registry_tbl_id = parent_mtoi[entry.role_number].mtoi
             existing_asset.initial_project_asset_role_id_id = base_role_dict[entry.role_number]
             existing_asset.entity_exists = True

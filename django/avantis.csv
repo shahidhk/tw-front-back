@@ -1,50 +1,17 @@
-SITE,SITE TOP LEVEL ENTRY,SITE,,Asset,Asset,1,SITE,1
-SITE-ROLE-NUM-1,Asset Number 1 Name,SITE,SITE,Asset,Asset,1,Location 1,1
-SITE-ROLE-NUM-2,Asset Number 2 Name,SITE,SITE,Asset,Asset,1,Location 2,1
-SITE-ROLE-NUM-3,Asset Number 3 Name,SITE,SITE,Asset,Asset,1,Location 3,1
-SITE-ROLE-NUM-4,Asset Number 4 Name,SITE,SITE,Asset,Asset,1,Location 4,1
-SITE-ROLE-NUM-5,Asset Number 5 Name,SITE,SITE,Asset,Asset,1,Location 5,1
-SITE-ROLE-NUM-6,Asset Number 6 Name,SITE,SITE-ROLE-NUM-5,Asset,Asset,1,Location 6,1
-SITE-ROLE-NUM-7,Asset Number 7 Name,SITE,SITE,Asset,Asset,1,Location 7,1
-SITE-ROLE-NUM-8,Asset Number 8 Name,SITE,SITE-ROLE-NUM-7,Asset,Asset,1,Location 8,1
-SITE-ROLE-NUM-9,Asset Number 9 Name,SITE,SITE-ROLE-NUM-7,Asset,Asset,1,Location 9,1
-SITE-ROLE-NUM-10,Asset Number 10 Name,SITE,SITE-ROLE-NUM-7,Asset,Asset,1,Location 10,1
-SITE-ROLE-NUM-11,Asset Number 11 Name,SITE,SITE,Asset,Asset,1,Location 11,1
-SITE-ROLE-NUM-12,Asset Number 12 Name,SITE,SITE-ROLE-NUM-11,Asset,Asset,1,Location 12,1
-SITE-ROLE-NUM-13,Asset Number 13 Name,SITE,SITE-ROLE-NUM-12,Asset,Asset,1,Location 13,1
-SITE-ROLE-NUM-14,Asset Number 14 Name,SITE,SITE-ROLE-NUM-12,Asset,Asset,1,Location 14,1
-SITE-ROLE-NUM-15,Asset Number 15 Name,SITE,SITE-ROLE-NUM-11,Asset,Asset,1,Location 15,1
-SITE-ROLE-NUM-16,Asset Number 16 Name,SITE,SITE-ROLE-NUM-15,Asset,Asset,1,Location 16,1
-SITE-ROLE-NUM-17,Asset Number 17 Name,SITE,SITE-ROLE-NUM-15,Asset,Asset,1,Location 17,1
-SITE-ROLE-NUM-18,Asset Number 18 Name,SITE,SITE,Asset,Asset,1,Location 18,1
-SITE-ROLE-NUM-19,Asset Number 19 Name,SITE,SITE-ROLE-NUM-18,Asset,Asset,1,Location 19,1
-SITE-ROLE-NUM-20,Asset Number 20 Name,SITE,SITE-ROLE-NUM-18,Asset,Asset,1,Location 20,1
-SITE-ROLE-NUM-21,Asset Number 21 Name,SITE,SITE-ROLE-NUM-20,Asset,Asset,1,Location 21,1
-SITE-ROLE-NUM-22,Asset Number 22 Name,SITE,SITE-ROLE-NUM-21,Asset,Asset,1,Location 22,1
-SITE-ROLE-NUM-23,Asset Number 23 Name,SITE,SITE,Asset,Asset,1,Location 23,1
-SITE-ROLE-NUM-24,Asset Number 24 Name,SITE,SITE-ROLE-NUM-23,Asset,Asset,1,Location 24,1
-SITE-ROLE-NUM-25,Asset Number 25 Name,SITE,SITE-ROLE-NUM-23,Asset,Asset,1,Location 25,1
-SITE-ROLE-NUM-26,Asset Number 26 Name,SITE,SITE-ROLE-NUM-23,Asset,Asset,1,Location 26,1
-SITE-ROLE-NUM-27,Asset Number 27 Name,SITE,SITE-ROLE-NUM-26,Asset,Asset,1,Location 27,1
-SITE-ROLE-NUM-28,Asset Number 28 Name,SITE,SITE-ROLE-NUM-27,Asset,Asset,1,Location 28,1
-SITE-ROLE-NUM-29,Asset Number 29 Name,SITE,SITE-ROLE-NUM-23,Asset,Asset,1,Location 29,1
-SITE-ROLE-NUM-30,Asset Number 30 Name,SITE,SITE-ROLE-NUM-23,Asset,Asset,1,Location 30,1
-SITE-ROLE-NUM-31,Asset Number 31 Name,SITE,SITE-ROLE-NUM-30,Asset,Asset,1,Location 31,1
-SITE-ROLE-NUM-32,Asset Number 32 Name,SITE,SITE-ROLE-NUM-30,Asset,Asset,1,Location 32,1
-SITE-ROLE-NUM-33,Asset Number 33 Name,SITE,SITE-ROLE-NUM-30,Asset,Asset,1,Location 33,1
-SITE-ROLE-NUM-34,Asset Number 34 Name,SITE,SITE-ROLE-NUM-33,Asset,Asset,1,Location 34,1
-SITE-ROLE-NUM-35,Asset Number 35 Name,SITE,SITE-ROLE-NUM-33,Asset,Asset,1,Location 35,1
-SITE-ROLE-NUM-36,Asset Number 36 Name,SITE,SITE-ROLE-NUM-23,Asset,Asset,1,Location 36,1
-SITE-ROLE-NUM-37,Asset Number 37 Name,SITE,SITE-ROLE-NUM-36,Asset,Asset,1,Location 37,1
-SITE-ROLE-NUM-38,Asset Number 38 Name,SITE,SITE-ROLE-NUM-37,Asset,Asset,1,Location 38,1
-SITE-ROLE-NUM-39,Asset Number 39 Name,SITE,SITE-ROLE-NUM-23,Asset,Asset,1,Location 39,1
-SITE-ROLE-NUM-40,Asset Number 40 Name,SITE,SITE-ROLE-NUM-39,Asset,Asset,1,Location 40,1
-SITE-ROLE-NUM-41,Asset Number 41 Name,SITE,SITE,Asset,Asset,1,Location 41,1
-SITE-ROLE-NUM-42,Asset Number 42 Name,SITE,SITE-ROLE-NUM-41,Asset,Asset,1,Location 42,1
-SITE-ROLE-NUM-43,Asset Number 43 Name,SITE,SITE-ROLE-NUM-41,Asset,Asset,1,Location 43,1
-SITE-ROLE-NUM-44,Asset Number 44 Name,SITE,SITE,Asset,Asset,1,Location 44,1
-SITE-ROLE-NUM-45,Asset Number 45 Name,SITE,SITE-ROLE-NUM-44,Asset,Asset,1,Location 45,1
-SITE-ROLE-NUM-46,Asset Number 46 Name,SITE,SITE,Asset,Asset,1,Location 46,1
-SITE-ROLE-NUM-47,Asset Number 47 Name,SITE,SITE,Asset,Asset,1,Location 47,1
-SITE-ROLE-NUM-48,Asset Number 48 Name,SITE,SITE-ROLE-NUM-47,Asset,Asset,1,Location 48,1
-SITE-ROLE-NUM-49,Asset Number 49 Name,SITE,SITE-ROLE-NUM-47,Asset,Asset,1,Location 49,1
+House,House,House,,Asset,Asset,1,House,1,Tony's House
+Floor2-Bedroom-Large,Master Bedroom,House,House,Asset,Asset,2,House,2,Tony's Master Bedroom
+Floor2-Bedroom-Small,Guest Bedroom,House,House,Asset,Asset,3,House,3,Tony's Guest Bedroom
+Floor1-Cooking-Area,Kitchen,House,House,Asset,Asset,4,House,4,Tony's Kitchen
+Floor1-Bathroom,Main Floor Bathroom,House,House,Asset,Asset,5,House,5,Tony's Main Floor Bathroom
+Floor2-Bathroom,Second Floor Bathroom,House,House,Asset,Asset,6,House,6,Tony's Second Floor Bathroom
+Garage,Garage,House,House,Asset,Asset,7,House,7,Tony's Garage
+Floor2-Bathroom-Vanity,Vanity,House,Floor2-Bathroom,Asset,Asset,8,House,8,Tony's Vanity
+Floor2-Bathroom-Vanity-Mirror,Mirror,House,Floor2-Bathroom-Vanity,Asset,Asset,9,House,9,Tony's Mirror
+Floor2-Bathroom-Vanity-Top,Top,House,Floor2-Bathroom-Vanity,Asset,Asset,10,House,10,Tony's Top
+Floor2-Bathroom-Vanity-Cabinet,Cabinet,House,Floor2-Bathroom-Vanity,Asset,Asset,11,House,11,Tony's Cabinet
+Floor2-Bathroom-Vanity-Sink,Sink,House,Floor2-Bathroom-Vanity,Asset,Asset,12,House,12,Tony's Sink
+Floor2-Bathroom-Vanity-Sink-Faucet,Sink Faucet,House,Floor2-Bathroom-Vanity-Sink,Asset,Asset,13,House,13,Tony's Sink Faucet
+Floor2-Bathroom-Bathtub,Tub,House,Floor2-Bathroom,Asset,Asset,14,House,14,Tony's Tub
+Floor2-Bathroom-Bathtub-Faucet,Tub Faucet,House,Floor2-Bathroom-Bathtub,Asset,Asset,15,House,15,Tony's Tub Faucet
+Floor2-Bathroom-Toilet-Purple,Toilet Purple,House,Floor2-Bathroom,Asset,Asset,16,House,16,Tony's Toilet Purple
+Floor2-Bathroom-Toilet-Beige,Toilet Beige,House,Floor2-Bathroom,Asset,Asset,17,House,17,Tony's Toilet Beige
