@@ -44,7 +44,7 @@ def fill_database_test_data():
     Will eventually switch to initialization with constants for list tables
     '''
     init_value_lists()
-    for i, value in enumerate(['Bathroom Renovation', 'Kitchen Renovation', 'Living Room Renovation']):
+    for i, value in enumerate(['System Project', 'Bathroom Renovation', 'Kitchen Renovation', 'Living Room Renovation']):
         DesignProjectTbl.objects.create(
             pk=i + 1,
             name=value,
