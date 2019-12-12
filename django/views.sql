@@ -286,7 +286,6 @@ from
 	base_asset_view
 where
 	role_link is null
-    and designer_planned_action_type_tbl_id <> 'b'
 	and asset_new = false
 	and asset_exists = true;
 !!!
@@ -308,7 +307,6 @@ from
 	base_asset_view
 where
 	role_link is null
-    and designer_planned_action_type_tbl_id <> 'b'
 	and asset_new = false
 	and asset_exists = false;
 !!!
@@ -322,16 +320,19 @@ select
 	role_changed,
 	role_link,
 	installation_stage_id,
-	uninstallation_stage_id,
+	bav.uninstallation_stage_id,
 	asset_exists,
 	asset_new,
     asset_missing_from_registry
 from
-	base_asset_view
+	base_asset_view as bav
+	left join public."djangoAPI_ExistingAssetDisposedByProjectTbl" as ead
+	on bav.asset_id = ead.predesignreconciledassetrecordtbl_ptr_id
 where
 	role_link is null
-    and designer_planned_action_type_tbl_id <> 'b'
-	and asset_exists = true;
+	and asset_exists = true
+	and ead.predesignreconciledassetrecordtbl_ptr_id is null;
+	-- we are using an 'anit join' https://stackoverflow.com/a/42643682
 !!!
 create or replace
 view dumpster_asset_view as
@@ -343,15 +344,16 @@ select
 	role_changed,
 	role_link,
 	installation_stage_id,
-	uninstallation_stage_id,
+	bav.uninstallation_stage_id,
 	asset_exists,
 	asset_new,
     asset_missing_from_registry
 from
-	base_asset_view
+	base_asset_view as bav
+	right join public."djangoAPI_ExistingAssetDisposedByProjectTbl" as ead
+	on bav.asset_id = ead.predesignreconciledassetrecordtbl_ptr_id
 where
 	role_link is null
-    and designer_planned_action_type_tbl_id = 'b'
 	and asset_exists = true;
 !!!
 create or replace
