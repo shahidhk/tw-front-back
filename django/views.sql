@@ -238,10 +238,13 @@ left join (
 !!!
 create or replace
 view asset_moved_assigned as
-select
-predesignreconciledassetrecordtbl_ptr_id as id,
+(select predesignreconciledassetrecordtbl_ptr_id as id,
+(uninstallation_stage_id is null) as assigned
+from public."djangoAPI_ExistingAssetDisposedByProjectTbl")
+union
+(select predesignreconciledassetrecordtbl_ptr_id as id,
 not (final_project_asset_role_id_id is null) as assigned
-from public."djangoAPI_ExistingAssetMovedByProjectTbl"
+from public."djangoAPI_ExistingAssetMovedByProjectTbl")
 !!!
 create or replace
 view base_asset_view as

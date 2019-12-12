@@ -418,13 +418,17 @@ def RetireAssetUtil(asset, auth):
     try:
         existing_asset = PreDesignReconciledAssetRecordTbl.objects.get(pk=asset['asset_id'])
     except Exception as e:
-        print(str(type(e)))
-        print(str(e))
-        return Result(message='Asset cannot be found please refresh your View: ' + str(asset), error_code=1000)
+        return Result(message='Asset cannot be found please refresh your View: ' + str(asset), error_code=1000, exception=e)
     else:
         if existing_asset.project_tbl_id != auth['group']:
             return Result(message='Asset or Role reserved by another project', error_code=1001)
-        serial = existing_asset.asset_serial_number
+        try: # remove this entry if it exists
+            moved_asset = ExistingAssetMovedByProjectTbl.objects.get(pk=asset['asset_id'])
+            moved_asset.delete(keep_parents=True)
+        except ObjectDoesNotExist:
+            pass
+        except Exception as e:
+            return Result(message='Failed to deleted moved entry', error_code=1003, exception=e)
         try:
             if existing_asset.missing_from_registry:
                 # if the asset was created just delete it
@@ -457,7 +461,7 @@ def remove_asset(data, auth):
     try:
         asset = NewAssetDeliveredByProjectTbl.objects.get(pk=data['asset_id'])
     except Exception as e:
-        return RetireAssetUtil(asset, auth)
+        return RetireAssetUtil(data, auth)
     else:
         try:
             asset.delete()
@@ -620,27 +624,51 @@ def assign_asset_to_role_change(data, auth):
     if asset.project_tbl_id != auth['group']:
         return Result(message='Asset reserved by another project', error_code=604)
     try:
-        if asset.predesignreconciledassetrecordtbl:
-            moved = ExistingAssetMovedByProjectTbl(
-                predesignreconciledassetrecordtbl_ptr=asset.predesignreconciledassetrecordtbl,
-                final_project_asset_role_id_id=role.pk if role else None,
-                installation_stage_id=1,
-                uninstallation_stage_id=1,
-            )
-            moved.save_base(raw=True)
-            # remove new entry if reverted to original parent
+        if asset.predesignreconciledassetrecordtbl: # test to see if asset is PreDesign
+            if asset.predesignreconciledassetrecordtbl.initial_project_asset_role_id == data['role_id']: # if reverting to original parent
+                try:
+                    moved = ExistingAssetMovedByProjectTbl.objects.get(pk=data['asset_id'])
+                    moved.delete(keep_parents=True)
+                except Exception as e:
+                    return Result(exception=e, error_code=608, message='Failed to revert role link')
+            else:
+                try:
+                    moved = ExistingAssetMovedByProjectTbl.objects.get(pk=data['asset_id'])
+                except ObjectDoesNotExist:
+                    moved = ExistingAssetMovedByProjectTbl(
+                        predesignreconciledassetrecordtbl_ptr=asset.predesignreconciledassetrecordtbl,
+                        final_project_asset_role_id_id=role.pk if role else None,
+                        installation_stage_id=1,
+                        uninstallation_stage_id=1,
+                    )
+                else:
+                    moved.final_project_asset_role_id_id = role.pk if role else None
+                finally:
+                    moved.save_base(raw=True)
+            try:
+                deleted = ExistingAssetDisposedByProjectTbl.objects.get(pk=data['asset_id'])
+                deleted.delete(keep_parents=True)
+            except ObjectDoesNotExist:
+                pass
+            except Exception as e:
+                return Result(exception=e, error_code=609, message='Failed to removed deleted entry')
+            # TODO remove new entry if reverted to original parent
+            # TODO remove disposed entry if any, do the same thing for disposed
     except ObjectDoesNotExist as e:
         pass
-    except Exception:
+    except Exception as e:
         return Result(exception=e, error_code=605, message='Unexpected Exception')
+    finally:
+        return Result(success=True, obj=role, obj_id=data['role_id'])
     try:
-        if asset.newassetdeliveredbyprojecttbl:
-            asset.newassetdeliveredbyprojecttbl.final_project_asset_role_id_id = role.pk
-            # asset.save()
-            asset.newassetdeliveredbyprojecttbl.save() #TODO not sure which one is necessary
+        if asset.newassetdeliveredbyprojecttbl: # test to see if asset is New
+            asset.newassetdeliveredbyprojecttbl.final_project_asset_role_id_id = role.pk if role else None
+            asset.newassetdeliveredbyprojecttbl.save()
     except ObjectDoesNotExist as e:
         pass
-    except Exception:
+    except Exception as e:
         return Result(exception=e, error_code=606, message='Unexpected Exception')
-    return Result(success=True, obj=role, obj_id=data['role_id'])
+    finally:
+        return Result(success=True, obj=role, obj_id=data['role_id'])
+    return Result(error_code=607, message='Could not find asset to assign')
         
