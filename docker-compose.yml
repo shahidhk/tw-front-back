@@ -44,6 +44,7 @@ services:
       PGADMIN_LISTEN_PORT: 5555
 
   graphql-engine:
+    # release candidate 1 has performance issues seems to fill up the ram until server crashes
     image: hasura/graphql-engine:v1.0.0-beta.10
     depends_on:
       - db

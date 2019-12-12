@@ -1,5 +1,6 @@
 import csv
 import os
+import json
 from datetime import date, timedelta
 from uuid import uuid4
 
@@ -271,6 +272,7 @@ def update_hasura_schema():
     Initializes Hasura with tables and remote schema
     """
     subdomain = os.getenv('BRANCH', '')
+    json_responses = ''
     # TODO update tables, do not track change orphan view
     tables = ['change_unassigned_asset_view', 'change_view', 'dumpster_asset_view', 'dumpster_change_view', 'garbage_can_asset_view',
               'garbage_can_reconciliation_view', 'reconciliation_orphan_view', 'reconciliation_unassigned_asset_view', 'reconciliation_view', 'reservation_view']
@@ -288,9 +290,7 @@ def update_hasura_schema():
             },
             headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
         )
-        if response.json()['message'] != 'success':
-            print('Track ' + table + ' failed!')
-            print(response.json())
+        json_responses = json_responses + json.dumps(response.json())
 
     response = requests.post(
         'https://hasura.' + subdomain + '.duckdns.org/v1/query',
@@ -307,9 +307,8 @@ def update_hasura_schema():
         },
         headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
     )
-    if response.json()['message'] != 'success':
-        print('Add Remote Schema failed!')
-        print(response.json())
+    json_responses = json_responses + json.dumps(response.json())
+    return json_responses
 
 
 def clean_up_incrementers():

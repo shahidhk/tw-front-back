@@ -55,7 +55,7 @@ def init_all(request):
         User.objects.create_superuser('jma', 'jma@toronto.ca', 'tw-admin')
     clean_up_incrementers()
     update_hasura_schema()
-    return HttpResponse('Finished All Init Actions')
+    return HttpResponse(update_hasura_schema())
 
 
 def update_webapp(request):

@@ -187,10 +187,9 @@ def assign_asset_to_role_reconciliation(data, auth):
     if data['role_id'] is None or data['role_id'] == 0:
         data['role_id'] = None
     else:
-        asset = list(PreDesignReconciledAssetRecordTbl.objects.filter(
-            initial_project_asset_role_id_id=data['role_id']))
-        if len(asset) != 0:
-            return Result(message='An Asset is currently assigned to the role: ' + str(asset[0].pk), error_code=400)
+        result = check_if_asset_assigned_to_role(data['role_id'])
+        if not result.success:
+            return result
         role = ProjectAssetRoleRecordTbl.objects.get(pk=data['role_id'])
         if role.project_tbl_id != auth['group']:
             return Result(message='Role reserved by another project', error_code=401)
