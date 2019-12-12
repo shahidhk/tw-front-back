@@ -411,7 +411,7 @@ def DoesNotExistUtil(data, auth):
                 }
 
 
-def RetireAssetUtil(asset, auth):
+def RetireAssetUtil(asset, auth, exists=False):
     '''
     Retire the Asset specified and leaves an empty role
     Currently defaults to landfill, and stage(0)
@@ -437,7 +437,7 @@ def RetireAssetUtil(asset, auth):
                 existing_asset.delete()
             else:
                 existing_asset.designer_planned_action_type_tbl_id = 'b'
-                existing_asset.entity_exists = False
+                existing_asset.entity_exists = exists
                 existing_asset.save()
                 retired_asset = ExistingAssetDisposedByProjectTbl(
                     predesignreconciledassetrecordtbl_ptr=existing_asset,
@@ -463,7 +463,7 @@ def remove_asset(data, auth):
     try:
         asset = NewAssetDeliveredByProjectTbl.objects.get(pk=data['asset_id'])
     except Exception as e:
-        return RetireAssetUtil(data, auth)
+        return RetireAssetUtil(data, auth, True) # TODO cannot use this as it since it marks the asset as does not exist, pass optional parameter
     else:
         try:
             asset.delete()
