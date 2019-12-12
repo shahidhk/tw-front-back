@@ -75,7 +75,10 @@ class UpdateReconciliationUnassignedAssetView(graphene.Mutation):
             result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))  # be optimistic
             # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
             # since we need to return a list with the object we deleted we can get the object before we delete it
-            data = assign_asset_to_role_reconciliation(data, auth)
+            if _set.role_id == 3:
+                data = RetireAssetUtil(data, auth)
+            else:
+                data = assign_asset_to_role_reconciliation(data, auth)
             if data.success:
                 return UpdateReconciliationUnassignedAssetView(returning=result)
             raise GraphQLError(data.readable_message())
@@ -138,7 +141,10 @@ class UpdateChangeUnassignedAssetView(graphene.Mutation):
             result = list(UnassignedAssetsView.objects.filter(pk=where.id._eq))  # be optimistic
             # django orm queries are lazy (ie doesnt run until data is used) since data will no longer exist after we need to do something with it first
             # since we need to return a list with the object we deleted we can get the object before we delete it
-            data = assign_asset_to_role_change(data, auth)
+            if _set.role_id == 3:
+                data = remove_asset(data, auth)
+            else:
+                data = assign_asset_to_role_change(data, auth)
             if data.success:
                 return UpdateChangeUnassignedAssetView(returning=result)
             raise GraphQLError(data.readable_message())

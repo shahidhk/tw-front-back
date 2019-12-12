@@ -109,7 +109,10 @@ class UpdateReconciliationView(graphene.Mutation):
                 data = {'role_id': where.id._eq,
                         'asset_id': _set.asset_id,
                         }
-                data = assign_asset_to_role_reconciliation(data, auth)
+                if where.id._eq == 3:
+                    data = remove_reconciliation_asset(data, auth)
+                else:
+                    data = assign_asset_to_role_reconciliation(data, auth)
             else:
                 raise GraphQLError('Unimplemented')
             if data.success:
@@ -205,7 +208,10 @@ class UpdateChangeView(graphene.Mutation):
                 data = {'role_id': where.id._eq,
                         'asset_id': _set.asset_id,
                         }
-                data = assign_asset_to_role_change(data, auth)
+                if where.id._eq == 3:
+                    data = remove_asset(data, auth)
+                else:
+                    data = assign_asset_to_role_change(data, auth)
             else:
                 raise GraphQLError('Unimplemented')
             if data.success:
