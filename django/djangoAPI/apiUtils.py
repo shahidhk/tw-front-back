@@ -304,26 +304,26 @@ def unremove_role(role_id, auth):
         role.unremove(auth)
     asset = check_if_asset_assigned_to_role(role_id)
     if not asset.success:  # if an asset gets returned
-        unremove_asset(asset.pk, auth)
+        unremove_asset(asset.obj_id, auth)
 
 
 def get_asset_by_role_id(role_id):
     if role_id is None:
         return None
     try:
-        asset = NewAssetDeliveredByProjectTbl.objects.filter(final_project_asset_role_id_id=role_id)
+        asset = NewAssetDeliveredByProjectTbl.objects.get(final_project_asset_role_id_id=role_id)
     except ObjectDoesNotExist:
         pass
     else:
         return asset
     try:
-        asset = ExistingAssetMovedByProjectTbl.objects.filter(final_project_asset_role_id_id=role_id)
+        asset = ExistingAssetMovedByProjectTbl.objects.get(final_project_asset_role_id_id=role_id)
     except ObjectDoesNotExist:
         pass
     else:
         return asset
     try:
-        asset = PreDesignReconciledAssetRecordTbl.objects.filter(initial_project_asset_role_id_id=role_id)
+        asset = PreDesignReconciledAssetRecordTbl.objects.get(initial_project_asset_role_id_id=role_id)
     except ObjectDoesNotExist:
         pass
     else:
