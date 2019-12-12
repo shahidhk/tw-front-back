@@ -1,9 +1,8 @@
 import graphene
-from django.db import models
 from graphene_django.types import DjangoObjectType
 
-from djangoAPI.models import *
-from project.models import UserProjects, ProjectDetails, ConstructionPhases, ProjectType
+from djangoAPI.models import ConstructionPhaseTbl
+from project.models import UserProjects, ProjectDetails, ConstructionPhases
 
 # graphene classes using models
 
