@@ -309,6 +309,8 @@ def unremove_role(role_id, auth):
 
 
 def get_asset_by_role_id(role_id):
+    if role_id == None:
+        return None
     try:
         asset = NewAssetDeliveredByProjectTbl.objects.get(final_project_asset_role_id_id=role_id)
     except ObjectDoesNotExist:
