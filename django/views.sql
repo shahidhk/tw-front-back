@@ -614,6 +614,4 @@ select
 from
 	base_asset_view
 where
-	role_link is null
-    and designer_planned_action_type_tbl_id <> 'b' -- or this one
-	and asset_exists = true; --might not want this filters
+	role_link is null;
