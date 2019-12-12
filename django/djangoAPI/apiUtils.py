@@ -58,7 +58,8 @@ def add_missing_role_asset(role_data, change_type, auth):
         except ObjectDoesNotExist:
             return Result(success=False, error_code=200, message='Role Cannot be found')
     else:
-        role_number_obj = MasterRoleNumbersTbl.check_available(role_data['role_number'], auth['group'])
+        role_number_obj = MasterRoleNumbersTbl.check_available(
+            role_data['role_number'], auth['group'])
         if role_number_obj.success:
             try:
                 role = PreDesignReconciledRoleRecordTbl.objects.create(
@@ -81,8 +82,8 @@ def add_missing_role_asset(role_data, change_type, auth):
                 return Result(message='Failed to Create Role', exception=e, error_code=201)
         else:
             return role_number_obj
-    if change_type == 2: # if we only want a new role we are done now
-        pass # we will use the return at the end since its the same
+    if change_type == 2:  # if we only want a new role we are done now
+        pass  # we will use the return at the end since its the same
     else:
         asset = PreDesignReconciledAssetRecordTbl(
             project_tbl_id=auth['group'],
@@ -304,7 +305,7 @@ def unremove_role(role_id, auth):
     else:
         role.unremove(auth)
     asset = get_asset_by_role_id(role_id)
-    if asset: # if an asset gets returned
+    if asset:  # if an asset gets returned
         unremove_asset(asset.pk, auth)
 
 
@@ -322,7 +323,8 @@ def get_asset_by_role_id(role_id):
     else:
         return asset
     try:
-        asset = PreDesignReconciledAssetRecordTbl.objects.get(initial_project_asset_role_id_id=role_id)
+        asset = PreDesignReconciledAssetRecordTbl.objects.get(
+            initial_project_asset_role_id_id=role_id)
     except ObjectDoesNotExist:
         pass
     else:
@@ -422,7 +424,7 @@ def RetireAssetUtil(asset, auth):
     else:
         if existing_asset.project_tbl_id != auth['group']:
             return Result(message='Asset or Role reserved by another project', error_code=1001)
-        try: # remove this entry if it exists
+        try:  # remove this entry if it exists
             moved_asset = ExistingAssetMovedByProjectTbl.objects.get(pk=asset['asset_id'])
             moved_asset.delete(keep_parents=True)
         except ObjectDoesNotExist:
@@ -469,6 +471,7 @@ def remove_asset(data, auth):
             return Result(message='Cannot delete user created asset', exception=e, error_code=801)
         else:
             return Result(success=True, obj_id=None, obj=None)
+
 
 def change_role_parent(data, auth):
     '''
@@ -591,7 +594,7 @@ def add_new_role_asset(data, change_type, auth):
         if not role_number_obj.success:
             return role_number_obj
     return ChangeView.add_entity(data, change_type, auth)
-        
+
 
 def assign_asset_to_role_change(data, auth):
     # TODO consider merging with assign_asset_to_role_reconciliation(data, auth):
@@ -599,16 +602,9 @@ def assign_asset_to_role_change(data, auth):
     if data['role_id'] is None or data['role_id'] == 0:
         data['role_id'] = None
     else:
-        asset = list(PreDesignReconciledAssetRecordTbl.objects.filter(
-            initial_project_asset_role_id_id=data['role_id']))
-        if len(asset) == 0:
-            asset = list(NewAssetDeliveredByProjectTbl.objects.filter(
-                final_project_asset_role_id_id=data['role_id']))
-        if len(asset) == 0:
-            asset = list(ExistingAssetMovedByProjectTbl.objects.filter(
-                final_project_asset_role_id_id=data['role_id']))
-        if len(asset) != 0:
-            return Result(message='Another Asset is currently assigned to this role: '  + str(asset[0].asset_serial_number), error_code=600)
+        result = check_if_asset_assigned_to_role(data['role_id'])
+        if not result.success:
+            return result
         role = ProjectAssetRoleRecordTbl.objects.get(pk=data['role_id'])
         if role.project_tbl_id != auth['group']:
             return Result(message='Role reserved by another project', error_code=601)
@@ -624,8 +620,9 @@ def assign_asset_to_role_change(data, auth):
     if asset.project_tbl_id != auth['group']:
         return Result(message='Asset reserved by another project', error_code=604)
     try:
-        if asset.predesignreconciledassetrecordtbl: # test to see if asset is PreDesign
-            if asset.predesignreconciledassetrecordtbl.initial_project_asset_role_id == data['role_id']: # if reverting to original parent
+        if asset.predesignreconciledassetrecordtbl:  # test to see if asset is PreDesign
+            # if reverting to original parent
+            if asset.predesignreconciledassetrecordtbl.initial_project_asset_role_id == data['role_id']:
                 try:
                     moved = ExistingAssetMovedByProjectTbl.objects.get(pk=data['asset_id'])
                     moved.delete(keep_parents=True)
@@ -661,7 +658,7 @@ def assign_asset_to_role_change(data, auth):
     finally:
         return Result(success=True, obj=role, obj_id=data['role_id'])
     try:
-        if asset.newassetdeliveredbyprojecttbl: # test to see if asset is New
+        if asset.newassetdeliveredbyprojecttbl:  # test to see if asset is New
             asset.newassetdeliveredbyprojecttbl.final_project_asset_role_id_id = role.pk if role else None
             asset.newassetdeliveredbyprojecttbl.save()
     except ObjectDoesNotExist as e:
@@ -671,4 +668,52 @@ def assign_asset_to_role_change(data, auth):
     finally:
         return Result(success=True, obj=role, obj_id=data['role_id'])
     return Result(error_code=607, message='Could not find asset to assign')
-        
+
+
+def check_if_asset_assigned_to_role(role_id):
+    """
+    Checks to see if any asset is assigned to a role
+    Handles cases where existing asset is moved / disposed
+    """
+    existing_modified = False
+    try:
+        asset = NewAssetDeliveredByProjectTbl.objects.get(final_project_asset_role_id_id=role_id)
+    except ObjectDoesNotExist:
+        pass
+    else:
+        return Result(message='Role already has an asset assigned: ' + asset.asset_serial_number, error_code=1100)
+    try:
+        asset = ExistingAssetMovedByProjectTbl.objects.get(final_project_asset_role_id_id=role_id)
+    except ObjectDoesNotExist:
+        pass
+    else:
+        try:  # lets make sure we removed existingasset disposed properly as well
+            asset_disposed = ExistingAssetDisposedByProjectTbl.objects.get(pk=asset.pk)
+        except ObjectDoesNotExist:
+            return Result(message='Role already has an asset assigned: ' + asset.asset_serial_number, error_code=1101)
+        else:
+            return Result(message="""Cannot confirm if role is empty, due to asset existing in both ExistingAssetMoved and ExistingAssetDisposed table. Please contact support. Asset Serial Number: """ + asset.asset_serial_number, error_code=1102)
+    try:
+        asset = PreDesignReconciledAssetRecordTbl.objects.get(
+            initial_project_asset_role_id_id=role_id)
+    except ObjectDoesNotExist:
+        pass
+    else:
+        try:  # if the asset has been disposed the initial project role link is still left in PreDesignReconciled
+            asset_disposed = ExistingAssetDisposedByProjectTbl.objects.get(pk=asset.pk)
+        except ObjectDoesNotExist:
+            try:
+                asset_moved = asset.existingassetmovedbyprojecttbl
+            except ObjectDoesNotExist:
+                pass
+            else:
+                # check to see if the asset got unassigned
+                if asset_moved.final_project_asset_role_id_id == None:
+                    return Result(success=True)
+                # check to see if asset got assigned else where
+                if asset_moved.final_project_asset_role_id_id != role_id:
+                    return Result(success=True)
+            return Result(message='Role already has an asset assigned: ' + asset.asset_serial_number, error_code=1103)
+        else:
+            return Result(success=True)
+    return Result(success=True)
