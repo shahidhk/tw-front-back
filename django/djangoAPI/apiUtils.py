@@ -615,8 +615,12 @@ def check_if_asset_assigned_to_role(role_id):
         else:
             return Result(message="""Cannot confirm if role is empty, due to asset existing in both ExistingAssetMoved and ExistingAssetDisposed table. Please contact support. Asset Serial Number: """ + asset.asset_serial_number, error_code=1102)
     try:
-        asset = PreDesignReconciledAssetRecordTbl.objects.get(
-            initial_project_asset_role_id_id=role_id)
+        asset = list(PreDesignReconciledAssetRecordTbl.objects.filter(
+            initial_project_asset_role_id_id=role_id))
+        for asset_loop in asset:
+            if asset_loop.entity_exists:
+                asset = asset_loop
+                break
     except ObjectDoesNotExist:
         pass
     else:
