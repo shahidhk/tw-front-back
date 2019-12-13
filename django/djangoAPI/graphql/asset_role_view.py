@@ -69,6 +69,7 @@ class InsertReconciliationView(graphene.Mutation):
                 'role_priority': 'a',  # objects.role_priority
                 'role_criticality': 'a',  # objects.role_criticality
                 'parent_id': objects.parent,
+				'view': ReconciliationView,
             })
             if data.get('id'):  # add asset only
                 change_type = 3
@@ -101,6 +102,7 @@ class UpdateReconciliationView(graphene.Mutation):
             if not _set.parent is None:
                 data = {'role_id': where.id._eq,
                         'parent_id': _set.parent,
+						'view': ReconciliationView,
                         }
                 data = change_role_parent(data, auth)
             elif not _set.asset_id is None:
@@ -108,6 +110,7 @@ class UpdateReconciliationView(graphene.Mutation):
                 # if moving asset to unassigned assets, the role_id is 0 / None
                 data = {'role_id': where.id._eq,
                         'asset_id': _set.asset_id,
+						'view': ReconciliationView,
                         }
                 if where.id._eq == 3:
                     data = remove_reconciliation_asset(data, auth)
@@ -137,11 +140,11 @@ class DeleteReconciliationView(graphene.Mutation):
             if not auth['valid']:
                 raise GraphQLError('User / Client is not properly authenticated. Please Login.')
             if not where.id is None:  # delete role
-                data = {'role_id': where.id._eq, 'entity_exists': False, }
+                data = {'role_id': where.id._eq, 'entity_exists': False, 'view': ReconciliationView,}
                 result = ReconciliationView.objects.filter(pk=where.id._eq)
                 data = remove_reconciliation(data, auth)
             elif not where.asset_id is None:  # delete asset
-                data = {'asset_id': where.asset_id._eq, 'entity_exists': False, }
+                data = {'asset_id': where.asset_id._eq, 'entity_exists': False, 'view': ReconciliationView,}
                 result = ReconciliationView.objects.filter(asset_id=where.asset_id._eq)
                 data = remove_reconciliation_asset(data, auth)
             if data.success:
@@ -167,6 +170,7 @@ class InsertChangeView(graphene.Mutation):
                 'role_priority': 'a',  # objects.role_priority
                 'role_criticality': 'a',  # objects.role_criticality
                 'parent_id': objects.parent,
+				'view': ReconciliationView,
             })
             if data.get('id'):  # add asset only
                 change_type = 3
@@ -199,6 +203,7 @@ class UpdateChangeView(graphene.Mutation):
             elif not _set.parent is None:
                 data = {'role_id': where.id._eq,
                         'parent_id': _set.parent,
+						'view': ReconciliationView,
                         }
                 data = change_role_parent(data, auth)
             elif not _set.asset_id is None:
@@ -207,6 +212,7 @@ class UpdateChangeView(graphene.Mutation):
                 # TODO if role_id is None, this returns nothing - which is bad
                 data = {'role_id': where.id._eq,
                         'asset_id': _set.asset_id,
+						'view': ReconciliationView,
                         }
                 if where.id._eq == 3:
                     data = remove_asset(data, auth)
@@ -238,7 +244,7 @@ class DeleteChangeView(graphene.Mutation):
             elif not where.asset_id is None:  # delete asset
                 asset_id = where.asset_id._eq
                 result = ChangeView.objects.filter(pk=where.asset_id._eq)
-                data = remove_asset({'asset_id': asset_id}, auth)
+                data = remove_asset({'asset_id': asset_id, 'view': ReconciliationView,}, auth)
             if data.success:
                 data = ChangeView.objects.filter(pk=data.obj_id)
                 return DeleteChangeView(returning=(data if data else result))
