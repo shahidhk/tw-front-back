@@ -26,6 +26,7 @@ services:
       - db
 
   db:
+    # postgres 12 has a problem where multiple processes spawn and dont quit
     image: postgres:11-alpine
     restart: always
     volumes:
@@ -44,7 +45,6 @@ services:
       PGADMIN_LISTEN_PORT: 5555
 
   graphql-engine:
-    # release candidate 1 has performance issues seems to fill up the ram until server crashes
     image: hasura/graphql-engine:v1.0.0-rc.1
     depends_on:
       - db
