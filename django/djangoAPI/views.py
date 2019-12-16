@@ -60,9 +60,8 @@ def init_all(request):
 
 def update_webapp(request):
     """Fetches the Latest Build from Github"""
-    access_token = os.getenv('GITHUB_TOKEN', '7884e5f1f3d276fbc68a41dffb2d6149bde849e6')
     response = requests.get(
-        'https://api.github.com/repos/abrasher/tw-webapp/releases?access_token='+access_token,
+        'https://api.github.com/repos/CityofToronto/tw-webapp/releases',
     )
     try:
         new_url = response.json()[0]['assets'][0]['url']
@@ -71,7 +70,7 @@ def update_webapp(request):
     else:
         print(new_url)
         response = requests.get(
-            new_url+'?access_token='+access_token,
+            new_url,
             headers={'Accept': 'application/octet-stream'},
         )
         open('./webapp/release.zip.tgz', 'wb').write(response.content)
@@ -90,9 +89,8 @@ def update_webapp(request):
 
 def get_webapp(request):
     tag = request.GET.get('tag')
-    access_token = os.getenv('GITHUB_TOKEN', '7884e5f1f3d276fbc68a41dffb2d6149bde849e6')
     response = requests.get(
-        'https://api.github.com/repos/abrasher/tw-webapp/releases/tags/'+tag+'?access_token='+access_token,
+        'https://api.github.com/repos/CityofToronto/tw-webapp/releases/tags/'+tag,
     )
     try:
         new_url = response.json()['assets'][0]['url']
@@ -101,7 +99,7 @@ def get_webapp(request):
     else:
         print(new_url)
         response = requests.get(
-            new_url+'?access_token='+access_token,
+            new_url,
             headers={'Accept': 'application/octet-stream'},
         )
         open('./webapp/release.zip.tgz', 'wb').write(response.content)

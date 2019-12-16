@@ -21,7 +21,7 @@ services:
       - SQL_HOST=db
       - SQL_PORT=5432
       - DATABASE=postgres
-      - BRANCH=${DUCKDNS:?No DUCKDNS set}
+      - BRANCH=tw-webapp
     depends_on:
       - db
 
@@ -64,10 +64,10 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-      - URL=${DUCKDNS:?No DUCKDNS set}.duckdns.org
+      - URL=tw-webapp.duckdns.org
       - SUBDOMAINS=wildcard
       - VALIDATION=duckdns
-      - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
+      - DUCKDNSTOKEN=${DUCKDNS:?No DUCKDNS Token}
       - STAGING=false
     volumes:
       - webapp:/webapp
