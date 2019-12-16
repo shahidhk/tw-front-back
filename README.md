@@ -2,8 +2,15 @@
 
 This is the repo for Toronto Water's Structured Asset Management System's Backend
 
-To run this server:
-1. Set up a Ubuntu 18.04 LTS vm
+First Time Running the Server:
+1. Prerequisite
+   - Set up a Ubuntu 18.04 LTS vm
+   - Create a duckdns account and get your account token
+   - Set your token as an environmental variable by running
+   
+   `export DUCKDNS=90baa534-42be-41e3-975b-4a3b5a1b21d1`
+   
+   - Create an entry in Duckdns linking the ip address of the VM with the subdomain (tw-webapp)
 2. Install Docker + Docker Compose
    - https://docs.docker.com/v17.09/engine/installation/linux/docker-ce/ubuntu/
    - https://docs.docker.com/compose/install/
@@ -45,3 +52,14 @@ https://django.tw-webapp.duckdns.org/djangoAPI/update-app
 10. Optional: A specific release of the web client can be retrived by specifying the release tag
 
 https://django.tw-webapp.duckdns.org/djangoAPI/get-app?tag=2019.11.07-18.27.313213
+
+Updating The Server
+1. `git pull`
+2. `sudo docker-compose restart`
+
+Reseting the Server
+1. `sudo docker-compose down -v`
+2. `sudo docker-compose up -d`
+
+Remove all Docker files
+`sudo docker system prune -a`
