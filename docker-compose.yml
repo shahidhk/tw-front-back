@@ -8,6 +8,7 @@ services:
     volumes:
       - ./django/:/usr/src/django/
       - static_volume:/usr/src/django/static
+      - webapp:/usr/src/django/webapp
     expose:
       - 8000
     environment:
@@ -25,6 +26,7 @@ services:
       - db
 
   db:
+    # postgres 12 has a problem where multiple processes spawn and dont quit
     image: postgres:11-alpine
     restart: always
     volumes:
@@ -34,7 +36,7 @@ services:
 
   pgadmin:
     restart: always
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:4.16
     links:
       - db
     environment:
@@ -43,7 +45,7 @@ services:
       PGADMIN_LISTEN_PORT: 5555
 
   graphql-engine:
-    image: hasura/graphql-engine:v1.0.0-beta.8
+    image: hasura/graphql-engine:v1.0.0-rc.1
     depends_on:
       - db
     restart: always
@@ -52,14 +54,6 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       HASURA_GRAPHQL_ADMIN_SECRET: eDfGfj041tHBYkX9
-
-  # web-app is a build slave
-  web-app:
-    build: ./webapp
-    environment:
-      - "VUE_APP_URL=wss://hasura.${DUCKDNS:?No DUCKDNS set}.duckdns.org/v1/graphql"
-    volumes:
-      - webapp_build:/app/tw-webapp
 
   nginx:
     build: ./nginx
@@ -76,17 +70,17 @@ services:
       - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
       - STAGING=false
     volumes:
-      - webapp_build:/webapp
+      - webapp:/webapp
       - static_volume:/usr/src/django/static
       - /home/appdata/letsencrypt:/config
     ports:
       - 80:80
       - 443:443
     depends_on:
-      - web-app
+      - django
       - graphql-engine
 
 volumes:
-  webapp_build:
+  webapp:
   static_volume:
   postgres_data:

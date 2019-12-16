@@ -1,0 +1,77 @@
+{% load static %}
+<form id="project-details" ic-post-to="/api/save-project/{{proj.id}}/" ic-target="#detailed-holder">
+  <div class="form-header" style="display: flex; justify-content: space-between;">
+    <h1 style="margin-top: 0%;">Detailed Project Information</h1>
+    <div id="form-buttons">
+      <img id="edit-button" src=" {% static 'project/edit-5.svg' %}" alt="Edit Construction Phase"
+        style="width:2em;height:2em;margin-right:2em;cursor:pointer;" onclick="editProject(this);">
+      <img id="save-button" src="{% static 'project/save-2.svg' %}" alt="Save Construction Phase"
+        style="width:2em;height:2em;cursor:pointer;" onclick="saveProject(this);">
+    </div>
+  </div>
+  <div>
+    <label for="name">Design Project Name:</label>
+    <input type="text" id="name" name="name" value="{{proj.name}}" disabled="true" />
+  </div>
+  <div>
+    <label for="op_bus_unit">Business Unit:</label>
+    <select id="op_bus_unit" name="op_bus_unit" disabled="true">
+      {% for unit in units %}
+      <option value="{{unit.pk}}" {% if unit.name == proj.bus_unit_name %} selected {% endif %}>{{unit.name}}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="contract_number">Design Contract Number:</label>
+    <input type="text" id="contract_number" name="contract_number" value="{{proj.contract_number}}" disabled="true" />
+  </div>
+  <div>
+    <label for="project_manager">Design Project Manager:</label>
+    <input type="text" id="project_manager" name="project_manager" value="{{proj.project_manager}}" disabled="true" />
+  </div>
+  <div>
+    <label for="project_manager_email">Design Project Manager Email:</label>
+    <input type="email" id="project_manager_email" name="project_manager_email" value="{{proj.project_manager_email}}"
+      disabled="true" />
+  </div>
+  <div>
+    <label for="asset_data_steward">Asset Data Steward:</label>
+    <input type="text" id="asset_data_steward" name="asset_data_steward" value="{{proj.asset_data_steward}}"
+      disabled="true" />
+  </div>
+  <div>
+    <label for="asset_data_steward_email">Asset Data Steward Email:</label>
+    <input type="email" id="asset_data_steward_email" name="asset_data_steward_email"
+      value="{{proj.asset_data_steward_email}}" disabled="true" />
+  </div>
+  <div>
+    <label for="key_bus_unit_contract">Key Business Unit Contact:</label>
+    <input type="text" id="key_bus_unit_contract" name="key_bus_unit_contract" value="{{proj.key_bus_unit_contract}}"
+      disabled="true" />
+  </div>
+  <div>
+    <label for="key_bus_unit_contract_email">Key Business Unit Contact Email:</label>
+    <input type="email" id="key_bus_unit_contract_email" name="key_bus_unit_contract_email"
+      value="{{proj.key_bus_unit_contract_email}}" disabled="true" />
+  </div>
+  <div>
+    <label for="designer_organization_name">Designer Organization Name:</label>
+    <input type="text" id="designer_organization_name" name="designer_organization_name"
+      value="{{proj.designer_organization_name}}" disabled="true" />
+  </div>
+  <div>
+    <label for="scope_description">Project Scope Description:</label>
+    <textarea id="scope_description" name="scope_description" disabled="true">{{proj.scope_description}}</textarea>
+  </div>
+  <div>
+    <label for="start_date">Start Date:</label>
+    <input type="date" id="start_date" name="start_date" value="{{proj.start_date|date:'Y-m-d'}}" disabled="true" />
+  </div>
+  <div>
+    <label for="end_date">End Date:</label>
+    <input type="date" id="end_date" name="end_date" value="{{proj.end_date|date:'Y-m-d'}}" disabled="true" />
+  </div>
+  <div class="hidden">
+    {% csrf_token %}
+  </div>
+</form>

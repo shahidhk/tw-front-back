@@ -7,3 +7,4 @@ djangorestframework ~=3.10
 graphene-django ~=2.0
 django-request-logging ~=0.7
 sendgrid ~=6.1
+snapshottest ~=0.5

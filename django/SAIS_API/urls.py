@@ -22,9 +22,11 @@ from graphene_django.views import GraphQLView
 from djangoAPI.graphql.schema import schema
 
 urlpatterns = [
-    re_path(r'^', include('djangoAPI.apiurls')),
+    re_path(r'^', include('djangoAPI.rest.apiUrls')),
     path('admin/', admin.site.urls),
     path('djangoAPI/', include('djangoAPI.urls')),
+    path('project/', include('project.urls')),
     path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True, schema=schema))),
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

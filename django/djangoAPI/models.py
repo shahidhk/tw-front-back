@@ -1,11 +1,10 @@
+from django.contrib.auth.models import User
 from django.contrib.postgres import fields
-from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 
-from djangoAPI.value_lists import *
-from djangoAPI.enum_models import *
 from djangoAPI.utils import *
-
+from djangoAPI.value_lists import *
 
 # Field.null default = False
 # Field.blank default = False
@@ -17,24 +16,25 @@ from djangoAPI.utils import *
 
 class UserTbl(models.Model):
     '''Master Table of Users'''
-    # TODO WIP
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=100)
-    user_type = models.ForeignKey(UserType, models.PROTECT)
-    organization_name = models.CharField(max_length=400)
-    email = models.EmailField()
+    # use built in user module for first/last name, username and email
+    auth_user = models.OneToOneField(to=User, on_delete=models.PROTECT, primary_key=True)
+    role = models.ForeignKey(SystemHumanRoleTypeTbl, models.PROTECT)
+    user_group_name = models.ForeignKey(to=UserGroupNameTbl, on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'djangoAPI_UserTbl'
 
+    def get_full_name(self):
+        """
+        Returns full name of user as defined in auth_user
+        """
+        return self.auth_user.first_name + ' ' + self.auth_user.last_name
 # Project Tables
 
 
 class SuperDesignProjectTbl(models.Model):
     '''Super set of design projects'''
-    # TODO Consider dropping 'super' projectset, projectgroup
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=200)
 
     class Meta:
         db_table = 'djangoAPI_SuperDesignProjectTbl'
@@ -44,17 +44,17 @@ class DesignProjectTbl(models.Model):
     '''Table of Design Projects
     If a design project requires construction
     it will be linked to this table'''
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=200)
     super_design_project = models.ForeignKey(
         SuperDesignProjectTbl, models.PROTECT, blank=True, null=True)
     phase_number = models.IntegerField(blank=True, null=True)
-    op_bus_unit = models.ForeignKey(OperationalBusinessUnit, models.PROTECT)
-    contract_number = models.CharField(max_length=50, blank=True, null=True)
+    op_bus_unit = models.ForeignKey(BusinessUnit, models.PROTECT)
+    contract_number = models.CharField(max_length=50, blank=True, null=True, unique=True)
     planned_date_range = fields.DateRangeField(blank=True, null=True)
     budget = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
-    # TODO limited to 999B
+    # limited to 999B
     scope_description = models.TextField(blank=True, null=True)
-    # TODO not in sqldbm but there needs to be a project scope description
+    designer_organization_name = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'djangoAPI_DesignProjectTbl'
@@ -77,7 +77,7 @@ class DesignStageTbl(models.Model):
     planned_date_range = fields.DateRangeField()
 
     class Meta:
-        db_table = 'djangoAPI_DesignPhaseTbl'
+        db_table = 'djangoAPI_DesignStageTbl'
 
 
 class ConstructionPhaseTbl(models.Model):
@@ -85,12 +85,12 @@ class ConstructionPhaseTbl(models.Model):
     name = models.CharField(max_length=200)
     design_project = models.ForeignKey(DesignProjectTbl, models.SET_NULL, blank=True, null=True)
     phase_number = models.BigIntegerField(blank=True, null=True)
-    op_bus_unit = models.ForeignKey(OperationalBusinessUnit, models.PROTECT)
-    contract_number = models.CharField(max_length=50, blank=True, null=True)
+    op_bus_unit = models.ForeignKey(BusinessUnit, models.PROTECT)
+    contract_number = models.CharField(max_length=50, blank=True, null=True, unique=True)
     budget = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
     planned_date_range = fields.DateRangeField(blank=True, null=True)
     scope_description = models.TextField()
-    # TODO same concerns as designprojecttbl
+    constructor_organization_name = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'djangoAPI_ConstructionPhaseTbl'
@@ -158,9 +158,7 @@ class MasterRoleNumbersTbl(models.Model):
                 return Result(error_code=12, message='Role Number already reserved by another project')
             if list(ProjectAssetRoleRecordTbl.objects.filter(updatable_role_number_id=number.pk)):
                 return Result(error_code=13, message='Role Number is already in use')
-        finally:
-            return Result(success=True, obj=number)
-
+        return Result(success=True, obj=number)
 
 
 class ClonedAssetAndRoleInRegistryTbl(models.Model):
@@ -171,7 +169,7 @@ class ClonedAssetAndRoleInRegistryTbl(models.Model):
     role_name = models.CharField(verbose_name="Entity Name", max_length=200)
     parent_role_number = models.CharField(
         verbose_name="Parent Number", max_length=25, null=True, blank=True)
-    # TODO bad practise to allow nulls for strings (default is empty string)
+    # TODO bad practice to allow nulls for strings (default is empty string)
     role_location = models.CharField(
         verbose_name="Location", max_length=200, null=True, blank=True)
     role_criticality = models.BigIntegerField(
@@ -223,15 +221,17 @@ class UserAccessLinkTbl(models.Model):
 
 
 class AccessProfileDefinitionTbl(models.Model):
-    profile = models.ForeignKey(AccessProfileTbl, models.CASCADE)
     db_table = models.ForeignKey(DBTbls, models.PROTECT)
-    view = models.BooleanField()
-    update = models.BooleanField()
-    add = models.BooleanField()
-    delete = models.BooleanField()
+    role = models.ForeignKey(to=AllHumanRoleTypeTbl, on_delete=models.PROTECT)
+    permission_to_view = models.BooleanField()
+    permission_to_update = models.BooleanField()
 
     class Meta:
         db_table = 'djangoAPI_AccessProfileDefinitionTbl'
+        constraints = [
+            models.UniqueConstraint(fields=['db_table', 'role'],
+                                    name='one_permission_for_each_table_and_role_pair')
+        ]
 
 
 class UserProjectLinkTbl(models.Model):
@@ -256,12 +256,28 @@ class ProjectAssetRoleRecordTbl(models.Model):
     role_priority = models.ForeignKey(RolePriority, models.PROTECT)
     project_tbl = models.ForeignKey(DesignProjectTbl, on_delete=models.PROTECT, null=True)
     approved = models.BooleanField(default=False)
-    # to impliment ltree, since the type isnt correctly this table will be unmanaged
+    # to implement ltree, since the type isn't correctly this table will be unmanaged
     ltree_path = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'djangoAPI_ProjectAssetRoleRecordTbl'
+
+    def unremove(self, auth):
+        if self.project_tbl_id != auth['group']:
+            return Result(error_code=1, message='Role Reserved by Another Project')
+        if not self.approved:
+            return Result(error_code=2, message='Role Reservation not Approved')
+        try:
+            self.predesignreconciledrolerecordtbl.entity_exists = True
+            self.save()
+        except Exception:
+            pass
+        try:
+            self.predesignreconciledrolerecordtbl.existingroledisposedbyproject.delete(keep_parents=True)
+        except Exception:
+            pass
+        return Result(success=True) # we can probably assume it worked
 
 
 class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
@@ -276,7 +292,7 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledRoleRecordTbl'
 
-    def remove_reconciliation(self, project_id, entity_exists):
+    def remove_reconciliation(self, project_id):
         """
         marks existing roles as does not exist
         deletes user added roles
@@ -286,15 +302,39 @@ class PreDesignReconciledRoleRecordTbl(ProjectAssetRoleRecordTbl):
         if not self.approved:
             return Result(error_code=2, message='Role Reservation not Approved')
         try:
-            if self.missing_from_registry and not entity_exists:
+            if self.missing_from_registry:
                 self.delete()
             else:
-                self.entity_exists = entity_exists
+                self.entity_exists = False
                 self.save()
         except Exception as e:
             return Result(success=False, error_code=3, message='Failed to Change Role Information', exception=e)
         return Result(success=True, obj_id=self.pk)
 
+    def remove_change(self, project_id):
+        """
+        Adds entry in ExistingRoleDisposedByProject
+        """
+        if self.project_tbl_id != project_id:
+            return Result(error_code=27, message='Role Reserved by Another Project')
+        if not self.approved:
+            return Result(error_code=28, message='Role Reservation not Approved')
+        try:
+            retired_role = ExistingRoleDisposedByProject(
+                predesignreconciledrolerecordtbl_ptr=self,
+                disposed=True,
+            )
+            retired_role.save_base(raw=True)
+        except Exception as e:
+            return Result(success=False, error_code=29, message='Failed to Change Role Information', exception=e)
+        return Result(success=True, obj_id=self.pk)
+
+class ExistingRoleDisposedByProject(PreDesignReconciledRoleRecordTbl):
+    disposed = models.BooleanField(null=True, blank=True)
+    # pretty much a placeholder field
+
+    class Meta:
+        db_table = 'djangoAPI_ExistingRoleDisposedByProject'
 
 class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
     new_role = models.BooleanField()
@@ -302,9 +342,44 @@ class NewProjectAssetRoleTbl(ProjectAssetRoleRecordTbl):
     class Meta:
         db_table = 'djangoAPI_NewProjectAssetRoleTbl'
 
+    def remove_change(self, project_id):
+        """
+        deletes new roles
+        """
+        if self.project_tbl_id != project_id:
+            return Result(error_code=19, message='Role Reserved by Another Project')
+        if not self.approved:
+            return Result(error_code=20, message='Role Reservation not Approved')
+        try:
+            self.delete()
+        except Exception as e:
+            return Result(success=False, error_code=21, message='Failed to Delete Role', exception=e)
+        return Result(success=True, obj_id=self.pk)
+
+    @staticmethod
+    def add(data, project_id):
+        """
+        """
+        role_number = MasterRoleNumbersTbl.objects.get(role_number=data['role_number'])
+        role = NewProjectAssetRoleTbl(
+            parent_id_id=data['parent'],
+            updatable_role_number=role_number,
+            role_name=data['role_name'],
+            role_spatial_site_id_id=1,#TODO
+            role_criticality_id='a',
+            role_priority_id='a',
+            project_tbl_id=project_id,
+            approved=True,
+            new_role=True,
+        )
+        try:
+            role.save()
+        except Exception as e:
+            return Result(success=False, error_code=24, message='Failed to Create New Role', exception=e)
+        return Result(success=True, obj_id=role.pk, obj=role)
+
+
 # Asset Tables
-
-
 class ProjectAssetRecordTbl(models.Model):
     '''Master Table of All Assets'''
     project_tbl = models.ForeignKey(
@@ -315,6 +390,19 @@ class ProjectAssetRecordTbl(models.Model):
     class Meta:
         db_table = 'djangoAPI_ProjectAssetRecordTbl'
 
+    def unremove(self, auth):
+        if self.project_tbl_id != auth['group']:
+            return Result(error_code=1, message='Role Reserved by Another Project')
+        try:
+            self.predesignreconciledassetrecordtbl.entity_exists = True
+            self.save()
+        except Exception:
+            pass
+        try:
+            self.predesignreconciledassetrecordtbl.existingassetdisposedbyproject.delete(keep_parents=True)
+        except Exception:
+            pass
+        return Result(success=True) # we can probably assume it worked
 
 class AssetClassificationTbl(models.Model):
     '''List of all Classifications given to an asset'''
@@ -341,7 +429,7 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
     class Meta:
         db_table = 'djangoAPI_PreDesignReconciledAssetRecordTbl'
 
-    def remove_reconciliation(self, project_id, entity_exists):
+    def remove_reconciliation(self, project_id):
         """
         Marks existing asset as non-existant
         removes user created asset 
@@ -349,20 +437,36 @@ class PreDesignReconciledAssetRecordTbl(ProjectAssetRecordTbl):
         if self.project_tbl_id != project_id:
             return Result(success=False, error_code=4, message='Asset Reserved by Another Project')
         try:
-            if self.missing_from_registry and not entity_exists:
+            if self.missing_from_registry:
                 self.delete()
             else:
-                self.entity_exists = entity_exists
+                self.entity_exists = False
                 self.save()
         except Exception as e:
             return Result(success=False, error_code=5, message='Failed to Change Asset Information', exception=e)
+        return Result(success=True, obj_id=self.pk)
+
+    def remove_change(self, project_id):
+        """
+        Adds entry in ExistingAssetDisposedByProject
+        """
+        if self.project_tbl_id != project_id:
+            return Result(success=False, error_code=22, message='Asset Reserved by Another Project')
+        try:
+            retired_asset = ExistingAssetDisposedByProjectTbl(
+                predesignreconciledassetrecordtbl_ptr=self,
+                uninstallation_stage_id=1, #TODO
+            )
+            retired_asset.save_base(raw=True)
+        except Exception as e:
+            return Result(success=False, error_code=23, message='Failed to Change Asset Information', exception=e)
         return Result(success=True, obj_id=self.pk)
 
 
 class ExistingAssetMovedByProjectTbl(PreDesignReconciledAssetRecordTbl):
     '''Assets that will need to be moved to a new role'''
     final_project_asset_role_id = models.ForeignKey(
-        ProjectAssetRoleRecordTbl, models.PROTECT)
+        ProjectAssetRoleRecordTbl, models.SET_NULL, null=True)
     uninstallation_stage = models.ForeignKey(
         ConstructionStageTbl, models.PROTECT, 'uninstall_stage')
     installation_stage = models.ForeignKey(
@@ -384,13 +488,40 @@ class ExistingAssetDisposedByProjectTbl(PreDesignReconciledAssetRecordTbl):
 class NewAssetDeliveredByProjectTbl(ProjectAssetRecordTbl):
     '''New Assets'''
     final_project_asset_role_id = models.ForeignKey(
-        ProjectAssetRoleRecordTbl, models.PROTECT)
+        ProjectAssetRoleRecordTbl, models.SET_NULL, null=True, blank=True)
     installation_stage = models.ForeignKey(
-        ConstructionStageTbl, models.PROTECT)
+        ConstructionStageTbl, models.SET_NULL, null=True, blank=True)
 
     class Meta:
         db_table = 'djangoAPI_NewAssetDeliveredByProjectTbl'
 
+    def remove_change(self, project_id):
+        """
+        Removes self
+        """
+        if self.project_tbl_id != project_id:
+            return Result(success=False, error_code=14, message='Asset Reserved by Another Project')
+        try:
+            self.delete()
+        except Exception as e:
+            return Result(success=False, error_code=15, message='Failed to Delete Asset', exception=e)
+        return Result(success=True, obj_id=self.pk)
+
+    @staticmethod
+    def add(data, project_id, role_id):
+        """
+        """
+        asset = NewAssetDeliveredByProjectTbl(
+            project_tbl_id=project_id,
+            asset_serial_number=data['asset_serial_number'],
+            final_project_asset_role_id_id=role_id,
+            installation_stage_id=1, #TODO
+        )
+        try:
+            asset.save()
+        except Exception as e:
+            return Result(success=False, error_code=26, message='Failed to Create New Asset', exception=e)
+        return Result(success=True, obj_id=asset.pk, obj=asset)
 
 # Views
 class ReconciliationView(models.Model):
@@ -398,32 +529,29 @@ class ReconciliationView(models.Model):
     id = models.IntegerField(primary_key=True)
     role_number = models.TextField(null=True)
     role_name = models.TextField(null=True)
-    # TODO try setting this to a FK to get a relation
     parent = models.IntegerField(null=True)
     project_id = models.IntegerField(null=True)
     role_exists = models.BooleanField(null=True)
     role_missing_from_registry = models.BooleanField(null=True)
     full_path = models.TextField(null=True)
     parent_changed = models.BooleanField(null=True)
+    approved = models.BooleanField(null=True)
+    role_new = models.BooleanField(null=True)
+    role_disposed = models.BooleanField(null=True)
     asset_id = models.IntegerField(null=True)
     asset_serial_number = models.TextField(null=True)
-    asset_exists = models.BooleanField(null=True)
-    asset_missing_from_registry = models.BooleanField(null=True)
+    designer_planned_action_type_tbl_id = models.TextField(null=True)
     role_changed = models.BooleanField(null=True)
-    approved = models.BooleanField(null=True)
+    role_link = models.IntegerField(null=True)
+    installation_stage_id = models.IntegerField(null=True)
+    uninstallation_stage_id = models.IntegerField(null=True)
+    asset_new = models.BooleanField(null=True)
+    asset_exists = models.BooleanField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)    
 
     class Meta:
         managed = False
-        db_table = "reconciliation_view_temp"
-
-    @staticmethod
-    def fixed_ltree(pk):
-        '''retrives list of objects with fixed ltree'''
-        lst = list(ReconciliationView.objects.filter(pk=pk))
-        for l in lst:
-            i = l.full_path.index('.')
-            l.full_path = l.full_path[i+1:]
-        return lst
+        db_table = "reconciliation_view"
 
     def remove_entity(self, project_id, exists):
         """
@@ -458,15 +586,22 @@ class ReconciliationView(models.Model):
 
 class UnassignedAssetsView(models.Model):
     '''Read Only model using data from unassigned_assets'''
-    # TODO this probably does not need to be a view, a filter probably works
     id = models.IntegerField(primary_key=True)
     asset_serial_number = models.TextField(null=True)
-    asset_missing_from_registry = models.BooleanField(null=True)
     project_id = models.IntegerField(null=True)
-
+    designer_planned_action_type_tbl_id = models.TextField(null=True)
+    role_changed = models.BooleanField(null=True)
+    role_link = models.IntegerField(null=True)
+    installation_stage_id = models.IntegerField(null=True)
+    uninstallation_stage_id = models.IntegerField(null=True)
+    asset_exists = models.BooleanField(null=True)
+    asset_new = models.BooleanField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)
+    
     class Meta:
         managed = False
-        db_table = "unassigned_assets"
+        db_table = "general_unassigned_asset_view"
+        # both unassigned assets come from this view, so this will guarantee that we get something back
 
 
 class ReservationView(models.Model):
@@ -520,3 +655,150 @@ class ReservationView(models.Model):
             return Result(success=False, message='Cannot change reservation', exception=e, error_code=11)
         else:
             return Result(success=True, obj_id=key)
+
+
+class ChangeView(models.Model):
+    """
+    Read only model using data from change_view
+    """
+    id = models.IntegerField(primary_key=True)
+    role_number = models.TextField(null=True)
+    role_name = models.TextField(null=True)
+    parent = models.IntegerField(null=True)
+    project_id = models.IntegerField(null=True)
+    role_exists = models.BooleanField(null=True)
+    role_missing_from_registry = models.BooleanField(null=True)
+    full_path = models.TextField(null=True)
+    parent_changed = models.BooleanField(null=True)
+    approved = models.BooleanField(null=True)
+    role_new = models.BooleanField(null=True)
+    role_disposed = models.BooleanField(null=True)
+    asset_id = models.IntegerField(null=True)
+    asset_serial_number = models.TextField(null=True)
+    designer_planned_action_type_tbl_id = models.TextField(null=True)
+    role_changed = models.BooleanField(null=True)
+    role_link = models.IntegerField(null=True)
+    installation_stage_id = models.IntegerField(null=True)
+    uninstallation_stage_id = models.IntegerField(null=True)
+    asset_new = models.BooleanField(null=True)
+    asset_exists = models.BooleanField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)    
+
+    class Meta:
+        managed = False
+        db_table = "change_view"
+
+    def remove_entity(self, project_id):
+        """
+        Calls removal functions depending on if they are prexisting or new
+        can only remove
+        """
+        new_role = self.role_new
+        new_asset = self.asset_new
+        role_id = self.pk
+
+        if new_asset:
+            try:
+                asset = NewAssetDeliveredByProjectTbl.objects.get(
+                    final_project_asset_role_id_id=role_id)
+            except ObjectDoesNotExist as e:
+                asset = None
+        else:
+            try:
+                asset = PreDesignReconciledAssetRecordTbl.objects.get(
+                    initial_project_asset_role_id_id=role_id)
+            except ObjectDoesNotExist as e:
+                asset = None
+        if asset:
+            result = asset.remove_change(project_id)
+            if not result.success:
+                return result
+
+        if new_role:
+            try:
+                role = NewProjectAssetRoleTbl.objects.get(pk=role_id)
+            except ObjectDoesNotExist as e:
+                return Result(success=False, error_code=16, message='Role Cannot be found')
+        else:
+            try:
+                role = PreDesignReconciledRoleRecordTbl.objects.get(pk=role_id)
+            except ObjectDoesNotExist as e:
+                return Result(success=False, error_code=17, message='Role Cannot be found')
+        child_roles = list(ProjectAssetRoleRecordTbl.objects.filter(parent_id_id=role_id))
+        if child_roles:
+            try:
+                for child in child_roles:
+                    child.parent_id_id = 2
+                    child.save()
+            except Exception as e:
+                return Result(success=False, error_code=18, message='Failed to Orphan Children of role', exception=e)
+        return role.remove_change(project_id)
+
+    @staticmethod
+    def add_entity(data, add_type, auth):
+        """
+        Data is a dictionary of inputs
+
+        add_type:
+        1 - Add both new asset and role
+        2 - add role with no asset (for associating with an existing asset)
+        3 - add asset to a role (for associating to an existing role)
+        """
+        if add_type == 3: # retrive the role if we are using an existing role
+            try:
+                role = ProjectAssetRoleRecordTbl.objects.get(pk=data['id'])
+            except ObjectDoesNotExist:
+                return Result(success=False, error_code=25, message='Role Cannot be found')
+        else: # or create new role for other cases
+            role = NewProjectAssetRoleTbl.add(data, auth['group'])
+            if role.success:
+                role = role.obj
+            else:
+                return role
+        if add_type == 2: # if only want new role we are done here
+            pass
+        else: # need to create new asset
+            asset = NewAssetDeliveredByProjectTbl.add(data, auth['group'], role.pk)
+            if not asset.success:
+                return asset
+        return Result(success=True, obj_id=role.pk, obj=role)
+
+class JoinedRoleAssetView(models.Model):
+    '''Read only model using data from reconciliation_view'''
+    id = models.IntegerField(primary_key=True)
+    role_number = models.TextField(null=True)
+    role_name = models.TextField(null=True)
+    parent = models.IntegerField(null=True)
+    project_id = models.IntegerField(null=True)
+    role_exists = models.BooleanField(null=True)
+    role_missing_from_registry = models.BooleanField(null=True)
+    full_path = models.TextField(null=True)
+    parent_changed = models.BooleanField(null=True)
+    approved = models.BooleanField(null=True)
+    role_new = models.BooleanField(null=True)
+    role_disposed = models.BooleanField(null=True)
+    asset_id = models.IntegerField(null=True)
+    asset_serial_number = models.TextField(null=True)
+    designer_planned_action_type_tbl_id = models.TextField(null=True)
+    role_changed = models.BooleanField(null=True)
+    role_link = models.IntegerField(null=True)
+    installation_stage_id = models.IntegerField(null=True)
+    uninstallation_stage_id = models.IntegerField(null=True)
+    asset_new = models.BooleanField(null=True)
+    asset_exists = models.BooleanField(null=True)
+    asset_missing_from_registry = models.BooleanField(null=True)    
+
+    class Meta:
+        managed = False
+        db_table = "joined_role_asset"
+
+    @staticmethod
+    def fixed_ltree(pk):
+        """
+        retrives list of objects but removes the state from the ltree
+        """
+        lst = list(JoinedRoleAssetView.objects.filter(pk=pk))
+        for item in lst:
+            i = item.full_path.index('.')
+            item.full_path = item.full_path[i+1:]
+        return lst

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% block title %}<title>SAIS: Toronto Water: Project Management</title>{% endblock %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'project/favicon-32x32.png' %}" sizes="32x32">
+    <!-- Add additional CSS in static file-->
+    <link rel="stylesheet" href="{% static 'project/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+    <script type="text/javascript" src="{% static 'project/js/jquery-3.4.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'project/js/intercooler-1.2.2.js' %}"></script>
+    <script type="text/javascript" src="{% static 'project/js/common.js' %}"></script>
+    <script type="text/javascript" src="{% static 'project/js/jquery.blockUI.js' %}"></script>
+</head>
+
+<body>
+    <header>
+        <img id='logo' src="{% static 'project/toronto-water-white-468.gif' %}" alt="Toronto Water Logo"></img>
+        <h1>Asset Information Service</h1>
+        <div class='login-div'>
+            {% if user.is_authenticated %}
+            <p>Welcome: {{ user.get_username }}</p>
+            <a href="{% url 'logout'%}">
+                <p>Logout</p>
+            </a>
+            {% else %}
+            <a href="{% url 'login'%}">
+                <p>Login</p>
+            </a>
+            {% endif %}
+        </div>
+    </header>
+    <div class="content">
+        <div id="sidebar">
+            {% block sidebar %}
+            <!-- stuff that sits in the sidebar, different info is shown based on logged in status -->
+            <div class="sidebar-nav">
+                <a href="{% url 'project-home' %}">
+                    <p>Home</p>
+                </a>
+            </div>
+            {% endblock %}
+        </div>
+        <div id="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    <footer>
+        <p class='inline-block'>© Toronto Water: Water Infrastructure Management 2019</p>
+    </footer>
+</body>
+
+</html>

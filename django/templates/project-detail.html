@@ -1,0 +1,13 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+<div id="detailed-holder">
+  {% include "blocks/design-detailed.html" %}
+</div>
+
+<form id="table-holder">
+  {% include "blocks/construction-phases.html" %}
+</form>
+
+<div id="form-holder" style="visibility: hidden;">
+</div>
+
+{% endblock %}

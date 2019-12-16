@@ -1,0 +1,27 @@
+{% load static %}
+<div id="form-header" style="display: flex; justify-content: space-between;">
+  <h2 style="margin-top: 0%;">Project Construction Phases</h2>
+  <div id="form-buttons">
+    <img id="add-button" src="{% static 'project/plus-6.svg' %}" alt="Add Construction Phase"
+      style="width:2em;height:2em;cursor:pointer;" ic-on-success="addPhase(this);" onclick="unHideForm(this);"
+      ic-get-from="/api/construction-detailed/0/" ic-target="#form-holder">
+  </div>
+</div>
+
+<table class="phases" id="project-phases" style="margin-bottom: 2em;">
+  <tr class="header">
+    <td>Phase Number</td>
+    <td>Phase Name</td>
+    <td>Phase Contract Number</td>
+    <td>Phase Scope Description</td>
+  </tr>
+  {% for phase in phases %}
+  <tr class="data" id="phase-{{phase.id}}" onclick="unHideForm(this);"
+    ic-get-from="/api/construction-detailed/{{phase.id}}/" ic-target="#form-holder">
+    <td>{{phase.id}}</td>
+    <td id="name">{{phase.name}}</td>
+    <td id="number">{{phase.contract_number}}</td>
+    <td id="description">{{phase.scope_description}}</td>
+  </tr>
+  {% endfor %}
+</table>
