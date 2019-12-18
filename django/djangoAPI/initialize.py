@@ -290,7 +290,7 @@ def update_hasura_schema():
             },
             headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
         )
-        json_responses = json_responses + json.dumps(response.json())
+        json_responses = json_responses + '\n' + json.dumps(response.json())
 
     response = requests.post(
         'https://hasura.' + subdomain + '.duckdns.org/v1/query',
@@ -307,7 +307,7 @@ def update_hasura_schema():
         },
         headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
     )
-    json_responses = json_responses + json.dumps(response.json())
+    json_responses = json_responses + '\n' + json.dumps(response.json())
     return json_responses
 
 
