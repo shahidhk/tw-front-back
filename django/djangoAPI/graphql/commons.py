@@ -1,5 +1,6 @@
 import graphene
 import requests
+import os
 from django.db import models
 # classes for inputs
 
@@ -30,9 +31,10 @@ class QueryTypeCache(models.Model):
         """
         if entry does not exist update the db
         """
+        subdomain = os.getenv('BRANCH', 'tw-webapp')
         query = "{ __schema { queryType { name description fields { name type { kind name ofType { name kind ofType { ofType { name } } } } } } } } "
         response = requests.post(
-            'https://hasura.tw-webapp-next.duckdns.org/v1/graphql',
+            'https://hasura.' + subdomain + '.duckdns.org/v1/graphql',
             json={'query': query},
             headers={'x-hasura-admin-secret': 'eDfGfj041tHBYkX9'}
         )

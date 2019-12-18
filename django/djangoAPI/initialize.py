@@ -271,7 +271,7 @@ def update_hasura_schema():
     """
     Initializes Hasura with tables and remote schema
     """
-    subdomain = os.getenv('BRANCH', '')
+    subdomain = os.getenv('BRANCH', 'tw-webapp')
     json_responses = ''
     # TODO update tables, do not track change orphan view
     tables = ['change_unassigned_asset_view', 'change_view', 'dumpster_asset_view', 'dumpster_change_view', 'garbage_can_asset_view',
