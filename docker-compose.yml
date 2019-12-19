@@ -17,7 +17,7 @@ services:
       - SQL_ENGINE=django.db.backends.postgresql
       - SQL_DATABASE=postgres
       - SQL_USER=postgres
-      - SQL_PASSWORD=NGNvarvpZIpa8R88
+      - SQL_PASSWORD=${POSTGRES_PASSWORD}
       - SQL_HOST=db
       - SQL_PORT=5432
       - DATABASE=postgres
@@ -32,7 +32,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      POSTGRES_PASSWORD: NGNvarvpZIpa8R88
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
   pgadmin:
     restart: always
@@ -40,8 +40,8 @@ services:
     links:
       - db
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.ca
-      PGADMIN_DEFAULT_PASSWORD: Hl8q5XmFN2yV1VLU
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
       PGADMIN_LISTEN_PORT: 5555
 
   graphql-engine:
@@ -50,10 +50,10 @@ services:
       - db
     restart: always
     environment:
-      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:NGNvarvpZIpa8R88@db:5432/postgres
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
-      HASURA_GRAPHQL_ADMIN_SECRET: eDfGfj041tHBYkX9
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_ADMIN_SECRET}
 
   nginx:
     build: ./nginx
@@ -67,7 +67,7 @@ services:
       - URL=tw-webapp.duckdns.org
       - SUBDOMAINS=wildcard
       - VALIDATION=duckdns
-      - DUCKDNSTOKEN=90baa534-42be-41e3-975b-4a3b5a1b21d1
+      - DUCKDNSTOKEN=${DUCKDNS_TOKEN}
       - STAGING=false
     volumes:
       - webapp:/webapp

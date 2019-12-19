@@ -31,6 +31,10 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 5. Start the server via docker-compose
 
+`cp dotenv .env`
+
+add the secrets to this file
+
 `sudo docker-compose up -d`
 
 6. Replace the default nginx config file 

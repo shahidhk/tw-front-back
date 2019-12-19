@@ -1,0 +1,8 @@
+POSTGRES_PASSWORD=randomstring
+
+PGADMIN_EMAIL=admin@admin.ca
+PGADMIN_PASSWORD=randomstring
+
+HASURA_ADMIN_SECRET=randomstring
+
+DUCKDNS_TOKEN=randomstring
